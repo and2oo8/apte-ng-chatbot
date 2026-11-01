@@ -125,17 +125,11 @@
     <!-- Left: Official valucon Logo & Title -->
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-3 cursor-pointer">
-        <!-- SVG Vector Logo valucon -->
-        <svg class="h-8 w-auto" viewBox="0 0 220 50" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="valucon apps Logo">
-          <!-- Logo Icon (Geometric V Icon) -->
-          <g id="valucon-mark">
-            <path d="M10 6L24 38L38 6H28.5L24 18.5L19.5 6H10Z" fill="#8C2230"/>
-            <path d="M24 38L31.5 21L38 6H31.5L24 23.5L21 16.5L17.5 23.5L24 38Z" fill="#6B1A24" opacity="0.85"/>
-            <circle cx="24" cy="42" r="3" fill="#8C2230"/>
-          </g>
+        <!-- SVG Vector Logo valucon (Clean Wordmark) -->
+        <svg class="h-8 w-auto" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="valucon apps Logo">
           <!-- Logo Wordmark (valucon apps) -->
-          <text x="48" y="32" font-family="Inter, sans-serif" font-size="24" font-weight="900" letter-spacing="-0.04em" fill="#0F172A">valucon</text>
-          <text x="146" y="32" font-family="Inter, sans-serif" font-size="13" font-weight="600" letter-spacing="-0.01em" fill="#8C2230">apps</text>
+          <text x="0" y="28" font-family="Inter, sans-serif" font-size="26" font-weight="900" letter-spacing="-0.04em" fill="#0F172A">valucon</text>
+          <text x="108" y="28" font-family="Inter, sans-serif" font-size="14" font-weight="600" letter-spacing="-0.01em" fill="#8C2230">apps</text>
         </svg>
       </div>
       
@@ -178,8 +172,8 @@
           <div class="mt-3 flex flex-wrap gap-2 text-xs">
             <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wo stelle ich die Abgabeperiode ein?</button>
             <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie erstelle ich eine Datenansicht?</button>
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie funktioniert die Matching-Engine?</button>
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Welche REST-API Endpunkte gibt es?</button>
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie erstelle ich eine Statistikmeldung?</button>
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie nutze ich die Nachreichefunktion?</button>
           </div>
         </div>
 
@@ -270,6 +264,26 @@
             <span class="block text-[10px] font-semibold text-slate-400 uppercase">UMFANG</span>
             <span id="docStatsDisplay" class="font-bold text-slate-800 block mt-0.5">52 Abschnitte · ~26.400 Wörter</span>
           </div>
+        </div>
+      </div>
+
+      <!-- GEMINI API KEY CONFIGURATION (SAFE FOR GITHUB PAGES) -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">GEMINI API KEY (LOKAL GESPEICHERT)</label>
+        <div class="space-y-2">
+          <div class="flex gap-2">
+            <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="flex-1 text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-bordeaux">
+            <button id="saveApiKeyBtn" class="px-3 py-1.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow shrink-0">
+              Speichern
+            </button>
+          </div>
+          <div id="apiKeyStatusDisplay" class="text-[11px] flex items-center justify-between">
+            <span class="text-slate-500">Status:</span>
+            <span id="apiKeyStatusText" class="font-bold text-amber-600">⚡ Offline-Modus (Lokales BM25)</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-normal">
+            Der API-Key wird nur lokal in Ihrem Browser (localStorage) gesichert und nicht im GitHub-Repository gespeichert.
+          </p>
         </div>
       </div>
 
@@ -976,11 +990,12 @@
       chunks: [...DEFAULT_DOC_CHUNKS],
       documentName: DEFAULT_MD_FILENAME,
       strictMode: true,
-      matchThreshold: 3.5,
+      matchThreshold: 2.5,
       isLoading: false,
       isAdmin: false,
       adminPassword: 'admin',
-      bm25Engine: null
+      bm25Engine: null,
+      geminiApiKey: localStorage.getItem('apte_gemini_api_key') || ''
     };
 
     // DOM ELEMENTS
@@ -1011,6 +1026,10 @@
     const thresholdValueDisplay = document.getElementById('thresholdValueDisplay');
     const chunkSearchInput = document.getElementById('chunkSearchInput');
     const chunkPreviewList = document.getElementById('chunkPreviewList');
+
+    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const apiKeyStatusText = document.getElementById('apiKeyStatusText');
     
     const adminLoginModal = document.getElementById('adminLoginModal');
     const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
@@ -1027,6 +1046,8 @@
       const totalWords = state.chunks.reduce((acc, c) => acc + (c.text ? c.text.split(/\s+/).length : 0), 0);
       if (docNameDisplay) docNameDisplay.textContent = state.documentName;
       if (docStatsDisplay) docStatsDisplay.textContent = `${state.chunks.length} Abschnitte · ~${totalWords.toLocaleString('de-DE')} Wörter`;
+      
+      updateApiKeyUI();
       renderChunkInspector();
     }
 
@@ -1036,6 +1057,7 @@
       toastMsg.textContent = msg;
       toast.classList.remove('translate-y-20', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
+      
       if (toastTimeout) clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
@@ -1043,36 +1065,66 @@
       }, 3000);
     }
 
-    function renderChunkInspector(filter = '') {
+    function renderChunkInspector(filterText = '') {
       if (!chunkPreviewList) return;
+      const filter = filterText.toLowerCase().trim();
       chunkPreviewList.innerHTML = '';
-      const filterLower = filter.toLowerCase();
-      
-      const filtered = state.chunks.filter(c => 
-        !filter || (c.title && c.title.toLowerCase().includes(filterLower)) || (c.text && c.text.toLowerCase().includes(filterLower))
-      );
+
+      const filtered = state.chunks.filter(c => {
+        if (!filter) return true;
+        return (c.title && c.title.toLowerCase().includes(filter)) ||
+               (c.chapter && c.chapter.toLowerCase().includes(filter)) ||
+               (c.text && c.text.toLowerCase().includes(filter));
+      });
 
       if (filtered.length === 0) {
-        chunkPreviewList.innerHTML = `<div class="text-xs text-slate-400 p-2 italic">Keine Abschnitte gefunden</div>`;
+        chunkPreviewList.innerHTML = `<div class="text-xs text-slate-400 p-2 italic">Keine Abschnitte gefunden.</div>`;
         return;
       }
 
-      filtered.forEach(chunk => {
-        const div = document.createElement('div');
-        div.className = "p-2 bg-white border border-slate-200 rounded text-xs hover:border-bordeaux transition cursor-pointer mb-1.5";
-        div.innerHTML = `
-          <div class="flex items-center justify-between font-bold text-slate-800 text-[11px] mb-1">
-            <span class="truncate max-w-[200px]">${escapeHtml(chunk.title)}</span>
-            <span class="text-[10px] text-slate-400 font-mono">S. ${chunk.page || '?'}</span>
+      filtered.forEach((chunk) => {
+        const item = document.createElement('div');
+        item.className = 'bg-white border border-slate-200 rounded p-2 text-xs space-y-1 shadow-sm';
+        item.innerHTML = `
+          <div class="flex items-center justify-between font-bold text-slate-800">
+            <span class="truncate max-w-[200px]" title="${escapeHtml(chunk.title)}">${escapeHtml(chunk.title)}</span>
+            <span class="text-[10px] text-bordeaux font-mono font-semibold">S. ${chunk.page || '?'}</span>
           </div>
-          <p class="text-[10px] text-slate-500 line-clamp-2">${escapeHtml(chunk.text)}</p>
+          <div class="text-[10px] text-slate-500 font-medium">${escapeHtml(chunk.chapter || '')}</div>
+          <p class="text-[11px] text-slate-600 line-clamp-2 leading-tight">${escapeHtml(chunk.text || '')}</p>
         `;
-        div.addEventListener('click', () => {
-          chatInput.value = `Suche nach ${chunk.title}`;
-          kbSidebar.classList.add('translate-x-full');
-          chatForm.dispatchEvent(new Event('submit'));
-        });
-        chunkPreviewList.appendChild(div);
+        chunkPreviewList.appendChild(item);
+      });
+    }
+
+    function updateApiKeyUI() {
+      if (geminiApiKeyInput) {
+        geminiApiKeyInput.value = state.geminiApiKey ? '••••••••••••••••' : '';
+      }
+      if (apiKeyStatusText) {
+        if (state.geminiApiKey) {
+          apiKeyStatusText.textContent = "✨ Gemini 3 Flash RAG Aktiv";
+          apiKeyStatusText.className = "font-bold text-emerald-600";
+        } else {
+          apiKeyStatusText.textContent = "⚡ Offline-Modus (Lokales BM25)";
+          apiKeyStatusText.className = "font-bold text-amber-600";
+        }
+      }
+    }
+
+    if (saveApiKeyBtn) {
+      saveApiKeyBtn.addEventListener('click', () => {
+        const inputVal = geminiApiKeyInput.value.trim();
+        if (inputVal && !inputVal.startsWith('•••')) {
+          state.geminiApiKey = inputVal;
+          localStorage.setItem('apte_gemini_api_key', inputVal);
+          showToast("API-Schlüssel lokal gespeichert!");
+        } else if (!inputVal) {
+          state.geminiApiKey = '';
+          localStorage.removeItem('apte_gemini_api_key');
+          showToast("API-Schlüssel entfernt (Offline-Modus).");
+        }
+        updateApiKeyUI();
       });
     }
 
@@ -1149,7 +1201,11 @@
 
     // GEMINI RAG SYNTHESIS VIA API
     async function askGeminiRAG(query, topMatches) {
-      const apiKey = "";
+      const apiKey = state.geminiApiKey;
+      if (!apiKey) {
+        throw new Error("Kein API-Key vorhanden");
+      }
+
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       const contextText = topMatches.map((m, idx) => 
@@ -1200,26 +1256,28 @@ REGELN FÜR DIE KI-ANTWORT:
         };
       }
 
-      // Try Gemini AI RAG synthesis for intelligent filtering and natural response formatting
-      try {
-        const aiAnswer = await askGeminiRAG(query, matches);
-        if (aiAnswer && aiAnswer.trim()) {
-          const isFallback = aiAnswer.includes("In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden");
-          return { text: aiAnswer, isFallback: isFallback, matches: matches, isAI: !isFallback };
+      // Try Gemini AI RAG synthesis if API Key is available
+      if (state.geminiApiKey) {
+        try {
+          const aiAnswer = await askGeminiRAG(query, matches);
+          if (aiAnswer && aiAnswer.trim()) {
+            const isFallback = aiAnswer.includes("In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden");
+            return { text: aiAnswer, isFallback: isFallback, matches: matches, isAI: !isFallback };
+          }
+        } catch (e) {
+          console.warn("Direct Gemini RAG synthesis failed, using local extraction fallback:", e);
         }
-      } catch (e) {
-        console.warn("Direct Gemini RAG synthesis failed, using local extraction fallback:", e);
       }
 
-      // Local extraction fallback if API call fails
+      // Local extraction fallback (Works offline & without API key!)
       const topMatch = matches[0].chunk;
       const procedural = isProceduralQuery(query);
       const rawText = cleanPDFText(topMatch.text).trim();
       const chapterLabel = topMatch.chapter || topMatch.title || 'Handbuch';
 
       let responseBody = procedural
-        ? `### 📋 Exakte Handlungsschritte (Lokaler Fallback)\n\n**${topMatch.title}**\n\n${rawText}`
-        : `### 📖 Exakter Wortlaut (Lokaler Fallback)\n\n**${topMatch.title}**\n\n${rawText}`;
+        ? `### 📋 Anleitung aus dem Handbuch (Lokale Extraktion)\n\n**${topMatch.title}**\n\n${rawText}`
+        : `### 📖 Auszug aus dem Handbuch (Lokale Extraktion)\n\n**${topMatch.title}**\n\n${rawText}`;
 
       responseBody += `\n\n---\n*📌 **Quelle:** ${chapterLabel} (Seite ${topMatch.page} · Datei: \`${topMatch.source}\`)*`;
 
