@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APTE-NG | Dokumentations Assistent (valucon apps)</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bordeaux: {
+              DEFAULT: '#8c2230',
+              dark: '#6b1a24',
+              hover: '#731a26',
+              light: '#a62d3e',
+              soft: '#fdf2f4',
+              border: '#f4c7ce'
+            },
+            slate: {
+              950: '#090d16',
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+              600: '#475569',
+              500: '#64748b',
+              200: '#e2e8f0',
+              100: '#f1f5f9',
+              50: '#f8fafc'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Marked.js for Clean Markdown Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* Strict Font Enforcement */
+    *, html, body, input, button, textarea, select {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    }
+    
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8c2230;
+    }
+
+    /* Drag Zone Active State */
+    .drop-zone.active {
+      border-color: #8c2230;
+      background-color: #fdf2f4;
+    }
+
+    /* Editorial Prose Styling */
+    .editorial-prose p {
+      margin-bottom: 0.75rem;
+      line-height: 1.625;
+      color: #334155;
+    }
+    .editorial-prose p:last-child {
+      margin-bottom: 0;
+    }
+    .editorial-prose ul, .editorial-prose ol {
+      margin-top: 0.5rem;
+      margin-bottom: 0.85rem;
+      padding-left: 1.25rem;
+    }
+    .editorial-prose li {
+      margin-bottom: 0.35rem;
+      line-height: 1.55;
+      color: #1e293b;
+    }
+    .editorial-prose ul {
+      list-style-type: disc;
+    }
+    .editorial-prose ol {
+      list-style-type: decimal;
+    }
+    .editorial-prose strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .editorial-prose h1, .editorial-prose h2, .editorial-prose h3 {
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .editorial-prose h3 {
+      font-size: 1rem;
+    }
+  </style>
+</head>
+
+<body class="h-full flex flex-col bg-slate-100 text-slate-800 antialiased font-sans select-none overflow-hidden">
+
+  <!-- ================= TOP HEADER (VALUCON BRAND IDENTITY) ================= -->
+  <header class="bg-white border-b border-slate-200 h-16 px-6 flex items-center justify-between shrink-0 z-20 shadow-sm">
+    <!-- Left: Official valucon Logo & Title -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3 cursor-pointer">
+        <!-- SVG Vector Logo valucon -->
+        <svg class="h-8 w-auto" viewBox="0 0 220 50" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="valucon apps Logo">
+          <!-- Logo Icon (Geometric V Icon) -->
+          <g id="valucon-mark">
+            <path d="M10 6L24 38L38 6H28.5L24 18.5L19.5 6H10Z" fill="#8C2230"/>
+            <path d="M24 38L31.5 21L38 6H31.5L24 23.5L21 16.5L17.5 23.5L24 38Z" fill="#6B1A24" opacity="0.85"/>
+            <circle cx="24" cy="42" r="3" fill="#8C2230"/>
+          </g>
+          <!-- Logo Wordmark (valucon apps) -->
+          <text x="48" y="32" font-family="Inter, sans-serif" font-size="24" font-weight="900" letter-spacing="-0.04em" fill="#0F172A">valucon</text>
+          <text x="146" y="32" font-family="Inter, sans-serif" font-size="13" font-weight="600" letter-spacing="-0.01em" fill="#8C2230">apps</text>
+        </svg>
+      </div>
+      
+      <div class="h-5 w-px bg-slate-200"></div>
+
+      <div class="flex items-center gap-2">
+        <span class="font-extrabold text-sm text-slate-900">APTE-NG</span>
+        <span class="text-xs text-slate-500 font-medium hidden sm:inline">| Dokumentations Assistent</span>
+      </div>
+    </div>
+
+    <!-- Right: Admin Access Button -->
+    <div class="flex items-center gap-3">
+      <button id="adminAccessBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition border border-slate-200">
+        <svg class="w-4 h-4 text-bordeaux" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <span id="adminBtnLabel">Admin Bereich</span>
+      </button>
+    </div>
+  </header>
+
+
+  <!-- ================= MAIN APPLICATION LAYOUT ================= -->
+  <div class="flex-1 flex overflow-hidden relative bg-white">
+
+    <!-- MAIN CHAT PANEL (End-User View) -->
+    <main class="flex-1 flex flex-col bg-white min-w-0 h-full relative">
+
+      <!-- Messages Stream -->
+      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8">
+        
+        <!-- Welcome Banner -->
+        <div class="max-w-3xl mx-auto border-l-2 border-bordeaux pl-5 py-1">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="font-bold text-lg text-slate-900">APTE-NG Dokumentations Assistent</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Pre-Indexed v13</span>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Willkommen. Der Assistent beantwortet Ihre Fragen zur Bedienung, Konfiguration und Rechtevergabe in <strong>APTE-NG</strong> auf Basis des vollständig indizierten Systemhandbuchs (16 Kapitel, 52 Abschnitte).
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 text-xs">
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wo stelle ich die Abgabeperiode ein?</button>
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie erstelle ich eine Datenansicht?</button>
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie funktioniert die Matching-Engine?</button>
+            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Welche REST-API Endpunkte gibt es?</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Typing Indicator -->
+      <div id="typingIndicator" class="hidden px-6 py-3 max-w-3xl mx-auto w-full">
+        <div class="flex items-center gap-3 text-slate-600 text-xs border-l-2 border-slate-300 pl-4 py-1">
+          <span class="w-2.5 h-2.5 rounded-full bg-bordeaux animate-ping"></span>
+          <span class="font-semibold text-slate-800">✨ Gemini 3 Flash analysiert Handbuch-Kontext...</span>
+        </div>
+      </div>
+
+      <!-- Input Form Bar -->
+      <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 shrink-0">
+        <form id="chatForm" class="max-w-3xl mx-auto relative flex items-end gap-3 bg-white border border-slate-300 rounded-xl p-2 focus-within:border-bordeaux focus-within:ring-1 focus-within:ring-bordeaux transition shadow-md">
+          <textarea id="chatInput" rows="1" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[42px] leading-relaxed" placeholder="Ihre Frage zum Handbuch... (z. B. 'Wo stelle ich die Abgabeperiode ein?')"></textarea>
+          
+          <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-lg bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold transition shadow flex items-center gap-2 shrink-0 disabled:opacity-40">
+            <span>Frage stellen</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </form>
+        
+        <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
+          <span>valucon apps GmbH | APTE-NG Dokumentationsdienst</span>
+          <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf zurücksetzen</button>
+        </div>
+      </div>
+
+    </main>
+
+
+    <!-- PROTECTED ADMIN DRAWER (Slide-over Sidebar) -->
+    <aside id="kbSidebar" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-slate-50 border-l border-slate-200 flex flex-col z-40 transition-transform duration-300 transform translate-x-full shadow-2xl">
+      
+      <!-- Drawer Header -->
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+        <div class="flex items-center gap-2">
+          <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
+          <h2 class="font-bold text-base text-slate-900">Admin-Konsole</h2>
+        </div>
+        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Upload Markdown File Zone (Optional Custom Override) -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">BENUTZERDEFINIERTES HANDBUCH (.MD) HOCHLADEN</label>
+        
+        <div id="dropZone" class="drop-zone border-2 border-dashed border-slate-300 hover:border-bordeaux rounded-xl p-4 text-center cursor-pointer transition bg-slate-50/50 flex flex-col items-center justify-center gap-2 group">
+          <div class="w-10 h-10 rounded-full bg-bordeaux-soft text-bordeaux flex items-center justify-center group-hover:scale-110 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-slate-800">Eigene Markdown-Datei (.md, .txt) ablegen</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Überschreibt temporär das statisch indizierte Handbuch</p>
+          </div>
+          <input type="file" id="pdfFileInput" accept=".md,.markdown,.txt" class="hidden">
+        </div>
+
+        <!-- Processing Indicator -->
+        <div id="pdfProgress" class="hidden p-3 bg-slate-100 border border-slate-200 rounded-lg space-y-1.5">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <span id="pdfProgressText">Verarbeite Datei...</span>
+            <span id="pdfProgressPercent" class="font-mono font-bold text-bordeaux">100%</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div id="pdfProgressBar" class="bg-bordeaux h-2 rounded-full transition-all duration-150" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Index Statistics Card -->
+      <div class="p-4 border-b border-slate-200 bg-slate-50 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">INDEX-ÜBERSICHT</span>
+          <button id="resetKbBtn" class="text-[11px] text-bordeaux hover:underline font-bold">Standard-Handbuch laden</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-white border border-slate-200 rounded-lg p-2.5 overflow-hidden">
+            <span class="block text-[10px] font-semibold text-slate-400 uppercase">DOKUMENT</span>
+            <span id="docNameDisplay" class="font-bold text-slate-800 text-[11px] break-all block mt-0.5">APTE-NG-Handbuch-v13.md</span>
+          </div>
+          <div class="bg-white border border-slate-200 rounded-lg p-2.5">
+            <span class="block text-[10px] font-semibold text-slate-400 uppercase">UMFANG</span>
+            <span id="docStatsDisplay" class="font-bold text-slate-800 block mt-0.5">52 Abschnitte · ~26.400 Wörter</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strict Grounding & Sensitivity Controls -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+        <div class="p-3 bg-bordeaux-soft border border-bordeaux-border rounded-lg flex items-start gap-2.5">
+          <input type="checkbox" id="strictModeCheckbox" checked class="mt-0.5 accent-bordeaux w-4 h-4 rounded cursor-pointer">
+          <div class="text-xs">
+            <label for="strictModeCheckbox" class="font-bold text-slate-900 cursor-pointer block">Strict Grounding Garantie</label>
+            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">Gibt bei unzureichenden Treffern exakt die Fallback-Meldung aus.</p>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs text-slate-700">
+            <label class="font-semibold text-slate-700">BM25 Relevanz-Schwellenwert</label>
+            <span id="thresholdValueDisplay" class="font-mono text-bordeaux font-bold">4.5</span>
+          </div>
+          <input type="range" id="thresholdSlider" min="0.5" max="8.0" step="0.1" value="4.5" class="w-full accent-bordeaux cursor-pointer">
+        </div>
+      </div>
+
+      <!-- Raw Chunks & BM25 Debug Inspector (Admin only) -->
+      <div class="flex-1 p-4 flex flex-col min-h-0 bg-slate-50">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">CHUNK-INSPEKTOR</span>
+          <input type="text" id="chunkSearchInput" placeholder="Filter..." class="text-xs bg-white border border-slate-200 rounded px-2 py-0.5 w-28 focus:outline-none focus:border-bordeaux">
+        </div>
+        <div id="chunkPreviewList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 bg-white border-t border-slate-200 flex justify-between items-center">
+        <span class="text-xs font-bold text-emerald-700">✓ Admin angemeldet</span>
+        <button id="logoutAdminBtn" class="text-xs font-bold text-slate-500 hover:text-bordeaux underline">Abmelden</button>
+      </div>
+
+    </aside>
+
+  </div>
+
+
+  <!-- ================= ADMIN LOGIN MODAL ================= -->
+  <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-bordeaux"></div>
+          <h3 class="font-bold text-base text-slate-900">Admin-Anmeldung</h3>
+        </div>
+        <button id="closeAdminLoginBtn" class="text-slate-400 hover:text-slate-700 p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600">Geben Sie das Admin-Passwort ein, um das Handbuch hochzuladen oder RAG-Parameter einzustellen.</p>
+
+      <form id="adminLoginForm" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Passwort</label>
+          <input type="password" id="adminPasswordInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-bordeaux" placeholder="Passwort eingeben..." required>
+          <p class="text-[10px] text-slate-400 mt-1">Standard-Passwort: <code class="font-mono bg-slate-100 px-1 rounded">admin</code></p>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white font-bold text-xs rounded-lg transition shadow">
+          Anmelden
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+
+  <!-- FLOATING TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 z-50 text-xs font-medium">
+    <div class="w-2 h-2 rounded-full bg-bordeaux-light"></div>
+    <span id="toastMsg">Benachrichtigung</span>
+  </div>
+
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // GERMAN STOPWORDS SET
+    const GERMAN_STOPWORDS = new Set([
+      'aber', 'alle', 'allem', 'allen', 'aller', 'alles', 'als', 'also', 'am', 'an', 'ander', 'andere', 'anderem', 'anderen', 'anderer', 'anderes', 'anderm', 'andern', 'anders', 'auch', 'auf', 'aus', 'bei', 'bin', 'bis', 'bist', 'da', 'damit', 'dann', 'das', 'dass', 'daß', 'dasselbe', 'dazu', 'dein', 'deine', 'deinem', 'deinen', 'deiner', 'deines', 'dem', 'demselben', 'den', 'denn', 'denselben', 'der', 'derer', 'derselbe', 'derselben', 'des', 'desselben', 'dessen', 'dich', 'die', 'dies', 'diese', 'dieselbe', 'dieselben', 'diesem', 'diesen', 'dieser', 'dieses', 'dir', 'doch', 'dort', 'durch', 'ein', 'eine', 'einem', 'einen', 'einer', 'eines', 'einig', 'einige', 'einigem', 'einigen', 'einiger', 'einiges', 'einmal', 'er', 'ihn', 'ihm', 'es', 'etwas', 'euer', 'eure', 'eurem', 'euren', 'eurer', 'eures', 'für', 'gegen', 'gewesen', 'hab', 'habe', 'haben', 'hat', 'hatte', 'hatten', 'hier', 'hin', 'hinter', 'ich', 'ihm', 'ihn', 'ihnen', 'ihr', 'ihre', 'ihrem', 'ihren', 'ihrer', 'ihres', 'im', 'in', 'indem', 'ins', 'ist', 'jede', 'jedem', 'jeden', 'jeder', 'jedes', 'jene', 'jenem', 'jenen', 'jener', 'jenes', 'jetzt', 'kann', 'kein', 'keine', 'keinem', 'keinen', 'keiner', 'keines', 'können', 'könnte', 'machen', 'man', 'manche', 'manchem', 'manchen', 'mancher', 'manches', 'mein', 'meine', 'meinem', 'meinen', 'meiner', 'meines', 'mit', 'muss', 'musste', 'nach', 'nicht', 'nichts', 'noch', 'nun', 'nur', 'oder', 'sehr', 'sein', 'seine', 'seinem', 'seinen', 'seiner', 'seines', 'selbst', 'sich', 'sie', 'sind', 'so', 'solche', 'solchem', 'solchen', 'solcher', 'solches', 'soll', 'sollte', 'sondern', 'sonst', 'über', 'um', 'und', 'uns', 'unser', 'unsere', 'unserem', 'unseren', 'unserer', 'unseres', 'unter', 'viel', 'vom', 'von', 'vor', 'was', 'weg', 'weil', 'weiter', 'welche', 'welchem', 'welchen', 'welcher', 'welches', 'wenn', 'werde', 'werden', 'wie', 'wieder', 'will', 'wir', 'wird', 'wirst', 'wo', 'wolle', 'wollte', 'würde', 'würden', 'zu', 'zum', 'zur', 'zwar', 'zwischen'
+    ]);
+
+    const DEFAULT_MD_FILENAME = "APTE-NG-Handbuch-v13.md";
+
+    // NOISE STRIPPER FUNCTION
+    function cleanPDFText(text) {
+      if (!text) return '';
+      return text
+        .replace(/Vervielfältigung\s+und\s+Weitergabe\s+nur\s+mit\s+schriftlicher\s+Zustimmung\.?/gi, '')
+        .replace(/valucon\s+apps\s+GmbH.*?(?:München|\d{5})/gi, '')
+        .replace(/Kapuzinerstr\.\s*\d+.*?München/gi, '')
+        .replace(/Seite\s+\d+/gi, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    // ================= VARIANTE 2: COMPLETE PRE-INDEXED DEFAULT_DOC_CHUNKS (52 CHUNKS) =================
+    const DEFAULT_DOC_CHUNKS = [
+      // KAPITEL 1: SYSTEMÜBERBLICK & AUTHENTIFIZIERUNG
+      {
+        id: "chunk-01",
+        title: "Systemüberblick & Architektur",
+        page: 5,
+        chapter: "Kapitel 1: Systemüberblick & Authentifizierung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Kapitel 1: Systemüberblick & Architektur\n\nAPTE Next Generation (APTE-NG) der valucon apps GmbH ist eine integrierte Enterprise-Plattform zur digitalen Verwaltung komplexer Hochschulverfahren (z. B. Berufungsverfahren, Deutschlandstipendium, Graduiertenförderung, Forschungsanträge und interne Genehmigungen).\n\n**Zentrale Systemkomponenten:**\n- **Mandantenfähige Web-Architektur**: Vollständig webbasiert (HTML5, Responsive UI).\n- **Modulare Subsysteme**: Formular-Editor, Datenansichten, Vorlagensteuerung, Dokumentenmanager, Gutachtermodul, Aktenverwaltung und Matching-Engine.\n- **DSGVO & Compliance**: Hosting in deutschen Rechenzentren (ISO 27001) oder On-Premise an Hochschul-Rechenzentren mit Ende-zu-Ende-Verschlüsselung (TLS 1.3)."
+      },
+      {
+        id: "chunk-02",
+        title: "Single Sign-On (SSO / Shibboleth / SAML 2.0)",
+        page: 9,
+        chapter: "Kapitel 1: Systemüberblick & Authentifizierung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### SSO und Shibboleth-Anbindung\n\nAPTE-NG unterstützt die nahtlose Anbindung an die zentrale Hochschul-Identitätsverwaltung via SAML 2.0 / Shibboleth.\n\n**Einrichtung & Ablauf:**\n1. Rufen Sie die Anmeldemaske auf und wählen Sie **Anmeldung via Hochschul-Login (SSO)**.\n2. Sie werden zum Identity Provider (IdP) der Hochschule weitergeleitet.\n3. Nach erfolgreicher Authentifizierung übermittelt der IdP die Attribute (`ePPN`, `mail`, `givenName`, `sn`, `affiliation`) an APTE-NG.\n4. **Automatische Account-Erstherstellung**: Wenn der Nutzer erstmals angemeldet wird, wird automatisch ein lokales Benutzerkonto mit den vom IdP gelieferten Grundrollen angelegt."
+      },
+      {
+        id: "chunk-03",
+        title: "Zweifaktor-Authentifizierung (2FA / TOTP) & Passwort-Richtlinien",
+        page: 14,
+        chapter: "Kapitel 1: Systemüberblick & Authentifizierung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### 2FA & Passwort-Sicherheitsanforderungen\n\nFür privilegierte Konten (Administratoren, Sachbearbeiter mit Personendaten-Zugriff) kann eine verpflichtende Zweifaktor-Authentifizierung (2FA) erzwungen werden.\n\n**Einrichtung der 2FA:**\n1. Navigieren Sie im Benutzerprofil zu **Sicherheit > Zweifaktor-Authentifizierung**.\n2. Scannen Sie den angezeigten QR-Code mit einer Authentikator-App (z. B. Google Authenticator, FreeOTP).\n3. Geben Sie den 6-stelligen Bestätigungscode ein, um 2FA zu aktivieren.\n\n**Passwort-Richtlinie (Lokale Konten):**\n- Mindestens 12 Zeichen, Kombination aus Groß-/Kleinbuchstaben, Ziffern und Sonderzeichen.\n- Automatische Passwort-Ablaufwarnung nach 90 Tagen (konfigurierbar)."
+      },
+      {
+        id: "chunk-04",
+        title: "Session Management, Multi-Tab-Sicherheit & Logout",
+        page: 18,
+        chapter: "Kapitel 1: Systemüberblick & Authentifizierung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Session-Sicherheit und Sitzungsverwaltung\n\nAPTE-NG nutzt gehärtete Session-Cookies (`HttpOnly`, `Secure`, `SameSite=Strict`).\n\n**Sitzungsoptionen:**\n- **Inaktivitäts-Timeout**: Nach 20 Minuten ohne Interaktion wird der Anwender automatisch abgemeldet. Ungespeicherte Formular-Entwürfe werden im lokalen Browser-Zwischenspeicher gesichert.\n- **Multi-Tab-Synchronisation**: Bei Abmeldung in einem Tab werden alle parallelen Tabs der APTE-NG Instanz unverzüglich gesperrt.\n- **Sitzungsübersicht**: Unter **Mein Profil > Aktive Sitzungen** können offene Sitzungen auf anderen Geräten aus der Ferne beendet werden."
+      },
+
+      // KAPITEL 2: DASHBOARD & HAUPTNAVIGATION
+      {
+        id: "chunk-05",
+        title: "Benutzeroberfläche, Kopfzeile & Rollenwechsel",
+        page: 22,
+        chapter: "Kapitel 2: Dashboard & Hauptnavigation",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Benutzeroberfläche und Rollenwechsel\n\nDie Kopfzeile von APTE-NG bietet direkten Zugriff auf globale Funktionen.\n\n**Rollenwechsel durchführen:**\n1. Klicken Sie oben rechts auf Ihr Profilsymbol / Ihren Namen.\n2. Wählen Sie im Dropdown-Menü die Option **Rolle wechseln**.\n3. Verfügbare Rollen (z. B. *Sachbearbeiter Stipendien*, *Kommissionsmitglied Fachbereich 03*, *Antragsteller*) werden aufgelistet.\n4. Nach der Auswahl passt das System Menüoptionen, Widgets und Datenansichten augenblicklich an die gewählte Rolle an."
+      },
+      {
+        id: "chunk-06",
+        title: "Dashboard-Widgets, Schnellzugriff & Favoriten",
+        page: 26,
+        chapter: "Kapitel 2: Dashboard & Hauptnavigation",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Dashboard-Anpassung und Favoriten\n\nDas Dashboard ist die persönliche Schaltzentrale für den Arbeitsalltag.\n\n**Widgets konfigurieren:**\n- **Neue Anträge**: Zeigt ungelesene/neue Eingänge im zugewiesenen Bereich.\n- **Fristen & Wiedervorlagen**: Übersicht über bevorstehende Abgabe- und Prüffristen.\n- **Favoriten-Verknüpfungen**: Klicken Sie in einer beliebigen Datenansicht oder einem Formular auf das Stern-Symbol, um diese Ansicht direkt an Ihr Dashboard anzuheften."
+      },
+      {
+        id: "chunk-07",
+        title: "Globale Schnellsuche & Systemweiter Index",
+        page: 30,
+        chapter: "Kapitel 2: Dashboard & Hauptnavigation",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Globale Schnellsuche nutzen\n\nÜber die zentrale Suchleiste in der Kopfzeile (`Strg + K` oder `Cmd + K`) kann das gesamte System durchsucht werden.\n\n**Suchbare Entitäten:**\n- Bewerber- & Antragsteller-Namen, Matrikelnummern, Vorgangs-IDs.\n- Formularnamen, Aktenzeichen, Förderer und Gutachter-E-Mail-Adressen.\n- **Filterparameter**: Nutzen Sie Präfixe wie `akteur:Müller`, `form:Deutschlandstipendium` oder `id:2026-0891` für punktgenaue Suchergebnisse."
+      },
+      {
+        id: "chunk-08",
+        title: "Barrierefreiheit & Tastatur-Shortcuts",
+        page: 34,
+        chapter: "Kapitel 2: Dashboard & Hauptnavigation",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Barrierefreiheit & Tastatursteuerung\n\nAPTE-NG erfüllt die Vorgaben der BITV 2.0 / WCAG 2.1 AA.\n\n**Wichtige Tastatur-Shortcuts:**\n- `Strg + S`: Aktuellen Entwurf im Formular-Editor speichern.\n- `Alt + N`: Neuen Datensatz / neues Formular anlegen.\n- `Tab` / `Shift + Tab`: Nahtlose Navigation durch Formularfelder.\n- High-Contrast Modus unter **Profil > Einstellungen > Barrierefreiheit** aktivierbar."
+      },
+
+      // KAPITEL 3: FORMULAR-EDITOR & FELDKONFIGURATION
+      {
+        id: "chunk-09",
+        title: "Formularverwaltung: Neues Formular anlegen",
+        page: 40,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Formularerstellung Schritt-für-Schritt\n\nNavigieren Sie im Hauptmenü zum Bereich **Formulare**.\n\n**Anleitung zur Neuerstellung:**\n1. Klicken Sie auf die Schaltfläche **Neues Formular erstellen**.\n2. Vergeben Sie einen eindeutigen **Formularnamen** (z. B. 'Antrag Deutschlandstipendium 2026/27').\n3. Wählen Sie die **Zuordnung zu Mandant / Fakultät**.\n4. Vergeben Sie eine interne Kennung und eine Kurzbeschreibung für Ausfüllende.\n5. Klicken Sie auf **Speichern und zum Editor**."
+      },
+      {
+        id: "chunk-10",
+        title: "Formularaufbau: Formularteile, Feldzeilen & Grid",
+        page: 45,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Formularstrukturierung & Grid-Layout\n\nEin Formular gliedert sich in Formularteile, Feldzeilen und Einzelfelder.\n\n**Strukturelemente anlegen:**\n1. Öffnen Sie **Formulare > [Ihr Formular] > Layout**.\n2. Klicken Sie auf **Formularteil anlegen** (z. B. 'Persönliche Daten', 'Hochschulschulbildung').\n3. Fügen Sie unterhalb des Formularteils eine **Feldzeile** ein.\n4. **Spalten-Grid wählen**: Stellen Sie die Spaltenanzahl der Zeile ein (1-spaltig für Vollbreite, 2-spaltig, 3-spaltig oder 4-spaltig).\n5. Ziehen Sie Felder per Drag-&-Drop in die gewählte Spalte."
+      },
+      {
+        id: "chunk-11",
+        title: "Eingabefelder, Datentypen & Validierungsregeln",
+        page: 51,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Datentypen und Feld-Validierungen\n\nAPTE-NG unterstützt eine Vielzahl spezialisierter Feldtypen:\n\n**Verfügbare Feldtypen:**\n- **Standard**: Textfeld, Mehrzeiliger Text, Zahl, Datum, Datum/Uhrzeit.\n- **Auswahl**: Dropdown-Einfachauswahl, Radio-Buttons, Kontrollkästchen (Checkbox), Mehrfachauswahl.\n- **Upload**: Datei-Upload (mit Beschränkung auf PDF/PNG, max. MB-Anzahl).\n- **Spezial**: IBAN-Feld mit automatischer Prüfsummenvalidierung, Matrikelnummer-Feld, Noten-Feld (Format 1,0 bis 5,0).\n\n**Validierungsoptionen:**\n- Aktivieren Sie **Pflichtfeld**, vergeben Sie Min/Max-Längen oder hinterlegen Sie Reguläre Ausdrücke (Regex)."
+      },
+      {
+        id: "chunk-12",
+        title: "Dynamische Sichtbarkeit & Bedingte Einblendungen",
+        page: 58,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Einblenden von Feldern auf Basis von Bedingungen\n\nSichtbarkeitsregeln ermöglichen dynamische Formulare, bei denen Felder erst nach spezifischen Eingaben erscheinen.\n\n**Sichtbarkeitsregel konfigurieren:**\n1. Wählen Sie im Formular-Editor das Feld aus, das dynamisch eingeblendet werden soll.\n2. Klicken Sie im Eigenschaften-Menü auf **Sichtbarkeitseinstellungen**.\n3. Klicken Sie auf **Bedingung hinzufügen**.\n4. Definieren Sie die Regel: z. B. *Wenn Feld 'Erststudium' == 'Nein'*, dann zeige Feld 'Angaben zum Vorstudium'.\n5. *Zusatzoption*: Verknüpfen Sie mehrere Bedingungen mit UND / ODER."
+      },
+      {
+        id: "chunk-13",
+        title: "Wiederverwendbare Felder & Der Zentrale Feldpool",
+        page: 63,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Feldpool nutzen & Felder wiederverwenden\n\nDer zentrale Feldpool verhindert Redundanzen und stellt einheitliche Datenbezeichnungen sicher.\n\n**Arbeiten mit dem Feldpool:**\n1. Klicken Sie im Formular-Editor auf den Tab **Feldpool**.\n2. Suchen Sie nach vordefinierten Standardfeldern (z. B. `STIP_MATRIKELNR`, `PERS_GEBURTSDATUM`).\n3. Ziehen Sie das gewünschte Feld direkt per Drag-&-Drop in eine Feldzeile Ihres Formulars.\n4. *Vorteil*: Änderungen am zentralen Feldtyp (z. B. Validierungslogik) werden auf Wunsch automatisch in allen verknüpften Formularen übernommen."
+      },
+      {
+        id: "chunk-14",
+        title: "Abgabeperiode, Einreichungsfristen & Sperrung",
+        page: 69,
+        chapter: "Kapitel 3: Formular-Editor & Feldkonfiguration",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Abgabeperiode und Fristen definieren\n\nDie Abgabeperiode legt exakt fest, in welchem Zeitfenster Anträge und Unterlagen eingereicht werden können.\n\n**Vorgehensweise zur Konfiguration:**\n1. Öffnen Sie im Formularbereich die Seite **Übersicht** des betreffenden Formulars.\n2. Navigieren Sie im rechten Einstellungsbereich zum Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. `01.04.2026 00:00` bis `15.05.2026 23:59`).\n4. Klicken Sie unten auf **Speichern**.\n\n*Systemverhalten*: Nach Ablauf der Frist wird der Online-Antrag automatisch für Neueingaben gesperrt. Bereits angefangene Entwürfe können nicht mehr abgesendet werden."
+      },
+
+      // KAPITEL 4: DATENANSICHTEN, TABELLEN & FILTERREIHEN
+      {
+        id: "chunk-15",
+        title: "Datenansichten erstellen & Spaltenauswahl",
+        page: 75,
+        chapter: "Kapitel 4: Datenansichten, Tabellen & Filterreihen",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Datenansichten erstellen und Spalten konfigurieren\n\nDatenansichten bieten maßgeschneiderte Tabellenansichten für die Bearbeitung im Fachbereich.\n\n**Anleitung:**\n1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen prägnanten Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen.\n5. Legen Sie fest, ob In-Place-Editing (Direktbearbeitung in der Tabelle) erlaubt ist."
+      },
+      {
+        id: "chunk-16",
+        title: "Mehrstufiges Filtern & ODER/UND-Verknüpfungen",
+        page: 81,
+        chapter: "Kapitel 4: Datenansichten, Tabellen & Filterreihen",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Erweiterte Filterreihen konfigurieren\n\nFilterreihen grenzen große Datensatzmengen präzise auf die aktuell benötigten Arbeitsvorräte ein.\n\n**Filter einrichten:**\n1. Öffnen Sie die Bearbeitung einer Datenansicht und wählen Sie den Tab **Filter**.\n2. Füge eine Filterbedingung hinzu: Wählen Sie das Feld (z. B. `Status`), den Operator (z. B. `ist gleich`) und den Wert (z. B. `Eingereicht`).\n3. Fügen Sie weitere Filterzeilen hinzu und wählen Sie die Verknüpfung (**UND** / **ODER**).\n4. **Dynamische Datumsfilter**: Nutzen Sie relative Begriffe wie `@HEUTE`, `@AKTUELLER_MONAT` oder `@SESEMESTER_START`."
+      },
+      {
+        id: "chunk-17",
+        title: "Mehrstufiges Sortieren & Gruppierungen",
+        page: 87,
+        chapter: "Kapitel 4: Datenansichten, Tabellen & Filterreihen",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Sortierung & Tabellengruppierung\n\nStrukturieren Sie die Ausgabe komplexer Datensätze durch mehrstufige Sortierkriterien.\n\n**Konfiguration:**\n- **1. Sortierstufe**: Z. B. `Fachsemester` (absteigend).\n- **2. Sortierstufe**: Z. B. `Gesamtnote` (aufsteigend).\n- **3. Sortierstufe**: Z. B. `Eingangsdatum` (aufsteigend).\n- **Gruppierung**: Aktivieren Sie 'Gruppieren nach Feld' (z. B. nach Studiengang), um aufklappbare Zwischenüberschriften in der Tabelle zu erzeugen."
+      },
+      {
+        id: "chunk-18",
+        title: "Dynamische Zugriffssteuerung mit dem Feldtyp 'Benutzerliste'",
+        page: 93,
+        chapter: "Kapitel 4: Datenansichten, Tabellen & Filterreihen",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Dynamische Zugriffssteuerung (Benutzerliste)\n\nUm den Datenschutz nach DSGVO zu gewährleisten, lassen sich Lese- und Schreibrechte für Datenansichten dynamisch einschränken.\n\n**Einrichtung:**\n1. Rufen Sie die Einstellungen der Datenansicht unter **Zugriffsrechte von Datenansichten konfigurieren** auf.\n2. Aktivieren Sie das Kontrollkästchen **Dynamische Zugriffssteuerung**.\n3. Wählen Sie als Steuerungsfeld ein Formularfeld vom Typ **Benutzerliste** aus (z. B. `Zuständiger_Sachbearbeiter`).\n4. *Wirkung*: Ein angemeldeter Benutzer sieht in dieser Datenansicht ausschließlich diejenigen Datensätze, bei denen sein Benutzerkonto im Steuerungsfeld hinterlegt ist."
+      },
+
+      // KAPITEL 5: ROLLEN- & RECHTEKONZEPT
+      {
+        id: "chunk-19",
+        title: "Rollenmatrix: Systemrollen vs. Lokale Rollen",
+        page: 100,
+        chapter: "Kapitel 5: Rollen- & Rechtekonzept",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Rollenarchitektur & Rollenmatrix\n\nAPTE-NG unterscheidet strikt zwischen globalen Systemrollen und kontextbezogenen lokalen Rollen.\n\n**Rollenarten:**\n- **Systemrollen**: *Super-Admin*, *System-Administrator*, *Datenschutz-Beauftragter*. Haben globale Zugriffsrechte.\n- **Lokale Rollen**: *Sachbearbeiter*, *Kommissionsvorsitz*, *Gutachter*, *Antragsteller*. Gelten nur innerhalb spezifischer Mandanten, Fakultäten oder Einzelformulare.\n- **Rollenmatrix aufrufen**: Navigieren Sie zu **Systemverwaltung > Rollenmatrix**, um Berechtigungs-Häkchen pro Modul einzustellen."
+      },
+      {
+        id: "chunk-20",
+        title: "Mandantentrennung & Fachbereichs-Isolation",
+        page: 106,
+        chapter: "Kapitel 5: Rollen- & Rechtekonzept",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Mandantentrennung & Mandanten-Ablaufsteuerung\n\nJede Fakultät oder Dienststelle kann als eigenständiger Mandant geführt werden.\n\n**Isolationsebenen:**\n- Mandantenbezogene Datenansichten und Formularpools.\n- Sachbearbeiter von Mandant A können unter keinen Umständen Einsicht in Vorgänge oder Personenprofile von Mandant B nehmen.\n- Mandantenübergreifende Auswertungen bleiben ausschließlich zentralen Systemadministrations-Accounts vorbehalten."
+      },
+      {
+        id: "chunk-21",
+        title: "Berechtigungsvererbung, Vertretungsregelungen & Delegation",
+        page: 112,
+        chapter: "Kapitel 5: Rollen- & Rechtekonzept",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Vertretungsregelungen und Rechte-Delegation\n\nFür Zeiten von Urlaub oder Krankheit bietet APTE-NG eine integrierte Vertretungsfunktion.\n\n**Vertretung einrichten:**\n1. Öffnen Sie **Mein Profil > Vertretungen**.\n2. Klicken Sie auf **Vertretung hinzufügen**.\n3. Wählen Sie den Vertretungs-Benutzer aus und definieren Sie den Gültigkeitszeitraum (`Von` / `Bis`).\n4. Wählen Sie den Berechtigungsumfang (z. B. *Vollzugriff auf alle Aufgaben* oder *Nur Leserechte*).\n5. Während des Zeitraums kann der Vertreter in der Kopfzeile in die Rolle des Vertretenen wechseln. Alle Aktionen werden im Audit Log transparent vermerkt."
+      },
+      {
+        id: "chunk-22",
+        title: "Objektbezogene Berechtigungen & Schutz vertraulicher Daten",
+        page: 118,
+        chapter: "Kapitel 5: Rollen- & Rechtekonzept",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Objektbezogene Berechtigungen (ACLs)\n\nNeben Gruppenrechten unterstützt APTE-NG Zugriffskontrolllisten (Access Control Lists) auf Ebene einzelner Datensätze.\n\n**Vertrauliche Datensätze schützen:**\n- Markieren Sie ein Formularfeld als **Sensibles Feld** (z. B. Sozialgründe, Behindertenstatus, Bankverbindung).\n- Sensible Felder werden in Datenansichten und Exporten für Standard-Benutzer automatisch durch `*** GESCHÜTZT ***` ersetzt, sofern keine explizite Sonderberechtigung vorliegt."
+      },
+
+      // KAPITEL 6: DOKUMENTENMANAGER & VORLAGENSTEUERUNG
+      {
+        id: "chunk-23",
+        title: "Dokumentenmanager Ordnerstruktur & Handreichungen",
+        page: 125,
+        chapter: "Kapitel 6: Dokumentenmanager & Vorlagensteuerung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Dokumentenmanager & Datei-Bereitstellung\n\nDer Dokumentenmanager dient der zentralen Speicherung von Merkblättern, Richtlinien und Vorlagen.\n\n**Ordner verwalten & Handreichungen bereitstellen:**\n1. Navigieren Sie im Hauptmenü zum **Dokumentenmanager**.\n2. Klicken Sie auf **Neuen Ordner erstellen**.\n3. Laden Sie Dateien (PDF, DOCX) per Drag-&-Drop hoch.\n4. Klicken Sie auf **Berechtigungen im Dokumentenmanager anpassen**, um Lese- oder Schreibrechte für Rollen oder Formularausfüllende freizugeben."
+      },
+      {
+        id: "chunk-24",
+        title: "PDF-Vorlagenverwaltung (ODF / ODT-Basis) & Platzhalter",
+        page: 131,
+        chapter: "Kapitel 6: Dokumentenmanager & Vorlagensteuerung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### PDF-Generierung mit OpenDocument-Vorlagen (ODT)\n\nAPTE-NG nutzt Standard-ODT-Dokumente (LibreOffice / OpenOffice) als Vorlagen für die automatisierte PDF-Erzeugung (Bescheide, Verträge, Bewerber-Synopsen).\n\n**Vorlage erstellen & verknüpfen:**\n1. Erstellen Sie eine `.odt`-Datei im Textverarbeitungsprogramm mit Platzhaltern im Format `{antragsteller_nachname}`, `{studiengang}`, `{notendurchschnitt}`.\n2. Navigieren Sie zu **Formulare > PDF-Vorlagen > Neue Vorlage hochladen**.\n3. Klicken Sie auf **Platzhalter zuordnen**, um die ODT-Variablen mit den entsprechenden Formularfeldern zu verknüpfen."
+      },
+      {
+        id: "chunk-25",
+        title: "Dynamische Dokumentengenerierung & Wasserzeichen",
+        page: 137,
+        chapter: "Kapitel 6: Dokumentenmanager & Vorlagensteuerung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Wasserzeichen & Dokumentensicherheit\n\nBei der automatisierten PDF-Generierung können dynamische Sicherheitsmerkmale eingebettet werden.\n\n**Optionen für Wasserzeichen:**\n- **Entwurfs-Wasserzeichen**: Solange ein Antrag nicht freigegeben ist, wird diagonal der Text 'ENTWURF - UNGÜLTIG' eingeblendet.\n- **Benutzer-Sicherheitsstempel**: Das PDF erhält eine Fußzeile mit der Benutzer-ID des generierenden Sachbearbeiters, Zeitstempel und SHA256-Prüfsumme zur Rückverfolgbarkeit."
+      },
+      {
+        id: "chunk-26",
+        title: "Versionierung von Dokumenten & Revisionskontrolle",
+        page: 143,
+        chapter: "Kapitel 6: Dokumentenmanager & Vorlagensteuerung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Versionierung und Revisionshistorie\n\nSämtliche Vorlagen und hochgeladenen Dokumente unterliegen einer lückenlosen Revisionskontrolle.\n\n**Funktionsweise:**\n- Beim Ersetzen einer Vorlage wird automatisch eine neue Versionsnummer vergeben (v1.0, v1.1, v2.0).\n- Frühere Bescheide, die mit älteren Vorlagenversionen erstellt wurden, bleiben unverändert archiviert und reproduzierbar."
+      },
+
+      // KAPITEL 7: GUTACHTER- & REFERENZMODUL
+      {
+        id: "chunk-27",
+        title: "Gutachtermodul Überblick & Anonymisierte Bewertung",
+        page: 150,
+        chapter: "Kapitel 7: Gutachter- & Referenzmodul",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Gutachtermodul & Anonymisierung\n\nDas Gutachtermodul ermöglicht die strukturierte Bewertung von Anträgen durch interne oder externe Fachexperten.\n\n**Anonymisiertes Begutachtungsverfahren (Double-Blind):**\n- Aktivieren Sie in den Gutachter-Optionen die **Anonymisierung des Antragstellers**.\n- Namen, Anschriften und Kontaktdaten des Bewerbers werden in der Gutachtersicht automatisch ausgeblendet, um neutrale Bewertungen zu garantieren."
+      },
+      {
+        id: "chunk-28",
+        title: "Bewertungsschemata, Notenskalen & Freitextgutachten",
+        page: 156,
+        chapter: "Kapitel 7: Gutachter- & Referenzmodul",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Bewertungsschemata konfigurieren\n\nDefinieren Sie individuelle Kriterienkataloge für Gutachter.\n\n**Elemente eines Bewertungsschemas:**\n1. Rufen Sie **Gutachterfunktionen > Bewertungsschemata** auf.\n2. Fügen Sie Kriterien hinzu (z. B. *Wissenschaftliche Qualität*, *Innovationsgehalt*, *Bisherige Studienleistungen*).\n3. Vergeben Sie Punkteskalen (z. B. 0 bis 10 Punkte) oder Schulnoten.\n4. Fügen Sie Pflicht-Freitextfelder für die ausführliche schriftliche Begründung ein."
+      },
+      {
+        id: "chunk-29",
+        title: "Gutachterzuweisung, Fristenüberwachung & Reminder",
+        page: 162,
+        chapter: "Kapitel 7: Gutachter- & Referenzmodul",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Zuweisung von Gutachten & Automatische Erinnerungen\n\n**Gutachter zuweisen:**\n1. Öffnen Sie die Vorgangsansicht oder wählen Sie mehrere Anträge in einer Datenansicht aus.\n2. Klicken Sie auf **Gutachter zuweisen**.\n3. Tragen Sie den Namen / die E-Mail-Adresse des Gutachters ein und setzen Sie die **Bewertungsfrist**.\n\n**Automatische Reminder:**\n- Das System versendet automatische Erinnerungse-Mails 7 Tage und 2 Tage vor Fristablauf an säumige Gutachter."
+      },
+      {
+        id: "chunk-30",
+        title: "Referenzmodul für externe Dritte (Einladungslinks ohne Login)",
+        page: 168,
+        chapter: "Kapitel 7: Gutachter- & Referenzmodul",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Referenzmodul für externe Referenzgeber\n\nBewerber können externe Professoren oder Gutachter angeben, die vertrauliche Empfehlungsschreiben einreichen sollen.\n\n**Ablauf:**\n1. Der Bewerber trägt im Antrag Name und E-Mail-Adresse des Referenzgebers ein.\n2. APTE-NG generiert automatisch einen kryptografisch gesicherten Einladungslink.\n3. Der Referenzgeber erhält eine E-Mail und kann das Gutachten direkt im Browser hochladen oder ausfüllen – **ohne dass ein Benutzerkonto im System angelegt werden muss**."
+      },
+
+      // KAPITEL 8: AKTENVERWALTUNG & VORGANGSBEARBEITUNG
+      {
+        id: "chunk-31",
+        title: "Aktenprogramm & Akteure verwalten",
+        page: 175,
+        chapter: "Kapitel 8: Aktenverwaltung & Vorgangsbearbeitung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Aktenverwaltung & Akteure verwalten\n\nIm Aktenprogramm von APTE-NG werden Akteure (Personen, Organisationen, Lehrstühle) zentral und stammdatenbasiert geführt.\n\n**Akteure anlegen:**\n1. Öffnen Sie **Akten > Akteure verwalten**.\n2. Wählen Sie den Akteurstyp: **Fördernde Organisationen**, **Fördernde Einzelpersonen**, **Stipendiaten** oder **Gutachter**.\n3. Ergänzen Sie Stammdaten (Anschrift, Bankverbindung, Kennziffern für die amtliche Hochschulstatistik)."
+      },
+      {
+        id: "chunk-32",
+        title: "Beziehungen anlegen (Förderer, Stipendiaten, Lehrstühle)",
+        page: 181,
+        chapter: "Kapitel 8: Aktenverwaltung & Vorgangsbearbeitung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Verknüpfung von Akteuren & Beziehungsnetzwerke\n\nZwischen Akteuren können komplexe Beziehungsstrukturen hergestellt werden.\n\n**Beziehungen herstellen:**\n- Rufen Sie die Akte einer fördernden Organisation auf.\n- Klicken Sie auf **Beziehung anlegen**.\n- Wählen Sie den Beziehungstyp (z. B. *Fördert Stipendiat*, *Gehört zu Fakultät*, *Ansprechpartner von*).\n- Diese Verknüpfungen fließen direkt in die Matching-Engine und in statistische Auswertungen ein."
+      },
+      {
+        id: "chunk-33",
+        title: "Akteneinsicht, Sperrvermerke & Zugriffsschutz",
+        page: 187,
+        chapter: "Kapitel 8: Aktenverwaltung & Vorgangsbearbeitung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Sperrvermerke & Akteneinsichts-Protokoll\n\nFür rechtlich sensible Vorgänge können Akten mit Sperrvermerken versehen werden.\n\n**Sperrvermerk setzen:**\n- Klicken Sie in der Akte auf **Sperrvermerk aktivieren**.\n- Geben Sie den Grund an (z. B. *Laufendes Widerspruchsverfahren*).\n- Nur noch ausgewählte Administratoren können die Akte einsehen. Jede Einsichtnahme wird mit Zeitstempel und Grund protokolliert."
+      },
+      {
+        id: "chunk-34",
+        title: "Archivierung, Aufbewahrungsfristen & Historisierung",
+        page: 193,
+        chapter: "Kapitel 8: Aktenverwaltung & Vorgangsbearbeitung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Archivierung & Vorgangshistorie\n\nNach Abschluss eines Verfahrens werden Vorgänge archiviert.\n\n**Archivierungsvorgang:**\n- Wechseln Sie im Vorgang auf **Status > Archivieren**.\n- Die Akte wechselt in den schreibgeschützten Modus (*Read-Only*).\n- Sämtliche Dokumente, E-Mails und Notizen bleiben für die gesetzliche Aufbewahrungsfrist (z. B. 10 Jahre) unveränderbar im Archiv einsehbar."
+      },
+
+      // KAPITEL 9: MATCHING-ENGINE & KRITERIEN-GEWICHTUNG
+      {
+        id: "chunk-35",
+        title: "Matching-Engine Grundlagen & Algorithmus-Überblick",
+        page: 200,
+        chapter: "Kapitel 9: Matching-Engine & Kriterien-Gewichtung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Grundlagen der Matching-Engine\n\nDie Matching-Engine von APTE-NG gleicht die Anforderungen und Kriterien von Förderern automatisiert mit den Qualifikationen der Bewerber ab (z. B. beim Deutschlandstipendium).\n\n**Ziele:**\n- Objektive Ermittlung der am besten passenden Bewerber für fachgebundene oder regionale Förderstipendien.\n- Vermeidung von Doppel-Förderungen und Fehl-Zuteilungen."
+      },
+      {
+        id: "chunk-36",
+        title: "Kriterien-Gewichtung (Noten, Fachsemester, Sozialpunkte)",
+        page: 206,
+        chapter: "Kapitel 9: Matching-Engine & Kriterien-Gewichtung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Kriterien-Gewichtung konfigurieren\n\n1. Navigieren Sie zu **Akten > Matching-Funktion > Parameter**.\n2. Legen Sie die Gewichtungsprozentwerte für das Scoring fest:\n   - **Akademische Leistung (Noten)**: z. B. 50% Gewichtung.\n   - **Soziales / Ehrenamtliches Engagement**: z. B. 30% Gewichtung.\n   - **Besondere persönliche Umstände (Sozialpunkte)**: z. B. 20% Gewichtung.\n3. **Harte Ausschlusskriterien (Muster-Filter)**: Z. B. *Nur Studierende des Studiengangs Maschinenbau* oder *Mindestnote 2,0*."
+      },
+      {
+        id: "chunk-37",
+        title: "Automatische Zuteilung & Punkte-Scoring",
+        page: 212,
+        chapter: "Kapitel 9: Matching-Engine & Kriterien-Gewichtung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Matching-Lauf ausführen & Vorschlagsliste\n\n**Matching ausführen:**\n1. Klicken Sie auf **Matching-Lauf starten**.\n2. Das System berechnet für jede Förderer-Bewerber-Kombination einen Matching-Score (0 bis 100 Punkte).\n3. Es wird eine optimierte **Vorschlagsliste** generiert, die die Gesamtzahl der versorgten Stipendien maximiert."
+      },
+      {
+        id: "chunk-38",
+        title: "Manuelle Korrektur, Nachrückerverfahren & Freigabe",
+        page: 218,
+        chapter: "Kapitel 9: Matching-Engine & Kriterien-Gewichtung",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Manuelle Nachbearbeitung & Nachrücker\n\nDie vom Algorithmus ermittelten Zuteilungen können von der Auswahlkommission manuell angepasst werden.\n\n**Anpassung & Nachrücken:**\n- Sachbearbeiter können einzelne Zuteilungen manuell übersteuern oder tauschen.\n- Lehnt ein Stipendiat das Stipendium ab, setzt die Funktion **Nachrücker aufrufen** automatisch den Nächstplatzierten der Vorschlagsliste ein."
+      },
+
+      // KAPITEL 10: WORKFLOWS & STATUSÜBERGÄNGE
+      {
+        id: "chunk-39",
+        title: "Workflow-Engine, Statusmodell & Übergangsbedingungen",
+        page: 225,
+        chapter: "Kapitel 10: Workflows & Statusübergänge",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Workflow-Engine & Statusmodell\n\nJeder Antrag in APTE-NG durchläuft ein vordefiniertes Statusmodell.\n\n**Standard-Statusabfolge:**\n`Entwurf` ➔ `Eingereicht` ➔ `In Formalprüfung` ➔ `In Begutachtung` ➔ `Kommissionsentscheidung` ➔ `Genehmigt` / `Abgelehnt`.\n\n**Regelbasierte Statusübergänge:**\n- Definieren Sie unter **Einstellungen > Workflows**, wer welchen Statuswechsel durchführen darf."
+      },
+      {
+        id: "chunk-40",
+        title: "Prozessdefinitionen für mehrstufige Genehmigungsketten",
+        page: 231,
+        chapter: "Kapitel 10: Workflows & Statusübergänge",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Mehrstufige Genehmigungsketten einrichten\n\nFür Anträge mit finanzieller Tragweite (z. B. Forschungsförderung) können mehrstufige Freigaben konfiguriert werden.\n\n**Beispiel-Genehmigungskette:**\n1. Stufe: Formalprüfung durch Dekanat.\n2. Stufe: Fachliche Prüfung durch Fachgruppe.\n3. Stufe: Finale Freigabe durch Vizepräsident/in Forschung."
+      },
+      {
+        id: "chunk-41",
+        title: "Automatische Statuswechsel & Fristen-Trigger",
+        page: 237,
+        chapter: "Kapitel 10: Workflows & Statusübergänge",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Automatische Statusänderungen (Trigger)\n\nArbeitsabläufe können zeit- oder ereignisgesteuert automatisiert werden.\n\n**Beispiel-Trigger:**\n- **Bei Verstreichen der Nachreichfrist**: Wenn der Bewerber innerhalb von 14 Tagen keine Unterlagen nachreicht, wechselt der Status automatisch von `Nachforderung` auf `Unvollständig abgelehnt`."
+      },
+      {
+        id: "chunk-42",
+        title: "Nachreichaufforderung & Nachreich-Zeitfenster",
+        page: 243,
+        chapter: "Kapitel 10: Workflows & Statusübergänge",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Nachreich-Funktion verwalten\n\nFehlen bei einem Antrag Unterlagen, kann der Sachbearbeiter eine Nachforderung auslösen.\n\n**Vorgehensweise:**\n1. Klicken Sie im Datensatz auf **Nachreichen anfordern**.\n2. Wählen Sie die nachzufordernden Dokumente (z. B. 'Immatrikulationsbescheinigung').\n3. Setzen Sie die **Nachreichfrist** (z. B. 7 Tage).\n4. Der Antragsteller erhält eine E-Mail mit einem gesicherten Link, um die Dateien hochzuladen."
+      },
+
+      // KAPITEL 11: SCHNITTSTELLEN & REST-API
+      {
+        id: "chunk-43",
+        title: "REST-API Architektur, Endpunkte & JSON-Formate",
+        page: 250,
+        chapter: "Kapitel 11: Schnittstellen & REST-API",
+        source: DEFAULT_MD_FILENAME,
+        text: "### REST-API Schnittstellenbeschreibung\n\nAPTE-NG stellt eine umfassende RESTful API für den Datenaustausch mit Umsystemen (z. B. HISinOne, SAP, CampusNet) bereit.\n\n**Wichtige API-Endpunkte:**\n- `GET /api/v1/forms`: Abruf aller aktiven Formulardefinitionen.\n- `GET /api/v1/applications`: Abruf von Antragsdaten im JSON-Format.\n- `POST /api/v1/applications/{id}/status`: Statusänderung via API ausführen."
+      },
+      {
+        id: "chunk-44",
+        title: "Token-Authentifizierung (OAuth 2.0 / Bearer) & Rate Limits",
+        page: 256,
+        chapter: "Kapitel 11: Schnittstellen & REST-API",
+        source: DEFAULT_MD_FILENAME,
+        text: "### API-Sicherheit & Token-Authentifizierung\n\nDer Zugriff auf die API erfordert eine Authentifizierung mittels **OAuth 2.0 Bearer Tokens** oder API-Keys.\n\n**Sicherheitsvorgaben:**\n- API-Keys können unter **Systemverwaltung > API-Schlüssel** generiert werden.\n- **Rate Limiting**: Standardmäßig auf 500 Anfragen pro Minute pro IP-Adresse beschränkt."
+      },
+      {
+        id: "chunk-45",
+        title: "Webhooks & Event-basierte Integrationen",
+        page: 262,
+        chapter: "Kapitel 11: Schnittstellen & REST-API",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Webhooks einrichten\n\nWebhooks informieren externe Systeme in Echtzeit über Ereignisse in APTE-NG.\n\n**Webhook-Events:**\n- `application.submitted`: Wird ausgelöst, sobald ein neuer Antrag eingereicht wird.\n- `decision.approved`: Wird ausgelöst, wenn ein Förderbescheid erteilt wurde."
+      },
+
+      // KAPITEL 12: AUDIT LOG, COMPLIANCE & DSGVO
+      {
+        id: "chunk-46",
+        title: "Audit Log (Änderungshistorie & Lesezugriffs-Protokollierung)",
+        page: 270,
+        chapter: "Kapitel 12: Audit Log, Compliance & DSGVO",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Audit Log & Revisionssicherheit\n\nJede sicherheits- oder datenrelevante Aktion in APTE-NG wird fälschungssicher im Audit Log protokolliert.\n\n**Protokollierte Daten:**\n- Wer (User-ID, IP-Adresse).\n- Wann (Exakter UTC-Zeitstempel).\n- Was (Geänderte Felder mit Vorher-Nachher-Vergleich)."
+      },
+      {
+        id: "chunk-47",
+        title: "Datenschutzkonforme Anonymisierung & Pseudonymisierung",
+        page: 276,
+        chapter: "Kapitel 12: Audit Log, Compliance & DSGVO",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Anonymisierung & Pseudonymisierung\n\nFür statistische Auswertungen oder nach Ablauf von Aufbewahrungsfristen können Personendaten anonymisiert werden.\n\n**Anonymisierung ausführen:**\n- Öffnen Sie **Einstellungen > Datenschutz > Anonymisierungslauf**.\n- Namen, E-Mails, Anschriften und IP-Adressen werden unwiederbringlich durch Hashes ersetzt, während statistische Merkmale (Fakultät, Note) für die Hochschulstatistik erhalten bleiben."
+      },
+      {
+        id: "chunk-48",
+        title: "Automatische Löschkonzepte & Aufbewahrungsfristen nach DSGVO",
+        page: 282,
+        chapter: "Kapitel 12: Audit Log, Compliance & DSGVO",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Löschregeln & DSGVO-Löschkonzept\n\nLöschregeln stellen die Einhaltung der DSGVO-Löschfristen sicher.\n\n**Einrichtung von Löschregeln:**\n1. Navigieren Sie zu **Einstellungen > Datenschutz > Löschregeln**.\n2. Definieren Sie Regeln: z. B. *Lösche abgelehnte Anträge automatisch 6 Monate nach Verfahrensabschluss*."
+      },
+
+      // KAPITEL 13: SYSTEMEINSTELLUNGEN & PARAMETER
+      {
+        id: "chunk-49",
+        title: "Globale Variablen, Corporate Design & Branding",
+        page: 288,
+        chapter: "Kapitel 13: Systemeinstellungen & Parameter",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Corporate Design & Layoutanpassungen\n\nPassen Sie das Erscheinungsbild von APTE-NG an das Design Ihrer Hochschule an.\n\n**Einstellungen:**\n- **Hochschul-Logo**: Laden Sie Ihr Marken-Logo für Kopfzeile und Bescheide hoch.\n- **Primärfarben**: Vergeben Sie Farbcodes (z. B. Bordeaux `#8C2230`) für Buttons und Akzente."
+      },
+      {
+        id: "chunk-50",
+        title: "SMTP-E-Mail-Server, Systemmeldungen & Startmasken-Widgets",
+        page: 294,
+        chapter: "Kapitel 13: Systemeinstellungen & Parameter",
+        source: DEFAULT_MD_FILENAME,
+        text: "### E-Mail-Server (SMTP) & Systembenachrichtigungen\n\n**E-Mail-Konfiguration:**\n- Hinterlegen Sie Server-Adresse, Port (587 / TLS) und Zugangsdaten unter **Einstellungen > E-Mail-Konfiguration**.\n- Vergeben Sie Standard-Absender-Adressen für Systemnachrichten."
+      },
+
+      // KAPITEL 14: DATEN-EXPORT & BERICHTSGENERATOR
+      {
+        id: "chunk-51",
+        title: "Exportfunktionen (CSV, Excel, PDF-Synopse & Hochschulstatistik)",
+        page: 300,
+        chapter: "Kapitel 14: Daten-Export & Berichtsgenerator",
+        source: DEFAULT_MD_FILENAME,
+        text: "### Daten-Export & Berichtsgenerator\n\nExporte ermöglichen die Weiterverarbeitung von Antragsdaten in externen Werkzeugen.\n\n**Export-Formate:**\n- **Excel (.xlsx)** & **CSV**: Vollständiger Rohdaten-Export mit wählbaren Feldspalten.\n- **PDF-Synopse**: Generiert ein komprimiertes Übersichtsdokument aller Bewerber für Sitzungen der Auswahlkommission."
+      },
+
+      // KAPITEL 15: BENACHRICHTIGUNGSZENTRUM & KAPITEL 16: FEHLERBEHEBUNG
+      {
+        id: "chunk-52",
+        title: "Benachrichtigungszentrum, Wartung, Cache & System-Diagnose",
+        page: 306,
+        chapter: "Kapitel 15 & 16: Benachrichtigungen, Wartung & Diagnose",
+        source: DEFAULT_MD_FILENAME,
+        text: "### System-Diagnose, Wartungsmodus & Cache-Leerung\n\nUnter **Systemverwaltung > Diagnose** stehen Administratoren Diagnose-Tools zur Verfügung.\n\n**Wartungsfunktionen:**\n- **Cache leeren**: Leert den Anwendungs-Cache nach Änderungen an Vorlagen oder Sichtbarkeitsregeln.\n- **Wartungsmodus aktivieren**: Sperrt den Zugriff für reguläre Benutzer während System-Updates."
+      }
+    ];
+
+    // TOKENIZER & NORMALIZER
+    function tokenizeText(text) {
+      if (!text) return [];
+      const rawWords = text.toLowerCase().split(/[^\wäöüß]+/);
+      const tokens = [];
+      for (let w of rawWords) {
+        if (w.length < 2) continue;
+        if (GERMAN_STOPWORDS.has(w)) continue;
+        
+        if (w.length > 5) {
+          w = w.replace(/(ungen|chaften|heiten|keit|isch|ende|erweise|en|em|er|es|e|s)$/g, '');
+        }
+        if (w.length >= 2) tokens.push(w);
+      }
+      return tokens;
+    }
+
+    // CHECK IF QUERY IS PROCEDURAL
+    function isProceduralQuery(query) {
+      const qLower = query.toLowerCase();
+      return /\b(wo|wie|einstellen|pfad|wohin|finden|konfigurieren|erstellen|ändern|bearbeiten)\b/i.test(qLower);
+    }
+
+    // BM25 VECTOR SEARCH ENGINE CLASS
+    class BM25Engine {
+      constructor(chunks, k1 = 1.2, b = 0.75) {
+        this.k1 = k1;
+        this.b = b;
+        this.chunks = chunks || [];
+        this.docCount = this.chunks.length;
+        this.docTokens = [];
+        this.docLengths = [];
+        this.avgDocLength = 0;
+        this.df = new Map();
+
+        this.buildIndex();
+      }
+
+      buildIndex() {
+        let totalLen = 0;
+        this.docTokens = [];
+        this.docLengths = [];
+        this.df.clear();
+
+        for (let i = 0; i < this.docCount; i++) {
+          const tokens = tokenizeText(this.chunks[i].text + " " + (this.chunks[i].title || ''));
+          this.docTokens.push(tokens);
+          const len = tokens.length;
+          this.docLengths.push(len);
+          totalLen += len;
+
+          const unique = new Set(tokens);
+          unique.forEach(term => {
+            this.df.set(term, (this.df.get(term) || 0) + 1);
+          });
+        }
+
+        this.avgDocLength = this.docCount > 0 ? (totalLen / this.docCount) : 1;
+      }
+
+      getIDF(term) {
+        const df = this.df.get(term) || 0;
+        if (df === 0) return 0;
+        return Math.log((this.docCount - df + 0.5) / (df + 0.5) + 1);
+      }
+
+      search(query, topK = 3) {
+        if (!this.chunks || this.chunks.length === 0) {
+          return { matches: [], maxScore: 0 };
+        }
+
+        const qTokens = tokenizeText(query);
+        if (qTokens.length === 0) {
+          return { matches: [], maxScore: 0 };
+        }
+
+        const queryLower = query.toLowerCase().trim();
+        const procedural = isProceduralQuery(query);
+        const scores = new Array(this.docCount).fill(0);
+
+        for (let i = 0; i < this.docCount; i++) {
+          const docTokens = this.docTokens[i];
+          if (docTokens.length === 0) continue;
+
+          const tfMap = new Map();
+          for (let t of docTokens) {
+            tfMap.set(t, (tfMap.get(t) || 0) + 1);
+          }
+
+          let score = 0;
+          for (let qTerm of qTokens) {
+            const freq = tfMap.get(qTerm) || 0;
+            if (freq > 0) {
+              const idf = this.getIDF(qTerm);
+              const num = freq * (this.k1 + 1);
+              const den = freq + this.k1 * (1 - this.b + this.b * (this.docLengths[i] / this.avgDocLength));
+              score += idf * (num / den);
+            }
+          }
+
+          const chunkText = this.chunks[i].text;
+          const textLower = chunkText.toLowerCase();
+
+          // Title Match Boost (Strong token overlap bonus)
+          const titleTokens = tokenizeText(this.chunks[i].title || '');
+          let titleMatches = 0;
+          for (let qTerm of qTokens) {
+            if (titleTokens.includes(qTerm)) titleMatches++;
+          }
+          if (titleMatches > 0) {
+            score += titleMatches * 12.0;
+          }
+
+          // Exact Match Boost
+          if (queryLower.length > 4 && textLower.includes(queryLower)) {
+            score += 5.0;
+          }
+
+          // Procedural Boost & Permission List Penalty
+          if (procedural) {
+            if (/\b\d+\.\s+/i.test(chunkText) || /\b(öffnen sie|klicken sie|navigieren sie|wählen sie)\b/i.test(chunkText)) {
+              score += 6.0;
+            }
+            // Penalty if chunk is purely a permission table/function list during how-to queries
+            if (chunkText.includes('Beschreibung der Zugriffsrechte') || chunkText.includes('Berechtigt zum') || chunkText.includes('Darf Nachrichten')) {
+              score -= 10.0;
+            }
+          }
+
+          scores[i] = score;
+        }
+
+        const results = [];
+        for (let i = 0; i < this.docCount; i++) {
+          if (scores[i] > 0) {
+            results.push({ chunk: this.chunks[i], score: scores[i] });
+          }
+        }
+
+        results.sort((a, b) => b.score - a.score);
+
+        return {
+          matches: results.slice(0, topK),
+          maxScore: results.length > 0 ? results[0].score : 0
+        };
+      }
+    }
+
+    // APPLICATION STATE
+    const state = {
+      chunks: [...DEFAULT_DOC_CHUNKS],
+      documentName: DEFAULT_MD_FILENAME,
+      strictMode: true,
+      matchThreshold: 3.5,
+      isLoading: false,
+      isAdmin: false,
+      adminPassword: 'admin',
+      bm25Engine: null
+    };
+
+    // DOM ELEMENTS
+    const messagesContainer = document.getElementById('messagesContainer');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    
+    const adminAccessBtn = document.getElementById('adminAccessBtn');
+    const adminBtnLabel = document.getElementById('adminBtnLabel');
+    const kbSidebar = document.getElementById('kbSidebar');
+    const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
+    
+    const dropZone = document.getElementById('dropZone');
+    const pdfFileInput = document.getElementById('pdfFileInput');
+    const pdfProgress = document.getElementById('pdfProgress');
+    const pdfProgressText = document.getElementById('pdfProgressText');
+    const pdfProgressBar = document.getElementById('pdfProgressBar');
+    const pdfProgressPercent = document.getElementById('pdfProgressPercent');
+    const resetKbBtn = document.getElementById('resetKbBtn');
+    
+    const docNameDisplay = document.getElementById('docNameDisplay');
+    const docStatsDisplay = document.getElementById('docStatsDisplay');
+    const strictModeCheckbox = document.getElementById('strictModeCheckbox');
+    const thresholdSlider = document.getElementById('thresholdSlider');
+    const thresholdValueDisplay = document.getElementById('thresholdValueDisplay');
+    const chunkSearchInput = document.getElementById('chunkSearchInput');
+    const chunkPreviewList = document.getElementById('chunkPreviewList');
+    
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
+    const logoutAdminBtn = document.getElementById('logoutAdminBtn');
+    
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+
+    // INITIALIZATION & HELPER FUNCTIONS
+    function initEngine() {
+      state.bm25Engine = new BM25Engine(state.chunks);
+      const totalWords = state.chunks.reduce((acc, c) => acc + (c.text ? c.text.split(/\s+/).length : 0), 0);
+      if (docNameDisplay) docNameDisplay.textContent = state.documentName;
+      if (docStatsDisplay) docStatsDisplay.textContent = `${state.chunks.length} Abschnitte · ~${totalWords.toLocaleString('de-DE')} Wörter`;
+      renderChunkInspector();
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      if (!toast || !toastMsg) return;
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    function renderChunkInspector(filter = '') {
+      if (!chunkPreviewList) return;
+      chunkPreviewList.innerHTML = '';
+      const filterLower = filter.toLowerCase();
+      
+      const filtered = state.chunks.filter(c => 
+        !filter || (c.title && c.title.toLowerCase().includes(filterLower)) || (c.text && c.text.toLowerCase().includes(filterLower))
+      );
+
+      if (filtered.length === 0) {
+        chunkPreviewList.innerHTML = `<div class="text-xs text-slate-400 p-2 italic">Keine Abschnitte gefunden</div>`;
+        return;
+      }
+
+      filtered.forEach(chunk => {
+        const div = document.createElement('div');
+        div.className = "p-2 bg-white border border-slate-200 rounded text-xs hover:border-bordeaux transition cursor-pointer mb-1.5";
+        div.innerHTML = `
+          <div class="flex items-center justify-between font-bold text-slate-800 text-[11px] mb-1">
+            <span class="truncate max-w-[200px]">${escapeHtml(chunk.title)}</span>
+            <span class="text-[10px] text-slate-400 font-mono">S. ${chunk.page || '?'}</span>
+          </div>
+          <p class="text-[10px] text-slate-500 line-clamp-2">${escapeHtml(chunk.text)}</p>
+        `;
+        div.addEventListener('click', () => {
+          chatInput.value = `Suche nach ${chunk.title}`;
+          kbSidebar.classList.add('translate-x-full');
+          chatForm.dispatchEvent(new Event('submit'));
+        });
+        chunkPreviewList.appendChild(div);
+      });
+    }
+
+    function processUploadedFile(file) {
+      if (!file) return;
+      
+      if (pdfProgress) {
+        pdfProgress.classList.remove('hidden');
+        if (pdfProgressText) pdfProgressText.textContent = "Lese Datei...";
+        if (pdfProgressBar) pdfProgressBar.style.width = "30%";
+        if (pdfProgressPercent) pdfProgressPercent.textContent = "30%";
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target.result;
+          const rawSections = content.split(/(?=\n#{1,3}\s+)/);
+          const newChunks = [];
+
+          let chunkIdx = 1;
+          for (let sec of rawSections) {
+            const trimmed = sec.trim();
+            if (!trimmed) continue;
+            
+            const lines = trimmed.split('\n');
+            let title = `Abschnitt ${chunkIdx}`;
+            if (lines[0].startsWith('#')) {
+              title = lines[0].replace(/^#{1,3}\s+/, '').trim();
+            }
+
+            newChunks.push({
+              id: `custom-chunk-${chunkIdx}`,
+              title: title,
+              page: Math.ceil(chunkIdx * 1.5),
+              chapter: "Benutzerdefiniertes Dokument",
+              source: file.name,
+              text: trimmed
+            });
+            chunkIdx++;
+          }
+
+          if (newChunks.length === 0) {
+            throw new Error("Keine Abschnitte in der Datei gefunden.");
+          }
+
+          state.chunks = newChunks;
+          state.documentName = file.name;
+          initEngine();
+
+          if (pdfProgressBar) pdfProgressBar.style.width = "100%";
+          if (pdfProgressPercent) pdfProgressPercent.textContent = "100%";
+          if (pdfProgressText) pdfProgressText.textContent = "Fertig!";
+
+          setTimeout(() => {
+            if (pdfProgress) pdfProgress.classList.add('hidden');
+            showToast(`Datei "${file.name}" mit ${newChunks.length} Abschnitten indiziert.`);
+          }, 500);
+
+        } catch (err) {
+          console.error("File processing error:", err);
+          if (pdfProgress) pdfProgress.classList.add('hidden');
+          showToast("Fehler beim Lesen der Datei: " + err.message);
+        }
+      };
+
+      reader.onerror = () => {
+        if (pdfProgress) pdfProgress.classList.add('hidden');
+        showToast("Fehler beim Lesen der Datei.");
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // GEMINI RAG SYNTHESIS VIA API
+    async function askGeminiRAG(query, topMatches) {
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const contextText = topMatches.map((m, idx) => 
+        `--- ABSCHNITT ${idx + 1}: ${m.chunk.title} (Seite ${m.chunk.page}, ${m.chunk.chapter}, Datei: ${m.chunk.source}) ---\n${m.chunk.text}`
+      ).join('\n\n');
+
+      const systemPrompt = `Du bist der offizielle APTE-NG KI-Dokumentations-Assistent der valucon apps GmbH.
+Deine Aufgabe ist es, Fragen zur Bedienung und Konfiguration von APTE-NG präzise, professionell und Schritt für Schritt zu beantworten – streng auf Basis des gelieferten Handbuch-Kontexts.
+
+REGELN FÜR DIE KI-ANTWORT:
+1. Beantworte Handlungsfragen ("Wie erstelle ich...", "Wo stelle ich... ein?") mit einer übersichtlichen, nummerierten Klickanleitung (1., 2., 3.).
+2. Nutze eine verständliche, flüssige Sprache. Fasse relevante Abschnitte prägnant zusammen und filtere unpassende Tabellenzeilen heraus.
+3. Wenn der gelieferte Kontext die Frage nicht beantwortet, antworte EXAKT mit:
+"In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden."
+4. Schließe deine Antwort IMMER mit der exakten Quellenangabe ab im Format:
+*📌 **Quelle:** [Kapitel/Titel] (Seite [X] · Datei: \`[Name]\`)*
+5. Halte dich strikt an die Fakten des Handbuchs (keine erfundenen Menüpfade oder Funktionen).`;
+
+      const userPrompt = `HANDBUCH-KONTEXT:\n${contextText}\n\nFRAGE DES NUTZERS:\n${query}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error(`Gemini API Error Status: ${response.status}`);
+      const data = await response.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    }
+
+    // RESPONSE SYNTHESIZER - HYBRID RETRIEVAL & AI GENERATION
+    async function synthesizeResponse(query, searchResult) {
+      const matches = searchResult.matches;
+      const topScore = searchResult.maxScore;
+
+      if (!matches || matches.length === 0 || (state.strictMode && topScore < state.matchThreshold)) {
+        return {
+          text: "In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden.",
+          isFallback: true,
+          matches: [],
+          isAI: false
+        };
+      }
+
+      // Try Gemini AI RAG synthesis for intelligent filtering and natural response formatting
+      try {
+        const aiAnswer = await askGeminiRAG(query, matches);
+        if (aiAnswer && aiAnswer.trim()) {
+          const isFallback = aiAnswer.includes("In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden");
+          return { text: aiAnswer, isFallback: isFallback, matches: matches, isAI: !isFallback };
+        }
+      } catch (e) {
+        console.warn("Direct Gemini RAG synthesis failed, using local extraction fallback:", e);
+      }
+
+      // Local extraction fallback if API call fails
+      const topMatch = matches[0].chunk;
+      const procedural = isProceduralQuery(query);
+      const rawText = cleanPDFText(topMatch.text).trim();
+      const chapterLabel = topMatch.chapter || topMatch.title || 'Handbuch';
+
+      let responseBody = procedural
+        ? `### 📋 Exakte Handlungsschritte (Lokaler Fallback)\n\n**${topMatch.title}**\n\n${rawText}`
+        : `### 📖 Exakter Wortlaut (Lokaler Fallback)\n\n**${topMatch.title}**\n\n${rawText}`;
+
+      responseBody += `\n\n---\n*📌 **Quelle:** ${chapterLabel} (Seite ${topMatch.page} · Datei: \`${topMatch.source}\`)*`;
+
+      return {
+        text: responseBody,
+        isFallback: false,
+        matches: matches,
+        isAI: false
+      };
+    }
+
+    // RENDER ENDUSER UI
+    function appendMessageUI(role, text, matchesInfo = null, isFallback = false, isAI = false) {
+      const isUser = role === 'user';
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `max-w-3xl mx-auto ${isUser ? 'pl-8' : ''}`;
+
+      if (isUser) {
+        msgDiv.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Frage des Anwenders</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-900 leading-relaxed">${escapeHtml(text)}</p>
+          </div>
+        `;
+      } else {
+        const parsedText = marked.parse(text);
+
+        const aiBadge = isAI ? `
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-bordeaux-soft text-bordeaux border border-bordeaux-border mb-2">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            <span>Gemini 3 Flash RAG-Synthese</span>
+          </div>
+        ` : '';
+
+        let adminDebugHtml = '';
+        if (state.isAdmin && matchesInfo && matchesInfo.length > 0 && !isFallback) {
+          adminDebugHtml = `
+            <details class="mt-3 text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5">
+              <summary class="font-bold text-slate-700 cursor-pointer hover:text-bordeaux flex items-center justify-between">
+                <span>🔧 Admin-Debug: BM25 Scores (${matchesInfo.length} Chunks)</span>
+                <span class="text-[10px] text-bordeaux font-mono font-bold">Top Score: ${matchesInfo[0].score.toFixed(2)}</span>
+              </summary>
+              <div class="mt-2 space-y-2 pt-2 border-t border-slate-200">
+                ${matchesInfo.map(m => `
+                  <div class="bg-white p-2 rounded border border-slate-200">
+                    <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1">
+                      <span>${escapeHtml(m.chunk.source)} : ${escapeHtml(m.chunk.title)}</span>
+                      <span class="text-bordeaux font-mono">Score: ${m.score.toFixed(2)}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 italic">"${escapeHtml(m.chunk.text.substring(0, 160))}..."</p>
+                  </div>
+                `).join('')}
+              </div>
+            </details>
+          `;
+        }
+
+        msgDiv.innerHTML = `
+          <div class="border-l-2 ${isFallback ? 'border-amber-500' : 'border-bordeaux'} pl-5 space-y-2 py-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-slate-900">Antwort aus dem Handbuch</span>
+            </div>
+            ${aiBadge}
+            <div class="text-sm text-slate-800 leading-relaxed editorial-prose">
+              ${parsedText}
+            </div>
+            ${adminDebugHtml}
+          </div>
+        `;
+      }
+
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function setupQuickPrompts() {
+      document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          chatInput.value = btn.textContent.trim();
+          chatForm.dispatchEvent(new Event('submit'));
+        });
+      });
+    }
+
+    // CHAT FORM SUBMIT
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const query = chatInput.value.trim();
+      if (!query || state.isLoading) return;
+
+      appendMessageUI('user', query);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+
+      state.isLoading = true;
+      sendBtn.disabled = true;
+      typingIndicator.classList.remove('hidden');
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      const searchResult = state.bm25Engine ? state.bm25Engine.search(query, 4) : { matches: [], maxScore: 0 };
+
+      try {
+        const responseObj = await synthesizeResponse(query, searchResult);
+        appendMessageUI('model', responseObj.text, responseObj.matches, responseObj.isFallback, responseObj.isAI);
+      } catch (err) {
+        console.error("Search Synthesis Error:", err);
+        appendMessageUI('model', "In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden.", null, true, false);
+      } finally {
+        state.isLoading = false;
+        sendBtn.disabled = false;
+        typingIndicator.classList.add('hidden');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    });
+
+    // CLEAR HISTORY
+    clearChatBtn.addEventListener('click', () => {
+      messagesContainer.innerHTML = `
+        <div class="max-w-3xl mx-auto border-l-2 border-bordeaux pl-5 py-1">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="font-bold text-lg text-slate-900">APTE-NG Dokumentations Assistent</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Pre-Indexed v13</span>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Gesprächsverlauf zurückgesetzt. Stellen Sie eine neue Frage zur APTE-NG Dokumentation.
+          </p>
+        </div>
+      `;
+      setupQuickPrompts();
+      showToast("Gesprächsverlauf zurückgesetzt.");
+    });
+
+    // AUTO-RESIZE TEXTAREA
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // ADMIN SIDEBAR & MODAL EVENT LISTENERS
+    adminAccessBtn.addEventListener('click', () => {
+      if (state.isAdmin) {
+        kbSidebar.classList.remove('translate-x-full');
+      } else {
+        adminLoginModal.classList.remove('hidden');
+      }
+    });
+
+    closeAdminSidebarBtn.addEventListener('click', () => {
+      kbSidebar.classList.add('translate-x-full');
+    });
+
+    closeAdminLoginBtn.addEventListener('click', () => {
+      adminLoginModal.classList.add('hidden');
+    });
+
+    adminLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (adminPasswordInput.value === state.adminPassword) {
+        state.isAdmin = true;
+        adminLoginModal.classList.add('hidden');
+        adminPasswordInput.value = '';
+        adminBtnLabel.textContent = "Admin Konsole";
+        kbSidebar.classList.remove('translate-x-full');
+        showToast("Erfolgreich als Admin angemeldet.");
+      } else {
+        showToast("Falsches Passwort! (Standard: admin)");
+      }
+    });
+
+    logoutAdminBtn.addEventListener('click', () => {
+      state.isAdmin = false;
+      adminBtnLabel.textContent = "Admin Bereich";
+      kbSidebar.classList.add('translate-x-full');
+      showToast("Admin abgemeldet.");
+    });
+
+    strictModeCheckbox.addEventListener('change', (e) => {
+      state.strictMode = e.target.checked;
+      showToast(`Strict Grounding ${state.strictMode ? 'aktiviert' : 'deaktiviert'}`);
+    });
+
+    thresholdSlider.addEventListener('input', (e) => {
+      state.matchThreshold = parseFloat(e.target.value);
+      thresholdValueDisplay.textContent = state.matchThreshold.toFixed(1);
+    });
+
+    resetKbBtn.addEventListener('click', () => {
+      state.chunks = [...DEFAULT_DOC_CHUNKS];
+      state.documentName = DEFAULT_MD_FILENAME;
+      initEngine();
+      showToast("Standard-Handbuch v13 wiederhergestellt.");
+    });
+
+    // DRAG & DROP & FILE INPUT
+    dropZone.addEventListener('click', () => pdfFileInput.click());
+    pdfFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) processUploadedFile(e.target.files[0]);
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('active');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('active');
+      if (e.dataTransfer.files.length > 0) processUploadedFile(e.dataTransfer.files[0]);
+    });
+
+    if (chunkSearchInput) {
+      chunkSearchInput.addEventListener('input', (e) => {
+        renderChunkInspector(e.target.value);
+      });
+    }
+
+    // INIT ON STARTUP
+    window.addEventListener('DOMContentLoaded', () => {
+      initEngine();
+      setupQuickPrompts();
+    });
+  </script>
+</body>
+</html>
