@@ -191,7 +191,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 11:55 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:00 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -302,17 +302,21 @@
     let isProcessing = false;
     let isAdminAuthenticated = false;
 
-    // Helper: Clean unwanted boilerplate, headers, footers, page numbers and copyright notices
+    // Helper: Clean unwanted boilerplate, headers, footers, page numbers and copyright notices (Line-by-Line for High Performance)
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
-      return text
-        .replace(/.*Vervielfältigung.*$/gmi, '')
-        .replace(/.*Seite\s+\d+.*$/gmi, '')
-        .replace(/.*valucon\s+apps\s+GmbH.*$/gmi, '')
-        .replace(/^\s*APTE-NG\s*$/gmi, '')
-        .replace(/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben)\s+(?:\([^)]+\)\s+)?.*$/gmi, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
+      const lines = text.split('\n');
+      const filtered = lines.filter(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return true;
+        if (/Vervielfältigung/i.test(trimmed)) return false;
+        if (/^Seite\s+\d+/i.test(trimmed) || /Seite\s+\d+\b/i.test(trimmed)) return false;
+        if (/valucon\s+apps\s+GmbH/i.test(trimmed)) return false;
+        if (/^APTE-NG$/i.test(trimmed)) return false;
+        if (/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben)\s+(?:\([^)]+\)\s+)?(?:[A-ZÄÖÜa-zäöüß\s]+)$/i.test(trimmed) && trimmed.length < 60) return false;
+        return true;
+      });
+      return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
     }
 
     // Helper: Update status badges across the UI based on API key availability
@@ -356,6 +360,7 @@
     // Parse raw markdown text into indexed chunk objects
     function parseMarkdownToChunks(text, sourceName) {
       if (!text || typeof text !== 'string') return [];
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) return [];
       
       const cleanedRaw = cleanBoilerplateText(text);
       const lines = cleanedRaw.split('\n');
