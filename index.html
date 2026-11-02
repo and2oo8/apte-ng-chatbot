@@ -293,30 +293,35 @@
 
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // Embedded Fallback Knowledge Base with illustrative UI screenshots & procedural steps
+    // Valid Base64 Encoded Screenshots for 100% Reliable Rendering Across All Browsers
+    const imgAbgabeperiode = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180" fill="none"><rect width="600" height="180" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/><rect x="20" y="20" width="560" height="36" rx="6" fill="#8C2230"/><text x="35" y="43" fill="white" font-family="sans-serif" font-weight="bold" font-size="13">APTE-NG Formulareinstellungen: Abgabeperiode &amp; Fristen</text><rect x="20" y="70" width="260" height="50" rx="6" fill="white" stroke="#94A3B8"/><text x="30" y="90" fill="#475569" font-family="sans-serif" font-size="11">Startdatum &amp; Uhrzeit</text><text x="30" y="108" fill="#0F172A" font-family="sans-serif" font-weight="bold" font-size="12">01.04.2026 - 00:00 Uhr</text><rect x="320" y="70" width="260" height="50" rx="6" fill="white" stroke="#94A3B8"/><text x="330" y="90" fill="#475569" font-family="sans-serif" font-size="11">Enddatum &amp; Uhrzeit</text><text x="330" y="108" fill="#0F172A" font-family="sans-serif" font-weight="bold" font-size="12">15.05.2026 - 23:59 Uhr</text><rect x="20" y="132" width="110" height="32" rx="6" fill="#8C2230"/><text x="40" y="153" fill="white" font-family="sans-serif" font-weight="bold" font-size="12">Speichern</text></svg>`);
+    
+    const imgDatenansicht = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180" fill="none"><rect width="600" height="180" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/><rect x="20" y="20" width="560" height="36" rx="6" fill="#0F172A"/><text x="35" y="43" fill="white" font-family="sans-serif" font-weight="bold" font-size="13">Datenansicht konfigurieren: Spaltenauswahl &amp; Bearbeitung</text><rect x="20" y="70" width="560" height="36" rx="4" fill="white" stroke="#E2E8F0"/><text x="35" y="93" fill="#334155" font-family="sans-serif" font-size="12">&#9745; Antragsteller-Name  |  &#9745; Matrikelnummer  |  &#9745; Notenschnitt  |  &#9744; Telefonnummer</text><rect x="20" y="118" width="560" height="36" rx="4" fill="white" stroke="#E2E8F0"/><text x="35" y="141" fill="#334155" font-family="sans-serif" font-size="12">&#9745; In-Place-Editing für Statusänderungen erlauben</text></svg>`);
+
+    // Cleaned Fallback Chunks (Authentic, Direct Step-by-Step Content Only)
     const fallbackChunks = [
       {
         title: "Abgabeperiode und Fristen definieren",
         path: "Formulare → Layout → Übersicht → Abgabeperiode",
-        content: "Die Abgabeperiode legt fest, in welchem Zeitfenster Anträge und Unterlagen eingereicht werden können.\n\n![APTE-NG Abgabeperiode Einstellungen](data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='220' viewBox='0 0 600 220' fill='none'><rect width='600' height='220' rx='8' fill='%23F8FAFC' stroke='%23CBD5E1'/><rect x='20' y='20' width='560' height='40' rx='6' fill='%238C2230'/><text x='40' y='45' fill='white' font-family='sans-serif' font-weight='bold' font-size='14'>APTE-NG Formulareinstellungen: Abgabeperiode & Fristen</text><rect x='20' y='80' width='260' height='60' rx='6' fill='white' stroke='%2394A3B8'/><text x='35' y='102' fill='%23475569' font-size='11'>Startdatum & Uhrzeit</text><text x='35' y='125' fill='%230F172A' font-weight='bold' font-size='13'>01.04.2026 - 00:00 Uhr</text><rect x='320' y='80' width='260' height='60' rx='6' fill='white' stroke='%2394A3B8'/><text x='335' y='102' fill='%23475569' font-size='11'>Enddatum & Uhrzeit</text><text x='335' y='125' fill='%230F172A' font-weight='bold' font-size='13'>15.05.2026 - 23:59 Uhr</text><rect x='20' y='160' width='120' height='36' rx='6' fill='%238C2230'/><text x='45' y='183' fill='white' font-weight='bold' font-size='12'>Speichern</text></svg>)\n\n1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. `01.04.2026 00:00` bis `15.05.2026 23:59`).\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.",
+        content: `1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. \`01.04.2026 00:00\` bis \`15.05.2026 23:59\`):\n\n![APTE-NG Abgabeperiode Einstellungen](${imgAbgabeperiode})\n\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.`,
         source: "Integrierte Basis"
       },
       {
         title: "Datenansichten erstellen und Spalten konfigurieren",
         path: "Daten → Datenansichten",
-        content: "Datenansichten bieten maßgeschneiderte Tabellenansichten für die Bearbeitung im Fachbereich.\n\n![APTE-NG Datenansichten Konfiguration](data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='220' viewBox='0 0 600 220' fill='none'><rect width='600' height='220' rx='8' fill='%23F8FAFC' stroke='%23CBD5E1'/><rect x='20' y='20' width='560' height='40' rx='6' fill='%230F172A'/><text x='40' y='45' fill='white' font-family='sans-serif' font-weight='bold' font-size='14'>Datenansicht konfigurieren: Spaltenauswahl & In-Place-Editing</text><rect x='20' y='80' width='560' height='40' rx='4' fill='white' stroke='%23E2E8F0'/><text x='40' y='105' fill='%23334155' font-size='12'>☑ Antragsteller-Name  |  ☑ Matrikelnummer  |  ☑ Notenschnitt  |  ☐ Telefonnummer</text><rect x='20' y='130' width='560' height='40' rx='4' fill='white' stroke='%23E2E8F0'/><text x='40' y='155' fill='%23334155' font-size='12'>☑ In-Place-Editing für Statusänderungen erlauben</text><rect x='20' y='180' width='160' height='30' rx='6' fill='%238C2230'/><text x='35' y='200' fill='white' font-weight='bold' font-size='11'>Datenansicht speichern</text></svg>)\n\n1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen.\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.",
+        content: `1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen:\n\n![APTE-NG Datenansichten Konfiguration](${imgDatenansicht})\n\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.`,
         source: "Integrierte Basis"
       },
       {
         title: "Nachreich-Funktion verwalten",
         path: "Daten → Nachreichen",
-        content: "Fehlen bei einem Antrag Unterlagen, kann eine Nachforderung ausgelöst werden.\n\n1. Öffnen Sie den jeweiligen Antragsdatensatz unter **Daten**.\n2. Klicken Sie im Datensatz auf **Nachreichen anfordern**.\n3. Wählen Sie die nachzufordernden Dokumente (z. B. 'Immatrikulationsbescheinigung').\n4. Setzen Sie die **Nachreichfrist**.\n5. Der Antragsteller erhält automatisch eine E-Mail mit einem gesicherten Link.",
+        content: "1. Öffnen Sie den jeweiligen Antragsdatensatz unter **Daten**.\n2. Klicken Sie im Datensatz auf **Nachreichen anfordern**.\n3. Wählen Sie die nachzufordernden Dokumente (z. B. 'Immatrikulationsbescheinigung').\n4. Setzen Sie die **Nachreichfrist**.\n5. Der Antragsteller erhält automatisch eine E-Mail mit einem gesichierten Link.",
         source: "Integrierte Basis"
       },
       {
         title: "Statistikmeldung erstellen",
         path: "Akten (DSTIP) → Statistikmeldung",
-        content: "Die Statistikmeldung bereitet Daten für die amtliche Hochschulstatistik auf.\n\n1. Navigieren Sie zu **Akten (DSTIP) > Statistikmeldung erstellen**.\n2. Wählen Sie den Berichtszeitraum und die Mandanten aus.\n3. Führen Sie die Validierungsprüfung durch, um fehlende Kennziffern aufzuspüren.\n4. Exportieren Sie die geprüften Daten im vorgegebenen Schnittstellenformat.",
+        content: "1. Navigieren Sie zu **Akten (DSTIP) > Statistikmeldung erstellen**.\n2. Wählen Sie den Berichtszeitraum und die Mandanten aus.\n3. Führen Sie die Validierungsprüfung durch, um fehlende Kennziffern aufzuspüren.\n4. Exportieren Sie die geprüften Daten im vorgegebenen Schnittstellenformat.",
         source: "Integrierte Basis"
       }
     ];
@@ -326,196 +331,167 @@
     let isProcessing = false;
     let isAdminAuthenticated = false;
 
-    // Configure Marked.js renderer for zoomable responsive images
+    // Configure Marked.js renderer for zoomable responsive images with graceful fallback
     if (typeof marked !== 'undefined') {
       const renderer = new marked.Renderer();
       renderer.image = function(href, title, text) {
-        return `<div class="my-3"><img src="${href}" alt="${text || 'APTE-NG Handbuch Abbildung'}" title="${title || ''}" class="zoomable-img max-h-56 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" /></div>`;
+        if (!href) return '';
+        return `<div class="my-3"><img src="${href}" alt="${text || 'APTE-NG Handbuch Screenshot'}" title="${title || ''}" class="zoomable-img max-h-60 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" onerror="this.onerror=null; this.parentElement.style.display='none';" /></div>`;
       };
       marked.setOptions({ renderer });
     }
 
-    // Markdown Parser with Inhaltsverzeichnis (TOC) Detection
-    function parseMarkdownToChunks(text, sourceName = '') {
-      if (!text) return [];
+    // Parse raw markdown text into indexed chunk objects
+    function parseMarkdownToChunks(text, sourceName) {
+      if (!text || typeof text !== 'string') return [];
+      
       const lines = text.split('\n');
       const chunks = [];
-      let currentH1 = 'APTE-NG Handbuch';
-      let currentH2 = '';
-      let currentH3 = '';
-      let currentTitle = 'Allgemeines';
+      let currentHeading = 'Allgemein';
+      let currentPath = sourceName || 'Handbuch';
       let currentContent = [];
+      let headingStack = [];
 
-      function saveChunk() {
-        const body = currentContent.join('\n').trim();
-        // Detect Table of Contents (Inhaltsverzeichnis)
-        const isTOC = body.includes('| Thema | Seite |') || 
-                      body.toLowerCase().includes('inhaltsverzeichnis') || 
-                      (body.match(/\|\s*\d+\s*\|/g) || []).length > 3 ||
-                      (body.match(/\.{4,}\s*\d+/g) || []).length > 3;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
 
-        if (body.length > 20) {
-          const pathParts = [currentH1, currentH2, currentH3].filter(Boolean);
-          chunks.push({
-            title: currentTitle,
-            path: pathParts.join(' → '),
-            content: body,
-            source: sourceName,
-            isTOC: isTOC
-          });
-        }
-        currentContent = [];
-      }
+        if (headingMatch) {
+          if (currentContent.length > 0) {
+            const bodyText = currentContent.join('\n').trim();
+            const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
+            if (bodyText.length > 20 && !isTOC) {
+              chunks.push({
+                title: currentHeading,
+                path: currentPath,
+                content: bodyText,
+                source: sourceName
+              });
+            }
+            currentContent = [];
+          }
 
-      for (const line of lines) {
-        if (line.startsWith('# ')) {
-          saveChunk();
-          currentH1 = line.replace(/^#\s+/, '').trim();
-          currentH2 = '';
-          currentH3 = '';
-          currentTitle = currentH1;
-        } else if (line.startsWith('## ')) {
-          saveChunk();
-          currentH2 = line.replace(/^##\s+/, '').trim();
-          currentH3 = '';
-          currentTitle = currentH2;
-        } else if (line.startsWith('### ')) {
-          saveChunk();
-          currentH3 = line.replace(/^###\s+/, '').trim();
-          currentTitle = currentH3;
+          const level = headingMatch[1].length;
+          const titleText = headingMatch[2].replace(/[*_]/g, '').trim();
+
+          headingStack = headingStack.slice(0, level - 1);
+          headingStack.push(titleText);
+
+          currentHeading = titleText;
+          currentPath = headingStack.join(' → ');
         } else {
           currentContent.push(line);
         }
       }
-      saveChunk();
+
+      if (currentContent.length > 0) {
+        const bodyText = currentContent.join('\n').trim();
+        const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
+        if (bodyText.length > 20 && !isTOC) {
+          chunks.push({
+            title: currentHeading,
+            path: currentPath,
+            content: bodyText,
+            source: sourceName
+          });
+        }
+      }
+
       return chunks;
     }
 
-    // Helper: Is procedural query ("wie", "wo", "erstellen", etc.)
-    function isProceduralQuery(query) {
-      const q = query.toLowerCase();
-      const proceduralKeywords = ['wie', 'wo', 'erstellen', 'anlegen', 'einstellen', 'konfigurieren', 'ändern', 'schritte', 'anleitung', 'vorgehen', 'löschen', 'exportieren'];
-      return proceduralKeywords.some(kw => q.includes(kw));
-    }
+    // Search & Rank Chunks based on Query Terms
+    function findRelevantChunks(query, topN = 5) {
+      if (!indexedChunks || indexedChunks.length === 0) return [];
 
-    // Helper: Post-processes text to transform "Verwandte Themen" lists into interactive clickable buttons
-    function postProcessResponse(text, relevantChunks) {
-      if (!text) return '';
-
-      // Convert any 'Verwandte Themen' markdown lists into interactive HTML buttons
-      let processed = text.replace(/(?:\*\*Verwandte Themen[^*]*\*\*|Verwandte Themen:?\n)((?:[ \t]*[-*►]\s*.+\n?)+)/gi, function(match, listContent) {
-        const lines = listContent.trim().split('\n');
-        let buttonList = '\n\n---\n**Verwandte Themen im Handbuch:**\n';
-        lines.forEach(line => {
-          const cleanTitle = line.replace(/^[ \t]*[-*►]\s*/, '').replace(/\[([^\]]+)\]\([^)]+\)/, '$1').replace(/\([^)]+\)$/, '').trim();
-          if (cleanTitle) {
-            buttonList += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${cleanTitle}">► ${cleanTitle}</button>\n`;
-          }
-        });
-        return buttonList;
-      });
-
-      return processed;
-    }
-
-    // High-Precision Search (RAG) with TOC Penalty & Procedural Boosting
-    function findRelevantChunks(query, topK = 6) {
-      if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
-
-      const normalizedQuery = (query || '').toLowerCase().trim();
-      const stopWords = ['wie', 'wo', 'was', 'ist', 'der', 'die', 'das', 'den', 'dem', 'ein', 'eine', 'einen', 'einer', 'kann', 'ich', 'man', 'stelle', 'einstellen', 'finde', 'erstelle', 'bitte', 'hilfe', 'stelle', 'wohin'];
+      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng']);
       
-      // Clean special characters to avoid Regex syntax errors with '?', '(', ')' etc.
-      const cleanedQuery = normalizedQuery.replace(/[^\w\säöüß-]/g, ' ');
-      const terms = cleanedQuery.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
-      const requiresSteps = isProceduralQuery(query);
+      const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
+      const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
 
-      if (terms.length === 0) {
-        return indexedChunks.filter(c => !c.isTOC).slice(0, topK);
-      }
+      if (tokens.length === 0) return indexedChunks.slice(0, topN);
 
       const scored = indexedChunks.map(chunk => {
         let score = 0;
-        const titleLower = (chunk.title || '').toLowerCase();
-        const pathLower = (chunk.path || '').toLowerCase();
-        const contentLower = (chunk.content || '').toLowerCase();
+        const titleLower = chunk.title.toLowerCase();
+        const pathLower = chunk.path.toLowerCase();
+        const contentLower = chunk.content.toLowerCase();
 
-        // Massive penalty for Inhaltsverzeichnis chunks so they don't dominate procedural queries
-        if (chunk.isTOC) score -= 150;
+        tokens.forEach(token => {
+          if (titleLower.includes(token)) score += 10;
+          if (pathLower.includes(token)) score += 5;
 
-        // Exact query phrase boost
-        if (titleLower.includes(normalizedQuery)) score += 40;
-        if (contentLower.includes(normalizedQuery)) score += 20;
-
-        // Boost sections containing numbered step-by-step instructions
-        if (requiresSteps && (/\n\s*1\.\s+/.test(chunk.content || '') || contentLower.includes('vorgehensweise') || contentLower.includes('anleitung'))) {
-          score += 35;
-        }
-
-        terms.forEach(term => {
-          if (titleLower.includes(term)) score += 20;
-          if (pathLower.includes(term)) score += 12;
-          
-          try {
-            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const matches = (contentLower.match(new RegExp(escapedTerm, 'g')) || []).length;
-            score += Math.min(matches, 6) * 3;
-          } catch (e) {
-            // Ignore regex syntax errors safely
+          const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+          const matches = contentLower.match(regex);
+          if (matches) {
+            score += Math.min(matches.length, 5) * 2;
           }
         });
+
+        if (/^(wie|wo|schritte|anleitung)/i.test(query.trim())) {
+          if (/1\.\s+|2\.\s+/.test(chunk.content)) score += 5;
+        }
 
         return { chunk, score };
       });
 
       scored.sort((a, b) => b.score - a.score);
-      const matches = scored.filter(s => s.score > 0).map(s => s.chunk);
-      return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.filter(c => !c.isTOC).slice(0, topK);
+
+      const filtered = scored.filter(s => s.score > 0).map(s => s.chunk);
+      return filtered.length > 0 ? filtered.slice(0, topN) : indexedChunks.slice(0, topN);
     }
 
-    // Helper: Formats fallback response to highlight procedural step-by-step guidance
+    // Post-process AI response: remove hallucinated prefixes/paths & append interactive buttons for related topics
+    function postProcessResponse(replyText, relevantChunks) {
+      if (!replyText) return '';
+
+      let cleaned = replyText
+        .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
+        .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
+        .trim();
+
+      if (!cleaned.includes('related-topic-btn') && relevantChunks && relevantChunks.length > 1) {
+        const otherChunks = relevantChunks.slice(1, 4);
+        let relatedHtml = '\n\n---\n**Verwandte Themen im Handbuch:**\n';
+        otherChunks.forEach(c => {
+          relatedHtml += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button>\n`;
+        });
+        cleaned += relatedHtml;
+      }
+
+      return cleaned;
+    }
+
+    // Markdown Parser with Inhaltsverzeichnis (TOC) Detection
+    // Helper: Formats fallback response to strictly output procedural step-by-step guidance without intro fluff
     function formatProceduralFallback(chunk) {
       const lines = chunk.content.split('\n');
       const stepLines = [];
-      const introLines = [];
       const noteLines = [];
-
-      let state = 'intro';
 
       for (let line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
+        // Keep Markdown Images
+        if (trimmed.startsWith('![')) {
+          stepLines.push(trimmed);
+          continue;
+        }
+
         if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed) || /^(schritt\s+\d+|vorgehensweise|anleitung):/i.test(trimmed)) {
-          state = 'steps';
           stepLines.push(trimmed);
         } else if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
-          state = 'note';
           noteLines.push(trimmed);
-        } else {
-          if (state === 'intro') {
-            introLines.push(trimmed);
-          } else if (state === 'steps') {
-            if (trimmed.toLowerCase().startsWith('hinweis') || trimmed.toLowerCase().startsWith('*hinweis')) {
-              state = 'note';
-              noteLines.push(trimmed);
-            } else {
-              stepLines.push(trimmed);
-            }
-          } else {
-            noteLines.push(trimmed);
-          }
         }
       }
 
-      let formattedOutput = `**Klickpfad:** \`${chunk.path}\`\n\n`;
-
-      if (introLines.length > 0) {
-        formattedOutput += `${introLines.join('\n\n')}\n\n`;
-      }
+      let formattedOutput = '';
 
       if (stepLines.length > 0) {
-        formattedOutput += `**Schritt-für-Schritt-Anleitung:**\n${stepLines.join('\n')}\n\n`;
+        formattedOutput += `**Schritt-für-Schritt-Anleitung:**\n\n${stepLines.join('\n')}\n\n`;
+      } else {
+        formattedOutput = chunk.content;
       }
 
       if (noteLines.length > 0) {
@@ -538,10 +514,9 @@ Deine Aufgabe ist es, Fragen zur Konfiguration, Bedienung und Rechtevergabe in A
 
 STRIKTE FORMAL- UND TON-REGELN:
 1. KEINE EINLEITUNGEN ODER PHRASEN: Starte deine Antwort DIREKT mit den Fakten oder der Anleitung. Es ist STRENG VERBOTEN, Sätze wie "Basierend auf dem Handbuch...", "Laut den Informationen...", "In der Software APTE-NG...", "Hier ist die Anleitung..." oder "Um Ihre Frage zu beantworten..." zu schreiben!
-2. KLICKPFAD-FORMAT: Wenn ein Klickpfad existiert, stelle ihn ganz oben voran in fettem Format:
-   **Klickpfad:** Hauptmenü → Untermenü → Aktion
+2. KEINE KLICKPFADE: Erwähne KEINE Klickpfade. Starte direkt mit der Schritt-für-Schritt-Anleitung oder den Fakten.
 3. SCHRITT-FÜR-SCHRITT: Nummeriere Handlungsschritte stets (1., 2., 3.).
-4. SCREENSHOTS & ABBILDUNGEN: Falls im bereitgestellten Handbuch-Kontext ein Screenshot oder eine Grafik enthalten ist (Markdown-Bild ![...](...)), entscheide klug, ob diese Abbildung die Anleitung visuell unterstützt. Wenn ja, binde das Bild exakt mit der im Kontext vorgegebenen Bild-URL in deine Antwort ein.
+4. KEINE ERFUNDENEN BILDER: Binde Bilder ODER Screenshots NUR DANN EIN, wenn im bereitgestellten Handbuch-Text explizit eine funktionierende Voll-URL (z. B. 'data:image/...' oder 'http...') angegeben ist. Erfinde NIEMALS eigene Dateinamen oder Pfade wie 'screenshot.png', 'bild1.png' oder 'image.jpg'!
 5. VERWANDTE THEMEN: Füge am Ende deiner Antwort immer 2 bis 3 verwandte Themen aus den bereitgestellten Handbuch-Abschnitten an:
    **Verwandte Themen im Handbuch:**
    - ► [Titel des verwandten Abschnitts]
