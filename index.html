@@ -198,26 +198,26 @@
       <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 shrink-0">
         
         <!-- Search Mode Toggle Control -->
-        <div class="max-w-3xl mx-auto mb-2.5 flex items-center justify-between flex-wrap gap-2">
-          <div class="inline-flex p-1 bg-slate-200/80 rounded-xl text-xs font-semibold">
-            <button type="button" id="modeManualBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60">
-              <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-              <span>Handbuch-Direktsuche</span>
-            </button>
-            <button type="button" id="modeAiBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
-              <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-              <span>Gemini KI-Antworten</span>
-            </button>
-          </div>
-
-          <!-- Dynamic Notice for Missing API Key when AI mode is active -->
-          <div id="noApiKeyNotice" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium cursor-help" title="Um KI-Antworten zu nutzen, muss ein Gemini API-Schlüssel in der Admin-Verwaltung hinterlegt werden. Alternativ können Sie auf Handbuch-Direktsuche umschalten.">
-            <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <span>Kein Gemini API-Schlüssel hinterlegt</span>
-          </div>
+      <div class="max-w-3xl mx-auto mb-2.5 flex items-center justify-between flex-wrap gap-2">
+        <div class="inline-flex p-1 bg-slate-200/80 rounded-xl text-xs font-semibold">
+          <button type="button" id="modeManualBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60">
+            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>Handbuch-Direktsuche</span>
+          </button>
+          <button type="button" id="modeAiBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>KI-Antworten</span>
+          </button>
         </div>
 
-        <form id="chatForm" class="max-w-3xl mx-auto relative flex items-end gap-3 bg-white border border-slate-300 rounded-xl p-2 focus-within:border-bordeaux focus-within:ring-1 focus-within:ring-bordeaux transition shadow-md">
+        <!-- Dynamic Notice for Missing API Key when AI mode is active -->
+        <div id="noApiKeyNotice" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium cursor-help" title="Um KI-Antworten zu nutzen, muss ein API-Schlüssel in der Admin-Verwaltung hinterlegt werden. Alternativ können Sie auf Handbuch-Direktsuche umschalten.">
+          <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <span>Kein API-Schlüssel hinterlegt</span>
+        </div>
+      </div>
+
+      <form id="chatForm" class="max-w-3xl mx-auto relative flex items-end gap-3 bg-white border border-slate-300 rounded-xl p-2 focus-within:border-bordeaux focus-within:ring-1 focus-within:ring-bordeaux transition shadow-md">
           <textarea id="chatInput" rows="1" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[42px] leading-relaxed disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="Ihre Frage stellen..."></textarea>
           
           <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-lg bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold transition shadow flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
@@ -227,42 +227,54 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 15:15 CET)</span></span>
-          <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
-        </div>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 15:25 CET)</span></span>
+        <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
+    </div>
 
-    </main>
+  </main>
 
 
-    <!-- ADMIN SIDEBAR -->
-    <aside id="kbSidebar" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-slate-50 border-l border-slate-200 flex flex-col z-40 transition-transform duration-300 transform translate-x-full shadow-2xl">
+  <!-- ADMIN SIDEBAR -->
+  <aside id="kbSidebar" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-slate-50 border-l border-slate-200 flex flex-col z-40 transition-transform duration-300 transform translate-x-full shadow-2xl">
+    
+    <!-- Drawer Header -->
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
+        <h2 class="font-bold text-base text-slate-900">Admin-Verwaltung</h2>
+      </div>
+      <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- API Key Configuration Box with Provider Selector -->
+    <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+      <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">API-Anbieter & Schlüssel</label>
+      <p class="text-[11px] text-slate-500 leading-snug">
+        Wählen Sie den gewünschten KI-Anbieter aus und hinterlegen Sie den entsprechenden API-Schlüssel.
+      </p>
       
-      <!-- Drawer Header -->
-      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
-        <div class="flex items-center gap-2">
-          <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
-          <h2 class="font-bold text-base text-slate-900">Admin-Verwaltung</h2>
-        </div>
-        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
+        <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
+          <option value="gemini">Google Gemini (Flash)</option>
+          <option value="melious">melious.ai</option>
+        </select>
       </div>
 
-      <!-- Gemini API Key Configuration Box -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-2">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Gemini API-Schlüssel</label>
-        <p class="text-[11px] text-slate-500 leading-snug">
-          Das System versucht vorrangig Antworten mit der <strong>Gemini KI-Kaskade</strong> (Flash 3.8 → 3.6 → 3) zu generieren. Ist kein Schlüssel hinterlegt oder schlagen die API-Modelle fehl, wird automatisch die <strong>Handbuch-Direktsuche</strong> genutzt.
-        </p>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-700 mb-1">API-Schlüssel</label>
         <div class="flex gap-2">
-          <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="AIzaSy..." />
+          <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="Schlüssel eintragen..." />
           <button id="saveApiKeyBtn" class="px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
         </div>
-        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ Gemini KI (Kaskade) ist aktiv (Fallback auf Direktsuche bei Fehler)</p>
       </div>
+      <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ KI-Anbindung ist aktiv</p>
+    </div>
 
-      <!-- File Status -->
+    <!-- File Status -->
       <div class="p-4 border-b border-slate-200 bg-white space-y-3">
         <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Handbuch-Dateien</label>
         
@@ -361,8 +373,8 @@
       const chatInput = document.getElementById('chatInput');
       const sendBtn = document.getElementById('sendBtn');
 
-      const savedApiKey = (localStorage.getItem('APTE_GEMINI_KEY') || '').trim();
-      const hasKey = savedApiKey.length > 5;
+      const savedApiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
+      const hasKey = savedApiKey.length > 3;
 
       if (selectedSearchMode === 'ai') {
         if (modeAiBtn) modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
@@ -372,7 +384,7 @@
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
           if (chatInput) {
             chatInput.disabled = true;
-            chatInput.placeholder = "Kein Gemini API-Schlüssel hinterlegt";
+            chatInput.placeholder = "Kein API-Schlüssel hinterlegt";
           }
           if (sendBtn) sendBtn.disabled = true;
         } else {
@@ -397,13 +409,17 @@
     }
 
     function updateEngineStatusUI() {
-      const savedApiKey = (localStorage.getItem('APTE_GEMINI_KEY') || '').trim();
-      const hasKey = savedApiKey.length > 5;
+      const savedApiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
+      const selectedProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
+      const hasKey = savedApiKey.length > 3;
       const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+      const providerSelect = document.getElementById('apiProviderSelect');
+      if (providerSelect) providerSelect.value = selectedProvider;
 
       if (hasKey && apiKeyStatus) {
         apiKeyStatus.classList.remove('hidden');
-        apiKeyStatus.textContent = "✓ Gemini KI (Kaskade) ist aktiv (Fallback auf Direktsuche bei Fehler)";
+        apiKeyStatus.textContent = `✓ KI-Anbindung aktiv (${selectedProvider === 'melious' ? 'melious.ai' : 'Google Gemini'})`;
       } else if (apiKeyStatus) {
         apiKeyStatus.classList.add('hidden');
       }
@@ -630,18 +646,44 @@
       const contextText = relevant.slice(0, 5).map((c, i) => `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`).join('\n\n');
       const systemPrompt = `Du bist das APTE-NG Online-Hilfesystem. Beantworte die Frage EXKLUSIV auf Basis des Kontextes. Wenn nicht auffindbar, antworte genau mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
-      const apiKey = (localStorage.getItem('APTE_GEMINI_KEY') || "").trim();
+      const apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
+      const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
+
       if (apiKey) {
         try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
-          });
-          if (response.ok) {
-            const data = await response.json();
-            let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
+          if (provider === 'melious') {
+            // Melious.ai integration endpoint structure
+            const response = await fetch(`https://api.melious.ai/v1/chat/completions`, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({ 
+                model: 'melious-default',
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userQuery }
+                ] 
+              })
+            });
+            if (response.ok) {
+              const data = await response.json();
+              let reply = data.choices?.[0]?.message?.content;
+              if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
+            }
+          } else {
+            // Gemini API fallback
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
+            });
+            if (response.ok) {
+              const data = await response.json();
+              let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
+            }
           }
         } catch (e) {}
       }
@@ -811,7 +853,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadMarkdownFiles();
 
-      const savedApiKey = localStorage.getItem('APTE_GEMINI_KEY');
+      const savedApiKey = localStorage.getItem('APTE_API_KEY') || localStorage.getItem('APTE_GEMINI_KEY');
       if (savedApiKey) document.getElementById('geminiApiKeyInput').value = savedApiKey;
       updateEngineStatusUI();
 
@@ -820,12 +862,15 @@
 
       document.getElementById('saveApiKeyBtn')?.addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
+        const provider = document.getElementById('apiProviderSelect').value;
+        
+        localStorage.setItem('APTE_API_PROVIDER', provider);
         if (val) {
-          localStorage.setItem('APTE_GEMINI_KEY', val);
+          localStorage.setItem('APTE_API_KEY', val);
           updateEngineStatusUI();
-          alert("API-Schlüssel gespeichert!");
+          alert("API-Schlüssel und Anbieter gespeichert!");
         } else {
-          localStorage.removeItem('APTE_GEMINI_KEY');
+          localStorage.removeItem('APTE_API_KEY');
           updateEngineStatusUI();
           alert("API-Schlüssel entfernt.");
         }
