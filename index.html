@@ -272,7 +272,7 @@
       </div>
       <form id="adminLoginForm" class="space-y-4">
         <div>
-          <input type="password" id="adminPasswordInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-bordeaux focus:ring-1 focus:ring-bordeaux" placeholder="Passwort (Standard: admin)" required />
+          <input type="password" id="adminPasswordInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-bordeaux focus:ring-1 focus:ring-bordeaux" placeholder="Passwort" required />
           <p id="adminAuthError" class="text-xs text-red-600 mt-1.5 hidden">Falsches Passwort!</p>
         </div>
         <div class="flex justify-end gap-2">
@@ -283,20 +283,28 @@
     </div>
   </div>
 
+  <!-- IMAGE LIGHTBOX ZOOM MODAL -->
+  <div id="imageZoomModal" class="fixed inset-0 bg-slate-900/85 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 hidden cursor-zoom-out">
+    <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center justify-center">
+      <img id="imageZoomTarget" src="" alt="Handbuch Screenshot Zoom" class="max-w-full max-h-[82vh] rounded-xl shadow-2xl border border-slate-700 object-contain bg-white p-2">
+      <p id="imageZoomCaption" class="text-white text-xs mt-3 bg-slate-800/90 px-4 py-1.5 rounded-full border border-slate-700 shadow-md font-medium"></p>
+    </div>
+  </div>
+
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // Embedded Fallback Knowledge Base (used if external MD files fail to fetch)
+    // Embedded Fallback Knowledge Base with illustrative UI screenshots & procedural steps
     const fallbackChunks = [
       {
         title: "Abgabeperiode und Fristen definieren",
         path: "Formulare → Layout → Übersicht → Abgabeperiode",
-        content: "Die Abgabeperiode legt fest, in welchem Zeitfenster Anträge und Unterlagen eingereicht werden können.\n\n1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. `01.04.2026 00:00` bis `15.05.2026 23:59`).\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.",
+        content: "Die Abgabeperiode legt fest, in welchem Zeitfenster Anträge und Unterlagen eingereicht werden können.\n\n![APTE-NG Abgabeperiode Einstellungen](data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='220' viewBox='0 0 600 220' fill='none'><rect width='600' height='220' rx='8' fill='%23F8FAFC' stroke='%23CBD5E1'/><rect x='20' y='20' width='560' height='40' rx='6' fill='%238C2230'/><text x='40' y='45' fill='white' font-family='sans-serif' font-weight='bold' font-size='14'>APTE-NG Formulareinstellungen: Abgabeperiode & Fristen</text><rect x='20' y='80' width='260' height='60' rx='6' fill='white' stroke='%2394A3B8'/><text x='35' y='102' fill='%23475569' font-size='11'>Startdatum & Uhrzeit</text><text x='35' y='125' fill='%230F172A' font-weight='bold' font-size='13'>01.04.2026 - 00:00 Uhr</text><rect x='320' y='80' width='260' height='60' rx='6' fill='white' stroke='%2394A3B8'/><text x='335' y='102' fill='%23475569' font-size='11'>Enddatum & Uhrzeit</text><text x='335' y='125' fill='%230F172A' font-weight='bold' font-size='13'>15.05.2026 - 23:59 Uhr</text><rect x='20' y='160' width='120' height='36' rx='6' fill='%238C2230'/><text x='45' y='183' fill='white' font-weight='bold' font-size='12'>Speichern</text></svg>)\n\n1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. `01.04.2026 00:00` bis `15.05.2026 23:59`).\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.",
         source: "Integrierte Basis"
       },
       {
         title: "Datenansichten erstellen und Spalten konfigurieren",
         path: "Daten → Datenansichten",
-        content: "Datenansichten bieten maßgeschneiderte Tabellenansichten für die Bearbeitung im Fachbereich.\n\n1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen.\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.",
+        content: "Datenansichten bieten maßgeschneiderte Tabellenansichten für die Bearbeitung im Fachbereich.\n\n![APTE-NG Datenansichten Konfiguration](data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='220' viewBox='0 0 600 220' fill='none'><rect width='600' height='220' rx='8' fill='%23F8FAFC' stroke='%23CBD5E1'/><rect x='20' y='20' width='560' height='40' rx='6' fill='%230F172A'/><text x='40' y='45' fill='white' font-family='sans-serif' font-weight='bold' font-size='14'>Datenansicht konfigurieren: Spaltenauswahl & In-Place-Editing</text><rect x='20' y='80' width='560' height='40' rx='4' fill='white' stroke='%23E2E8F0'/><text x='40' y='105' fill='%23334155' font-size='12'>☑ Antragsteller-Name  |  ☑ Matrikelnummer  |  ☑ Notenschnitt  |  ☐ Telefonnummer</text><rect x='20' y='130' width='560' height='40' rx='4' fill='white' stroke='%23E2E8F0'/><text x='40' y='155' fill='%23334155' font-size='12'>☑ In-Place-Editing für Statusänderungen erlauben</text><rect x='20' y='180' width='160' height='30' rx='6' fill='%238C2230'/><text x='35' y='200' fill='white' font-weight='bold' font-size='11'>Datenansicht speichern</text></svg>)\n\n1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen.\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.",
         source: "Integrierte Basis"
       },
       {
@@ -318,7 +326,16 @@
     let isProcessing = false;
     let isAdminAuthenticated = false;
 
-    // Optimized Markdown Parser with precise H1/H2/H3 hierarchy
+    // Configure Marked.js renderer for zoomable responsive images
+    if (typeof marked !== 'undefined') {
+      const renderer = new marked.Renderer();
+      renderer.image = function(href, title, text) {
+        return `<div class="my-3"><img src="${href}" alt="${text || 'APTE-NG Handbuch Abbildung'}" title="${title || ''}" class="zoomable-img max-h-56 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" /></div>`;
+      };
+      marked.setOptions({ renderer });
+    }
+
+    // Markdown Parser with Inhaltsverzeichnis (TOC) Detection
     function parseMarkdownToChunks(text, sourceName = '') {
       if (!text) return [];
       const lines = text.split('\n');
@@ -331,13 +348,20 @@
 
       function saveChunk() {
         const body = currentContent.join('\n').trim();
+        // Detect Table of Contents (Inhaltsverzeichnis)
+        const isTOC = body.includes('| Thema | Seite |') || 
+                      body.toLowerCase().includes('inhaltsverzeichnis') || 
+                      (body.match(/\|\s*\d+\s*\|/g) || []).length > 3 ||
+                      (body.match(/\.{4,}\s*\d+/g) || []).length > 3;
+
         if (body.length > 20) {
           const pathParts = [currentH1, currentH2, currentH3].filter(Boolean);
           chunks.push({
             title: currentTitle,
             path: pathParts.join(' → '),
             content: body,
-            source: sourceName
+            source: sourceName,
+            isTOC: isTOC
           });
         }
         currentContent = [];
@@ -374,7 +398,7 @@
       return proceduralKeywords.some(kw => q.includes(kw));
     }
 
-    // High-Precision Search (RAG) with Stopword Filtering & Procedural Boosting
+    // High-Precision Search (RAG) with TOC Penalty & Procedural Boosting
     function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
 
@@ -383,7 +407,9 @@
       const terms = normalizedQuery.split(/[\s,.-]+/).filter(t => t.length > 2 && !stopWords.includes(t));
       const requiresSteps = isProceduralQuery(query);
 
-      if (terms.length === 0) return indexedChunks.slice(0, topK);
+      if (terms.length === 0) {
+        return indexedChunks.filter(c => !c.isTOC).slice(0, topK);
+      }
 
       const scored = indexedChunks.map(chunk => {
         let score = 0;
@@ -391,18 +417,21 @@
         const pathLower = chunk.path.toLowerCase();
         const contentLower = chunk.content.toLowerCase();
 
+        // Massive penalty for Inhaltsverzeichnis chunks so they don't dominate procedural queries
+        if (chunk.isTOC) score -= 150;
+
         // Exact query phrase boost
         if (titleLower.includes(normalizedQuery)) score += 40;
         if (contentLower.includes(normalizedQuery)) score += 20;
 
-        // Boost sections containing numbered step-by-step instructions (1., 2., 3.) for "How/Where" questions
+        // Boost sections containing numbered step-by-step instructions
         if (requiresSteps && (/\n\s*1\.\s+/.test(chunk.content) || contentLower.includes('vorgehensweise') || contentLower.includes('anleitung'))) {
-          score += 25;
+          score += 35;
         }
 
         terms.forEach(term => {
-          if (titleLower.includes(term)) score += 15;
-          if (pathLower.includes(term)) score += 10;
+          if (titleLower.includes(term)) score += 20;
+          if (pathLower.includes(term)) score += 12;
           
           const matches = (contentLower.match(new RegExp(term, 'g')) || []).length;
           score += Math.min(matches, 6) * 3;
@@ -413,7 +442,7 @@
 
       scored.sort((a, b) => b.score - a.score);
       const matches = scored.filter(s => s.score > 0).map(s => s.chunk);
-      return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.slice(0, topK);
+      return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.filter(c => !c.isTOC).slice(0, topK);
     }
 
     // Helper: Formats fallback response to highlight procedural step-by-step guidance
@@ -423,13 +452,12 @@
       const introLines = [];
       const noteLines = [];
 
-      let state = 'intro'; // 'intro', 'steps', 'note'
+      let state = 'intro';
 
       for (let line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Check if line is a numbered step or bullet point
         if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed) || /^(schritt\s+\d+|vorgehensweise|anleitung):/i.test(trimmed)) {
           state = 'steps';
           stepLines.push(trimmed);
@@ -440,7 +468,6 @@
           if (state === 'intro') {
             introLines.push(trimmed);
           } else if (state === 'steps') {
-            // Continuation of steps or note
             if (trimmed.toLowerCase().startsWith('hinweis') || trimmed.toLowerCase().startsWith('*hinweis')) {
               state = 'note';
               noteLines.push(trimmed);
@@ -456,14 +483,11 @@
       let formattedOutput = `**Klickpfad:** \`${chunk.path}\`\n\n`;
 
       if (introLines.length > 0) {
-        formattedOutput += `${introLines.join(' ')}\n\n`;
+        formattedOutput += `${introLines.join('\n\n')}\n\n`;
       }
 
       if (stepLines.length > 0) {
         formattedOutput += `**Schritt-für-Schritt-Anleitung:**\n${stepLines.join('\n')}\n\n`;
-      } else {
-        // Fallback if no explicit list formatting was parsed
-        formattedOutput += `${chunk.content}\n\n`;
       }
 
       if (noteLines.length > 0) {
@@ -473,7 +497,7 @@
       return formattedOutput.trim();
     }
 
-    // AI Response Generator with Strict Direct-Answer Prompting
+    // AI Response Generator with Explicit Provider Mode Indicator
     async function getAIResponse(userQuery) {
       const relevant = findRelevantChunks(userQuery, 6);
       
@@ -497,52 +521,54 @@ ${contextText}`;
 
       const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
       const apiKey = userSavedApiKey.trim();
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
-      try {
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: userQuery }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] }
-          })
-        });
+      if (apiKey.length > 5) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
-        if (response.ok) {
-          const data = await response.json();
-          let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply && reply.trim().length > 0) {
-            // Post-processing guardrail: Strip out conversational introductory intros automatically
-            reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
-            return reply;
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userQuery }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply && reply.trim().length > 0) {
+              reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
+              return { text: reply, mode: 'ai' };
+            }
           }
+        } catch (err) {
+          console.warn("Gemini API Aufruf fehlgeschlagen. Nutze Offline-Fallback.", err);
         }
-      } catch (err) {
-        console.warn("Gemini API Aufruf fehlgeschlagen. Nutze strukturierte Lokalausgabe.", err);
       }
 
       // Structured Fallback (ohne KI / Offline-Modus)
       if (!relevant || relevant.length === 0) {
-        return "Zu dieser Anfrage wurden keine passenden Informationen im Handbuch gefunden.";
+        return { text: "Zu dieser Anfrage wurden keine passenden Informationen im Handbuch gefunden.", mode: 'fallback' };
       }
 
       const topMatch = relevant[0];
       let fallbackText = formatProceduralFallback(topMatch);
 
-      // Weitere Treffer nicht in den Haupttext mischen, sondern als verwandte Themen auflisten
+      // Verwandte Themen als klickbare Interaktions-Buttons aufbereiten
       const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
       if (additionalMatches.length > 0) {
         fallbackText += `\n\n---\n**Verwandte Themen im Handbuch:**\n`;
         additionalMatches.forEach(c => {
-          fallbackText += `- **${c.title}** (*${c.path}*)\n`;
+          fallbackText += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button> <span class="text-xs text-slate-500">(${c.path})</span>\n`;
         });
       }
 
-      return fallbackText;
+      return { text: fallbackText, mode: 'fallback' };
     }
 
-    // Load Markdown files automatically from repository/folder
+    // Load Markdown files automatically from repository
     async function loadMarkdownFiles() {
       const badge = document.getElementById('mdStatusBadge');
       const title = document.getElementById('mdStatusTitle');
@@ -601,8 +627,8 @@ ${contextText}`;
       }
     }
 
-    // UI Helper: Append message to chat UI
-    function appendMessage(role, content) {
+    // UI Helper: Append message to chat UI with Mode Badge
+    function appendMessage(role, content, mode = 'fallback') {
       const container = document.getElementById('messagesContainer');
       if (!container) return;
 
@@ -614,8 +640,24 @@ ${contextText}`;
         innerDiv.className = 'max-w-2xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm';
         innerDiv.textContent = content;
       } else {
-        innerDiv.className = 'max-w-3xl bg-white border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed';
-        innerDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(content) : content;
+        innerDiv.className = 'max-w-3xl bg-white border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative';
+        
+        // Mode Badge Header
+        let badgeHtml = '';
+        if (mode === 'ai') {
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Antwort via Gemini KI</span>
+          </div>`;
+        } else {
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
+            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>Handbuch-Direktsuche (Offline-Fallback)</span>
+          </div>`;
+        }
+
+        const parsedContent = typeof marked !== 'undefined' ? marked.parse(content) : content;
+        innerDiv.innerHTML = badgeHtml + parsedContent;
       }
 
       msgDiv.appendChild(innerDiv);
@@ -644,12 +686,12 @@ ${contextText}`;
       scrollToBottom();
 
       try {
-        const aiResponse = await getAIResponse(text);
+        const responseObj = await getAIResponse(text);
         if (indicator) indicator.classList.add('hidden');
-        appendMessage('assistant', aiResponse);
+        appendMessage('assistant', responseObj.text, responseObj.mode);
       } catch (err) {
         if (indicator) indicator.classList.add('hidden');
-        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.');
+        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.', 'fallback');
         console.error(err);
       } finally {
         isProcessing = false;
@@ -735,6 +777,43 @@ ${contextText}`;
         }
       });
 
+      // Global Event Delegation for Interactive Prompt Buttons & Screenshot Lightbox Zoom
+      const container = document.getElementById('messagesContainer');
+      const zoomModal = document.getElementById('imageZoomModal');
+      const zoomTarget = document.getElementById('imageZoomTarget');
+      const zoomCaption = document.getElementById('imageZoomCaption');
+
+      if (container) {
+        container.addEventListener('click', (e) => {
+          // Related Topic Button Click
+          const topicBtn = e.target.closest('.related-topic-btn, .quick-prompt-btn');
+          if (topicBtn) {
+            const topic = topicBtn.getAttribute('data-topic') || topicBtn.textContent.replace(/^►\s*/, '').trim();
+            if (topic) handleSendMessage(topic);
+            return;
+          }
+
+          // Screenshot Zoom Click
+          const img = e.target.closest('.zoomable-img, img');
+          if (img && !img.closest('#appLogo')) {
+            if (zoomModal && zoomTarget) {
+              zoomTarget.src = img.src;
+              if (zoomCaption) {
+                zoomCaption.textContent = img.alt || img.title || 'APTE-NG Handbuch Screenshot (Zum Schließen irgendwo klicken)';
+              }
+              zoomModal.classList.remove('hidden');
+            }
+          }
+        });
+      }
+
+      // Close Zoom Lightbox
+      if (zoomModal) {
+        zoomModal.addEventListener('click', () => {
+          zoomModal.classList.add('hidden');
+        });
+      }
+
       // Chat Input Events
       const chatForm = document.getElementById('chatForm');
       if (chatForm) {
@@ -759,14 +838,7 @@ ${contextText}`;
         });
       }
 
-      document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('quick-prompt-btn')) {
-          handleSendMessage(e.target.textContent.trim());
-        }
-      });
-
       document.getElementById('clearChatBtn').addEventListener('click', () => {
-        const container = document.getElementById('messagesContainer');
         const welcomeCard = document.getElementById('welcomeCard');
         container.innerHTML = '';
         if (welcomeCard) container.appendChild(welcomeCard);
