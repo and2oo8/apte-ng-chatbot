@@ -260,7 +260,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 20:30 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 22:30 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -485,9 +485,57 @@
     // 1. Pre-Processing: Safe inline icon placement inside Markdown
     function sanitizeMarkdownImages(mdText) {
       if (!mdText || typeof mdText !== 'string') return '';
-      return mdText
-        .replace(/([„“«"])\s*([”»"])\s*[\r\n]+\s*!\[(.*?)\]\((.*?)\)/g, '$1![$3]($4)$2')
-        .replace(/([„“«"])\s*([”»"])\s*!\[(.*?)\]\((.*?)\)/g, '$1![$3]($4)$2');
+
+      let text = mdText;
+
+      const isScreenshot = (alt = '', src = '') => {
+        const combined = (alt + ' ' + src).toLowerCase();
+        return combined.includes('screenshot') || 
+               combined.includes('übersicht') || 
+               combined.includes('ansicht') || 
+               combined.includes('dialog') || 
+               combined.includes('fenster') || 
+               combined.includes('abbildung_') || 
+               combined.includes('screen_');
+      };
+
+      // Pattern 1: Empty quotes followed on the same or next line by an icon image
+      // e.g. Schalter **" "** klicken \n ![Verwendbar](switch.png)
+      text = text.replace(
+        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?([^\n\r]*?)[\r\n]+\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
+        (match, b1, q1, q2, b2, trailingText, alt, src) => {
+          if (isScreenshot(alt, src)) return match;
+          const openB = b1 || '';
+          const closeB = b2 || '';
+          return `${openB}${q1}![${alt}](${src})${q2}${closeB}${trailingText}`;
+        }
+      );
+
+      // Pattern 2: Icon image on line 1, followed on next line by sentence with empty quotes
+      // e.g. ![Button](btn.png) \n 3. Klicken Sie auf **" "**
+      text = text.replace(
+        /!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)\s*[\r\n]+\s*([^\r\n"„“«]*?)(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?/g,
+        (match, alt, src, prefixText, b1, q1, q2, b2) => {
+          if (isScreenshot(alt, src)) return match;
+          const openB = b1 || '';
+          const closeB = b2 || '';
+          return `${prefixText}${openB}${q1}![${alt}](${src})${q2}${closeB}`;
+        }
+      );
+
+      // Pattern 3: Empty quotes adjacent on same line
+      // e.g. Klicken Sie auf **" "** ![Button](btn.png)
+      text = text.replace(
+        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
+        (match, b1, q1, q2, b2, alt, src) => {
+          if (isScreenshot(alt, src)) return match;
+          const openB = b1 || '';
+          const closeB = b2 || '';
+          return `${openB}${q1}![${alt}](${src})${q2}${closeB}`;
+        }
+      );
+
+      return text;
     }
 
     // 2. DOM-Processing: Distinguish between inline icons and standalone screenshots
@@ -503,11 +551,12 @@
         const parent = img.parentElement;
         if (!parent) return;
 
-        // Check if parent has sibling text
+        // Clone parent to check if there is other text in the paragraph/list-item
         const parentClone = parent.cloneNode(true);
         parentClone.querySelectorAll('img').forEach(i => i.remove());
         const textOnly = parentClone.textContent.trim();
 
+        // If image is inside text / list / quote, or parent has other text
         if (textOnly.length > 0 || parent.tagName === 'LI' || parent.tagName === 'SPAN') {
           // Inline icon / button inside text
           img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
