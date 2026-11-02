@@ -422,9 +422,12 @@
     function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
 
-      const normalizedQuery = query.toLowerCase().trim();
+      const normalizedQuery = (query || '').toLowerCase().trim();
       const stopWords = ['wie', 'wo', 'was', 'ist', 'der', 'die', 'das', 'den', 'dem', 'ein', 'eine', 'einen', 'einer', 'kann', 'ich', 'man', 'stelle', 'einstellen', 'finde', 'erstelle', 'bitte', 'hilfe', 'stelle', 'wohin'];
-      const terms = normalizedQuery.split(/[\s,.-]+/).filter(t => t.length > 2 && !stopWords.includes(t));
+      
+      // Clean special characters to avoid Regex syntax errors with '?', '(', ')' etc.
+      const cleanedQuery = normalizedQuery.replace(/[^\w\säöüß-]/g, ' ');
+      const terms = cleanedQuery.split(/\s+/).filter(t => t.length > 2 && !stopWords.includes(t));
       const requiresSteps = isProceduralQuery(query);
 
       if (terms.length === 0) {
@@ -433,9 +436,9 @@
 
       const scored = indexedChunks.map(chunk => {
         let score = 0;
-        const titleLower = chunk.title.toLowerCase();
-        const pathLower = chunk.path.toLowerCase();
-        const contentLower = chunk.content.toLowerCase();
+        const titleLower = (chunk.title || '').toLowerCase();
+        const pathLower = (chunk.path || '').toLowerCase();
+        const contentLower = (chunk.content || '').toLowerCase();
 
         // Massive penalty for Inhaltsverzeichnis chunks so they don't dominate procedural queries
         if (chunk.isTOC) score -= 150;
@@ -445,7 +448,7 @@
         if (contentLower.includes(normalizedQuery)) score += 20;
 
         // Boost sections containing numbered step-by-step instructions
-        if (requiresSteps && (/\n\s*1\.\s+/.test(chunk.content) || contentLower.includes('vorgehensweise') || contentLower.includes('anleitung'))) {
+        if (requiresSteps && (/\n\s*1\.\s+/.test(chunk.content || '') || contentLower.includes('vorgehensweise') || contentLower.includes('anleitung'))) {
           score += 35;
         }
 
@@ -453,8 +456,13 @@
           if (titleLower.includes(term)) score += 20;
           if (pathLower.includes(term)) score += 12;
           
-          const matches = (contentLower.match(new RegExp(term, 'g')) || []).length;
-          score += Math.min(matches, 6) * 3;
+          try {
+            const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const matches = (contentLower.match(new RegExp(escapedTerm, 'g')) || []).length;
+            score += Math.min(matches, 6) * 3;
+          } catch (e) {
+            // Ignore regex syntax errors safely
+          }
         });
 
         return { chunk, score };
@@ -547,17 +555,24 @@ ${contextText}`;
       const apiKey = userSavedApiKey.trim();
 
       if (apiKey.length > 5) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         try {
+          // Add 8-second timeout controller to prevent hanging forever
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
           const response = await fetch(apiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
               contents: [{ parts: [{ text: userQuery }] }],
               systemInstruction: { parts: [{ text: systemPrompt }] }
             })
           });
+
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const data = await response.json();
@@ -569,7 +584,7 @@ ${contextText}`;
             }
           }
         } catch (err) {
-          console.warn("Gemini API Aufruf fehlgeschlagen. Nutze Offline-Fallback.", err);
+          console.warn("Gemini API Aufruf fehlgeschlagen oder Timeout. Nutze Offline-Fallback.", err);
         }
       }
 
@@ -677,7 +692,7 @@ ${contextText}`;
         } else {
           badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
             <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            <span>Handbuch-Direktsuche (Offline-Fallback)</span>
+            <span>Handbuch-Direktsuche</span>
           </div>`;
         }
 
@@ -712,13 +727,12 @@ ${contextText}`;
 
       try {
         const responseObj = await getAIResponse(text);
-        if (indicator) indicator.classList.add('hidden');
         appendMessage('assistant', responseObj.text, responseObj.mode);
       } catch (err) {
-        if (indicator) indicator.classList.add('hidden');
         appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.', 'fallback');
-        console.error(err);
+        console.error("Fehler bei der Nachrichtenverarbeitung:", err);
       } finally {
+        if (indicator) indicator.classList.add('hidden');
         isProcessing = false;
       }
     }
