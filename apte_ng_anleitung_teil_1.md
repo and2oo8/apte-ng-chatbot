@@ -5480,7 +5480,7 @@ Datenansichten beinhalten individuell festgelegte Datensätze auf Basis von Filt
 
 ### Datenansicht erstellen
 
-Um eine neue Datenansicht hinzuzufügen, gehen Sie wie folgt vor:
+Um eine neue Datenansicht zu erstellen, gehen Sie wie folgt vor:
 
 1. Öffnen Sie die Seite **“Daten”** \> **“Datenansichten”**
 
@@ -5540,7 +5540,7 @@ Weitere Informationen zu Filtern und dem Expertenmodus finden Sie in den folgend
 
 ### Datenansicht-Gruppe erstellen
 
-Um eine Datenansicht-Gruppe zu erstellen, gehen Sie wie folgt vor:
+Um eine Datenansicht-Gruppe hinzuzufügen, gehen Sie wie folgt vor:
 
 1. Öffnen Sie die Seite **“Daten”** \> **“Datenansichten”**
 
