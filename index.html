@@ -367,15 +367,22 @@
       return chunks;
     }
 
-    // Helper: Append Chat Messages
-    // High-Precision Search (RAG) with Stopword Filtering
+    // Helper: Is procedural query ("wie", "wo", "erstellen", etc.)
+    function isProceduralQuery(query) {
+      const q = query.toLowerCase();
+      const proceduralKeywords = ['wie', 'wo', 'erstellen', 'anlegen', 'einstellen', 'konfigurieren', 'ändern', 'schritte', 'anleitung', 'vorgehen', 'löschen', 'exportieren'];
+      return proceduralKeywords.some(kw => q.includes(kw));
+    }
+
+    // High-Precision Search (RAG) with Stopword Filtering & Procedural Boosting
     function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
 
       const normalizedQuery = query.toLowerCase().trim();
       const stopWords = ['wie', 'wo', 'was', 'ist', 'der', 'die', 'das', 'den', 'dem', 'ein', 'eine', 'einen', 'einer', 'kann', 'ich', 'man', 'stelle', 'einstellen', 'finde', 'erstelle', 'bitte', 'hilfe', 'stelle', 'wohin'];
       const terms = normalizedQuery.split(/[\s,.-]+/).filter(t => t.length > 2 && !stopWords.includes(t));
-      
+      const requiresSteps = isProceduralQuery(query);
+
       if (terms.length === 0) return indexedChunks.slice(0, topK);
 
       const scored = indexedChunks.map(chunk => {
@@ -387,6 +394,11 @@
         // Exact query phrase boost
         if (titleLower.includes(normalizedQuery)) score += 40;
         if (contentLower.includes(normalizedQuery)) score += 20;
+
+        // Boost sections containing numbered step-by-step instructions (1., 2., 3.) for "How/Where" questions
+        if (requiresSteps && (/\n\s*1\.\s+/.test(chunk.content) || contentLower.includes('vorgehensweise') || contentLower.includes('anleitung'))) {
+          score += 25;
+        }
 
         terms.forEach(term => {
           if (titleLower.includes(term)) score += 15;
@@ -402,6 +414,63 @@
       scored.sort((a, b) => b.score - a.score);
       const matches = scored.filter(s => s.score > 0).map(s => s.chunk);
       return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.slice(0, topK);
+    }
+
+    // Helper: Formats fallback response to highlight procedural step-by-step guidance
+    function formatProceduralFallback(chunk) {
+      const lines = chunk.content.split('\n');
+      const stepLines = [];
+      const introLines = [];
+      const noteLines = [];
+
+      let state = 'intro'; // 'intro', 'steps', 'note'
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        // Check if line is a numbered step or bullet point
+        if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed) || /^(schritt\s+\d+|vorgehensweise|anleitung):/i.test(trimmed)) {
+          state = 'steps';
+          stepLines.push(trimmed);
+        } else if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
+          state = 'note';
+          noteLines.push(trimmed);
+        } else {
+          if (state === 'intro') {
+            introLines.push(trimmed);
+          } else if (state === 'steps') {
+            // Continuation of steps or note
+            if (trimmed.toLowerCase().startsWith('hinweis') || trimmed.toLowerCase().startsWith('*hinweis')) {
+              state = 'note';
+              noteLines.push(trimmed);
+            } else {
+              stepLines.push(trimmed);
+            }
+          } else {
+            noteLines.push(trimmed);
+          }
+        }
+      }
+
+      let formattedOutput = `**Klickpfad:** \`${chunk.path}\`\n\n`;
+
+      if (introLines.length > 0) {
+        formattedOutput += `${introLines.join(' ')}\n\n`;
+      }
+
+      if (stepLines.length > 0) {
+        formattedOutput += `**Schritt-für-Schritt-Anleitung:**\n${stepLines.join('\n')}\n\n`;
+      } else {
+        // Fallback if no explicit list formatting was parsed
+        formattedOutput += `${chunk.content}\n\n`;
+      }
+
+      if (noteLines.length > 0) {
+        formattedOutput += `${noteLines.join('\n')}\n`;
+      }
+
+      return formattedOutput.trim();
     }
 
     // AI Response Generator with Strict Direct-Answer Prompting
@@ -459,7 +528,7 @@ ${contextText}`;
       }
 
       const topMatch = relevant[0];
-      let fallbackText = `**Klickpfad:** ${topMatch.path}\n\n${topMatch.content}`;
+      let fallbackText = formatProceduralFallback(topMatch);
 
       // Weitere Treffer nicht in den Haupttext mischen, sondern als verwandte Themen auflisten
       const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
