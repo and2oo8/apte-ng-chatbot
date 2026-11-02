@@ -159,13 +159,18 @@
             </div>
           </div>
           <p class="text-sm text-slate-700 leading-relaxed mb-3">
-            Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis der offiziellen Systemanleitung. Wählen Sie ein Thema oder stellen Sie direkt eine Frage:
+            Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis der offiziellen Systemanleitung.
           </p>
-          <div class="flex flex-wrap gap-2 text-xs">
-            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wo stelle ich die Abgabeperiode ein?</button>
-            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie erstelle ich eine Datenansicht?</button>
-            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie erstelle ich eine Statistikmeldung?</button>
-            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie nutze ich die Nachreichefunktion?</button>
+          
+          <div class="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-600 space-y-1.5">
+            <p class="font-bold text-slate-800 flex items-center gap-1.5">
+              <span>💡</span>
+              <span>Suchtipps für optimale Ergebnisse:</span>
+            </p>
+            <ul class="list-disc pl-4 space-y-1 text-slate-600 leading-normal">
+              <li>Verwenden Sie konkrete Schlüsselbegriffe aus dem System (z. B. <em>Abgabeperiode</em>, <em>Datenansicht</em>, <em>Statistikmeldung</em>, <em>Nachreichen</em>, <em>Rollenmatrix</em>).</li>
+              <li>Geben Sie bei Anleitungsfragen direkt Ihr Ziel ein (z. B. <em>"Abgabeperiode einstellen"</em> oder <em>"Formular erstellen"</em>).</li>
+            </ul>
           </div>
         </div>
 
@@ -212,7 +217,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:15 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:22 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -364,7 +369,7 @@
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
           if (chatInput) {
             chatInput.disabled = true;
-            chatInput.placeholder = "Kein Gemini API-Schlüssel hinterlegt (im Admin-Bereich eintragen)";
+            chatInput.placeholder = "Kein Gemini API-Schlüssel hinterlegt";
           }
           if (sendBtn) sendBtn.disabled = true;
         } else {
