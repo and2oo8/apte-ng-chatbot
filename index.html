@@ -227,7 +227,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:37 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 13:08 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -841,35 +841,26 @@ ${contextText}`;
             loadedFileNames = pair;
             break;
           }
-        } catch (e) {
-          console.warn("Ladeversuch für Dateipaar fehlgeschlagen:", pair, e);
+        } catch (err) {
+          console.warn("Versuch fehlgeschlagen, lade nächste Dateinamen-Kombination...", err);
         }
       }
 
       if (loadedChunks.length > 0) {
         indexedChunks = loadedChunks;
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
-        if (title) title.textContent = "Handbuch geladen";
+        if (title) title.textContent = "Anleitung indiziert";
         if (subtitle) subtitle.textContent = loadedFileNames.join(' & ');
         if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
       } else {
-        indexedChunks = [];
-        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-red-500 shrink-0";
-        if (title) title.textContent = "Keine Handbuch-Dateien geladen";
-        if (subtitle) subtitle.textContent = "Dateien nicht gefunden (Bitte Admin-Bereich prüfen)";
-        if (chunkInfo) chunkInfo.textContent = "Indizierte Wissenseinheiten: 0 Chunks";
+        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
+        if (title) title.textContent = "Keine Handbuch-Dateien gefunden";
+        if (subtitle) subtitle.textContent = "Bitte Dateien im Ordner ablegen oder manuell indizieren";
+        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: 0 Chunks`;
       }
     }
 
-    // UI Helper: Scroll to bottom of message container
-    function scrollToBottom() {
-      const container = document.getElementById('messagesContainer');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-
-    // UI Helper: Append message to chat UI with Mode Badge
+    // UI Helper: Append message to chat UI with Mode Badge and Typewriter Effect for local/fallback responses
     function appendMessage(role, content, mode = 'fallback') {
       const container = document.getElementById('messagesContainer');
       if (!container) return;
@@ -879,10 +870,13 @@ ${contextText}`;
 
       const innerDiv = document.createElement('div');
       if (role === 'user') {
-        innerDiv.className = 'max-w-2xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm';
+        innerDiv.className = 'max-w-2xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm break-words';
         innerDiv.textContent = content;
+        msgDiv.appendChild(innerDiv);
+        container.appendChild(msgDiv);
+        scrollToBottom();
       } else {
-        innerDiv.className = 'max-w-3xl bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative';
+        innerDiv.className = 'max-w-3xl bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden w-full';
         
         // Mode Badge Header
         let badgeHtml = '';
@@ -899,13 +893,48 @@ ${contextText}`;
         }
 
         const cleanedContent = cleanBoilerplateText(content);
-        const parsedContent = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
-        innerDiv.innerHTML = badgeHtml + parsedContent;
-      }
+        
+        // Output container inside the card
+        const contentBox = document.createElement('div');
+        contentBox.className = 'w-full overflow-hidden break-words';
+        innerDiv.innerHTML = badgeHtml;
+        innerDiv.appendChild(contentBox);
+        msgDiv.appendChild(innerDiv);
+        container.appendChild(msgDiv);
 
-      msgDiv.appendChild(innerDiv);
-      container.appendChild(msgDiv);
-      scrollToBottom();
+        // Streaming effect for manual mode
+        if (mode === 'fallback') {
+          const fullParsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          
+          let currentLength = 0;
+          const totalLength = cleanedContent.length;
+          const stepSize = Math.max(3, Math.floor(totalLength / 60));
+
+          const timer = setInterval(() => {
+            currentLength += stepSize;
+            if (currentLength >= totalLength) {
+              currentLength = totalLength;
+              clearInterval(timer);
+              contentBox.innerHTML = fullParsed;
+              scrollToBottom();
+            } else {
+              const partialText = cleanedContent.slice(0, currentLength);
+              contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(partialText) : partialText;
+              scrollToBottom();
+            }
+          }, 18);
+        } else {
+          contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          scrollToBottom();
+        }
+      }
+    }
+
+    function scrollToBottom() {
+      const container = document.getElementById('messagesContainer');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
 
     // Chat Controller: Send message and retrieve response
@@ -962,7 +991,7 @@ ${contextText}`;
         updateSearchModeUI();
       });
 
-      document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+      document.getElementById('saveApiKeyBtn')?.addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
         if (val) {
           localStorage.setItem('APTE_GEMINI_KEY', val);
@@ -1010,30 +1039,32 @@ ${contextText}`;
 
       const TARGET_PASS_HASH = "0f5e135be3f8d390a789fa126cb6851f0f3531b46a78ea330ba52ecb614ca83c";
 
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pwd = document.getElementById('adminPasswordInput').value;
-        const inputHash = await hashSHA256(pwd);
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const pwd = document.getElementById('adminPasswordInput').value;
+          const inputHash = await hashSHA256(pwd);
 
-        if (inputHash === TARGET_PASS_HASH || pwd === 'ApteNG#2026!Admin') {
-          isAdminAuthenticated = true;
-          modal.classList.add('hidden');
-          authError.classList.add('hidden');
-          sidebar.classList.remove('translate-x-full');
-        } else {
-          authError.classList.remove('hidden');
-        }
-      });
+          if (inputHash === TARGET_PASS_HASH || pwd === 'ApteNG#2026!Admin') {
+            isAdminAuthenticated = true;
+            modal.classList.add('hidden');
+            authError.classList.add('hidden');
+            sidebar.classList.remove('translate-x-full');
+          } else {
+            authError.classList.remove('hidden');
+          }
+        });
+      }
 
-      document.getElementById('closeAdminSidebarBtn').addEventListener('click', () => {
+      document.getElementById('closeAdminSidebarBtn')?.addEventListener('click', () => {
         sidebar.classList.add('translate-x-full');
       });
 
-      document.getElementById('reloadMdBtn').addEventListener('click', () => {
+      document.getElementById('reloadMdBtn')?.addEventListener('click', () => {
         loadMarkdownFiles();
       });
 
-      document.getElementById('indexManualBtn').addEventListener('click', () => {
+      document.getElementById('indexManualBtn')?.addEventListener('click', () => {
         const manualText = document.getElementById('mdManualInput').value;
         if (manualText.trim()) {
           const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
@@ -1101,7 +1132,7 @@ ${contextText}`;
         });
       }
 
-      document.getElementById('clearChatBtn').addEventListener('click', () => {
+      document.getElementById('clearChatBtn')?.addEventListener('click', () => {
         const welcomeCard = document.getElementById('welcomeCard');
         container.innerHTML = '';
         if (welcomeCard) container.appendChild(welcomeCard);
