@@ -260,7 +260,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:55 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 20:05 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -488,98 +488,47 @@
       const temp = document.createElement('div');
       temp.innerHTML = htmlString;
 
-      // SCHRITT 1: Markdown-getrennte Absätze und leere Anführungszeichen (" " / "") reparieren
-      const children = Array.from(temp.children);
-      
-      for (let i = 0; i < children.length; i++) {
-        const el = children[i];
-        
-        // Prüfen, ob dieses Element nur ein isoliertes Bild enthält
-        const img = el.tagName === 'IMG' 
-          ? el 
-          : (el.children.length === 1 && el.children[0].tagName === 'IMG' && el.textContent.trim() === '' ? el.children[0] : null);
+      // SCHRITT 1: Isolierte Inline-Icons sauber in leere Anführungszeichen (" " / "") der Nachbarelemente einbetten
+      const textElements = temp.querySelectorAll('p, li');
+      textElements.forEach(el => {
+        if (/["“«]\s*["”»]/.test(el.innerHTML)) {
+          const prev = el.previousElementSibling;
+          const next = el.nextElementSibling;
 
-        if (img) {
-          const prevEl = el.previousElementSibling;
-          const nextEl = el.nextElementSibling;
-
-          const prevText = prevEl ? prevEl.textContent.trim() : '';
-          const nextText = nextEl ? nextEl.textContent.trim() : '';
-
-          // Bild als Inline-Icon aufbereiten
-          const prepareInlineImg = (imgEl) => {
-            imgEl.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
-            imgEl.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
-            return imgEl.outerHTML;
-          };
-
-          // Fall A: Nächstes Element hat leere Anführungszeichen (z. B. 3. Klicken Sie auf " ")
-          if (nextEl && /["“«]\s*["”»]/.test(nextEl.innerHTML)) {
-            const inlineHtml = prepareInlineImg(img);
-            nextEl.innerHTML = nextEl.innerHTML.replace(/(["“«])\s*(["”»])/, `$1${inlineHtml}$2`);
-            el.remove();
-            continue;
-          }
-
-          // Fall B: Vorheriges Element hat leere Anführungszeichen (z. B. Schalter " " klicken)
-          if (prevEl && /["“«]\s*["”»]/.test(prevEl.innerHTML)) {
-            const inlineHtml = prepareInlineImg(img);
-            prevEl.innerHTML = prevEl.innerHTML.replace(/(["“«])\s*(["”»])/, `$1${inlineHtml}$2`);
-            el.remove();
-            continue;
-          }
-
-          // Fall C: Vorheriger oder nächster Satz gehört direkt zum Bild (z. B. "Klicken Sie auf den Reiter")
-          const isContextMatch = /(auf|den|dem|die|das|reiter|button|schalter|symbol|icon|klicken|seite|reiter)\s*["“«]?\s*$/i.test(prevText) ||
-                                 /^\s*["”»]?\s*(klicken|auswählen|drücken|öffnen)/i.test(nextText);
-
-          if (isContextMatch) {
-            const inlineHtml = prepareInlineImg(img);
-            if (prevEl && /(auf|den|reiter|schalter|button)\s*["“«]?\s*$/i.test(prevText)) {
-              prevEl.innerHTML += ' ' + inlineHtml;
-              if (nextEl && /^\s*["”»]?\s*(klicken|auswählen)/i.test(nextText)) {
-                prevEl.innerHTML += ' ' + nextEl.innerHTML;
-                nextEl.remove();
+          [prev, next].forEach(sibling => {
+            if (sibling && (sibling.tagName === 'P' || sibling.tagName === 'DIV')) {
+              const img = sibling.querySelector('img');
+              if (img && sibling.textContent.trim() === '') {
+                img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
+                const imgHtml = img.outerHTML;
+                // Sichere Ersetzung mittels Replacer-Funktion verhindert das Ausbrechen von HTML-Attributen
+                el.innerHTML = el.innerHTML.replace(/(["“«])\s*(["”»])/, (match, p1, p2) => `${p1}${imgHtml}${p2}`);
+                sibling.remove();
               }
-            } else if (nextEl) {
-              nextEl.innerHTML = inlineHtml + ' ' + nextEl.innerHTML;
             }
-            el.remove();
-            continue;
-          }
+          });
         }
-      }
+      });
 
-      // SCHRITT 2: Allgemeine Prüfung aller verbleibenden <img> Tags im Dokument
+      // SCHRITT 2: Klassifizierung aller verbleibenden Bilder (Inline vs. Standalone-Screenshot)
       const allImages = temp.querySelectorAll('img');
       allImages.forEach(img => {
-        const alt = (img.getAttribute('alt') || '').toLowerCase();
-        const title = (img.getAttribute('title') || '').toLowerCase();
-        const src = (img.getAttribute('src') || '').toLowerCase();
-
         const parent = img.parentElement;
         if (!parent) return;
 
-        // Prüfen, ob der Eltern-Container Fließtext enthält
+        // Prüfen, ob im Eltern-Element neben dem Bild echter Text steht
         const parentClone = parent.cloneNode(true);
         parentClone.querySelectorAll('img').forEach(i => i.remove());
-        const remainingText = parentClone.textContent.trim();
+        const hasSiblingText = parentClone.textContent.trim().length > 0;
 
-        // Icon/Button Erkennung anhand von Schlüsselwörtern oder Umgebungs-Text
-        const isIconByName = /(button|btn|icon|reiter|schalter|symbol|label|filter|verwendbar|plus|edit|delete|save|speichern|erstellen|personen)/i.test(alt + title + src);
-
-        if (remainingText.length > 0 || isIconByName || parent.tagName === 'LI' || parent.tagName === 'A' || parent.tagName === 'SPAN') {
+        if (hasSiblingText || parent.tagName === 'LI' || parent.tagName === 'SPAN' || img.classList.contains('inline-doc-icon')) {
+          // Bild befindet sich mitten im Fließtext -> Inline-Icon
           img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
-
-          // Falls leere Anführungszeichen im Elternelement existieren, Bild hineinsetzen
-          if (/["“«]\s*["”»]/.test(parent.innerHTML) && !parent.innerHTML.includes(img.outerHTML)) {
-            parent.innerHTML = parent.innerHTML.replace(/(["“«])\s*(["”»])/, `$1${img.outerHTML}$2`);
-          }
         } else {
-          // Großer, eigenständiger Screenshot
+          // Bild steht isoliert auf eigener Zeile -> Großer Screenshot
           img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
-          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 36rem !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
+          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 36rem !important; height: auto !important; margin: 0.85rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
         }
       });
 
