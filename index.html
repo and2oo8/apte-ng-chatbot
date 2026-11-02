@@ -227,7 +227,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 13:30 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 15:15 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -333,13 +333,11 @@
 
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // State management - EXCLUSIVELY populated from MD files or manual input
     let indexedChunks = [];
     let isProcessing = false;
     let isAdminAuthenticated = false;
-    let selectedSearchMode = 'manual'; // 'manual' by default
+    let selectedSearchMode = 'manual';
 
-    // Helper: Clean unwanted boilerplate, headers, footers, page numbers and copyright notices (Line-by-Line for High Performance)
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
       const lines = text.split('\n');
@@ -356,7 +354,6 @@
       return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
     }
 
-    // Helper: Update UI when switching search modes or key status changes
     function updateSearchModeUI() {
       const modeAiBtn = document.getElementById('modeAiBtn');
       const modeManualBtn = document.getElementById('modeManualBtn');
@@ -368,12 +365,8 @@
       const hasKey = savedApiKey.length > 5;
 
       if (selectedSearchMode === 'ai') {
-        if (modeAiBtn) {
-          modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
-        }
-        if (modeManualBtn) {
-          modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
-        }
+        if (modeAiBtn) modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
+        if (modeManualBtn) modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
 
         if (!hasKey) {
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
@@ -391,13 +384,8 @@
           if (sendBtn) sendBtn.disabled = false;
         }
       } else {
-        // Manual mode (default)
-        if (modeManualBtn) {
-          modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
-        }
-        if (modeAiBtn) {
-          modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
-        }
+        if (modeManualBtn) modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
+        if (modeAiBtn) modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
 
         if (noApiKeyNotice) noApiKeyNotice.classList.add('hidden');
         if (chatInput) {
@@ -408,27 +396,20 @@
       }
     }
 
-    // Helper: Update status badges across the UI based on API key availability
     function updateEngineStatusUI() {
       const savedApiKey = (localStorage.getItem('APTE_GEMINI_KEY') || '').trim();
       const hasKey = savedApiKey.length > 5;
       const apiKeyStatus = document.getElementById('apiKeyStatus');
 
-      if (hasKey) {
-        if (apiKeyStatus) {
-          apiKeyStatus.classList.remove('hidden');
-          apiKeyStatus.textContent = "✓ Gemini KI (Kaskade) ist aktiv (Fallback auf Direktsuche bei Fehler)";
-        }
-      } else {
-        if (apiKeyStatus) {
-          apiKeyStatus.classList.add('hidden');
-        }
+      if (hasKey && apiKeyStatus) {
+        apiKeyStatus.classList.remove('hidden');
+        apiKeyStatus.textContent = "✓ Gemini KI (Kaskade) ist aktiv (Fallback auf Direktsuche bei Fehler)";
+      } else if (apiKeyStatus) {
+        apiKeyStatus.classList.add('hidden');
       }
-
       updateSearchModeUI();
     }
 
-    // Configure Marked.js renderer for zoomable responsive images with graceful fallback
     if (typeof marked !== 'undefined') {
       const renderer = new marked.Renderer();
       renderer.image = function(tokenOrHref, title, text) {
@@ -448,7 +429,6 @@
       marked.setOptions({ renderer });
     }
 
-    // Parse raw markdown text into indexed chunk objects
     function parseMarkdownToChunks(text, sourceName) {
       if (!text || typeof text !== 'string') return [];
       if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) return [];
@@ -470,22 +450,15 @@
             const bodyText = cleanBoilerplateText(currentContent.join('\n'));
             const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
             if (bodyText.length > 20 && !isTOC) {
-              chunks.push({
-                title: currentHeading,
-                path: currentPath,
-                content: bodyText,
-                source: sourceName
-              });
+              chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
             }
             currentContent = [];
           }
 
           const level = headingMatch[1].length;
           const titleText = headingMatch[2].replace(/[*_]/g, '').trim();
-
           headingStack = headingStack.slice(0, level - 1);
           headingStack.push(titleText);
-
           currentHeading = titleText;
           currentPath = headingStack.join(' → ');
         } else {
@@ -497,24 +470,17 @@
         const bodyText = cleanBoilerplateText(currentContent.join('\n'));
         const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
         if (bodyText.length > 20 && !isTOC) {
-          chunks.push({
-            title: currentHeading,
-            path: currentPath,
-            content: bodyText,
-            source: sourceName
-          });
+          chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
         }
       }
 
       return chunks;
     }
 
-    // Search & Rank Chunks based on Query Terms - STRICT MATCHING ONLY
     function findRelevantChunks(query, topN = 10) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
       const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen)\b/i.test(query);
-
       const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
       const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
@@ -531,54 +497,32 @@
         tokens.forEach(token => {
           if (titleLower.includes(token)) score += 12;
           if (pathLower.includes(token)) score += 6;
-
           const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
           const matches = contentLower.match(regex);
-          if (matches) {
-            score += Math.min(matches.length, 6) * 2;
-          }
+          if (matches) score += Math.min(matches.length, 6) * 2;
         });
 
-        // Boost score for procedural content if user asked "Wie / Wo geht XYZ?" or "XYZ erstellen"
         if (isProceduralQuery && score > 0) {
-          const proceduralTriggers = [
-            'vorgehensweise',
-            'gehen sie wie folgt vor',
-            'anleitung',
-            'schritt-für-schritt',
-            'konfiguration:',
-            'neuerstellung:',
-            'hinzufügen'
-          ];
-          
-          proceduralTriggers.forEach(trigger => {
-            if (contentLower.includes(trigger)) score += 10;
-          });
-
-          if (/1\.\s+.*2\.\s+/.test(chunk.content) || /1\.\s+Öffnen/.test(chunk.content)) {
-            score += 15;
-          }
+          const proceduralTriggers = ['vorgehensweise', 'gehen sie wie folgt vor', 'anleitung', 'schritt-für-schritt', 'konfiguration:', 'neuerstellung:', 'hinzufügen'];
+          proceduralTriggers.forEach(trigger => { if (contentLower.includes(trigger)) score += 10; });
+          if (/1\.\s+.*2\.\s+/.test(chunk.content) || /1\.\s+Öffnen/.test(chunk.content)) score += 15;
         }
 
         return { chunk, score, index };
       });
 
       scored.sort((a, b) => b.score - a.score);
-
       const filtered = scored.filter(s => s.score > 0);
       
-      // Lookahead/Merge: If top chunk is short intro without steps, look if next consecutive chunk in MD contains the steps
       if (filtered.length > 0 && isProceduralQuery) {
         const topScored = filtered[0];
         const topChunk = topScored.chunk;
         const idx = topScored.index;
-
         const hasSteps = /1\.\s+/.test(topChunk.content) || /gehen sie wie folgt vor/i.test(topChunk.content);
 
         if (!hasSteps && idx < indexedChunks.length - 1) {
           const nextChunk = indexedChunks[idx + 1];
           if (/1\.\s+/.test(nextChunk.content) || /gehen sie wie folgt vor/i.test(nextChunk.content)) {
-            // Append next chunk to form a complete response
             const mergedChunk = {
               ...topChunk,
               content: topChunk.content + '\n\n### ' + nextChunk.title + '\n\n' + nextChunk.content
@@ -591,22 +535,17 @@
       return filtered.map(s => s.chunk).slice(0, topN);
     }
 
-    // Post-process AI response: remove hallucinated prefixes/paths & append interactive buttons for related topics
-    function postProcessResponse(replyText, relevantChunks) {
+    function postProcessResponse(replyText) {
       if (!replyText) return '';
-
       let cleaned = cleanBoilerplateText(replyText)
         .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
         .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
         .trim();
-
       return cleanBoilerplateText(cleaned);
     }
 
-    // Helper: Formats response to strictly output procedural step-by-step guidance directly from MD
     function formatProceduralFallback(chunk, query = '') {
       if (!chunk || !chunk.content) return '';
-
       const cleanedContent = cleanBoilerplateText(chunk.content);
       const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
 
@@ -618,173 +557,83 @@
       for (let line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-
-        // Keep Markdown images intact for zoom
         if (trimmed.startsWith('![')) {
           stepLines.push(trimmed);
           continue;
         }
-
-        // Detect explicit procedural headers or triggers in the manual text
-        if (
-          /^(vorgehensweise|gehen sie wie folgt vor|anleitung|schritte|vorgehen):?/i.test(trimmed) ||
-          /^(anleitung zur|vorgehensweise zur|schritt-für-schritt)/i.test(trimmed)
-        ) {
+        if (/^(vorgehensweise|gehen sie wie folgt vor|anleitung|schritte|vorgehen):?/i.test(trimmed)) {
           inProceduralBlock = true;
           stepLines.push(`**${trimmed.replace(/[*_]/g, '')}**`);
           continue;
         }
-
-        // List items or step numbers
         if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed)) {
           inProceduralBlock = true;
           stepLines.push(trimmed);
         } else if (inProceduralBlock && !trimmed.startsWith('#')) {
-          if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
-            noteLines.push(trimmed);
-          } else {
-            stepLines.push(trimmed);
-          }
-        } else if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
-          noteLines.push(trimmed);
+          if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed)) noteLines.push(trimmed);
+          else stepLines.push(trimmed);
         }
       }
 
-      let formattedOutput = '';
-
-      if (stepLines.length > 0 && isProceduralQuery) {
-        formattedOutput += `${stepLines.join('\n\n')}\n\n`;
-      } else {
-        formattedOutput = cleanedContent;
-      }
-
-      if (noteLines.length > 0 && !formattedOutput.includes(noteLines[0])) {
-        formattedOutput += `${noteLines.join('\n')}\n`;
-      }
-
+      let formattedOutput = (stepLines.length > 0 && isProceduralQuery) ? stepLines.join('\n\n') + '\n\n' : cleanedContent;
+      if (noteLines.length > 0 && !formattedOutput.includes(noteLines[0])) formattedOutput += noteLines.join('\n') + '\n';
       return cleanBoilerplateText(formattedOutput);
     }
 
-    // Helper: Generate selection HTML list with pagination state
     function generateSelectionHtml(relevantChunks, displayCount = 3, query = '') {
-      const shownChunks = relevantChunks.slice(0, displayCount);
+      // 3 items per page window
+      const startIndex = Math.max(0, displayCount - 3);
+      const currentWindowChunks = relevantChunks.slice(startIndex, displayCount);
       const hasMore = displayCount < relevantChunks.length;
 
-      let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
+      let html = `<p class="font-bold text-slate-800 mb-2">Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:</p>`;
       
-      shownChunks.forEach((c) => {
-        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}" data-query="${encodeURIComponent(query)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
+      currentWindowChunks.forEach((c) => {
+        html += `<div class="my-2"><button class="select-topic-btn text-bordeaux hover:bg-bordeaux-soft font-bold cursor-pointer text-left block w-full bg-white px-3.5 py-2.5 rounded-lg border border-slate-200 shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}" data-query="${encodeURIComponent(query)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block mt-0.5">(${c.path})</span></button></div>`;
       });
 
       if (hasMore) {
-        selectionHtml += `\n<div class="mt-3 text-center"><button id="loadMoreTopicsBtn" class="load-more-btn px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition shadow-sm cursor-pointer w-full" data-display-count="${displayCount + 3}" data-query="${encodeURIComponent(query)}">🔍 Mehr passende Themen anzeigen (weitere Vorschläge laden)...</button></div>`;
+        html += `<div class="mt-3 pt-2 text-center"><button id="loadMoreTopicsBtn" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition shadow-sm cursor-pointer w-full" data-next-count="${displayCount + 3}" data-query="${encodeURIComponent(query)}">🔍 Mehr passende Themen anzeigen (weitere Vorschläge laden)...</button></div>`;
+      } else {
+        html += `<p class="text-xs text-slate-500 text-center mt-3 italic">Keine weiteren Themen gefunden.</p>`;
       }
 
-      return cleanBoilerplateText(selectionHtml);
+      return html;
     }
 
-    // AI Response Generator with Gemini Model Cascade (3.8 -> 3.6 -> 3) & Strict Fallback
     async function getAIResponse(userQuery) {
       const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
+      if (!indexedChunks || indexedChunks.length === 0) return { text: "Das Systemhandbuch ist aktuell nicht geladen.", mode: 'fallback' };
 
-      if (!indexedChunks || indexedChunks.length === 0) {
-        return { 
-          text: "Das Systemhandbuch ist aktuell nicht geladen. Bitte stellen Sie sicher, dass die Handbuch-Dateien im Verzeichnis liegen oder über die Admin-Konsole indiziert wurden.", 
-          mode: 'fallback' 
-        };
-      }
+      const relevant = findRelevantChunks(userQuery, 15);
+      if (!relevant || relevant.length === 0) return { text: NO_MATCH_TEXT, mode: 'fallback' };
 
-      const relevant = findRelevantChunks(userQuery, 10);
-
-      if (!relevant || relevant.length === 0) {
-        return { text: NO_MATCH_TEXT, mode: 'fallback' };
-      }
-
-      // If user selected Direct Manual Search explicitly OR no AI key is active, present interactive topic selection card (paginated)
       if (selectedSearchMode === 'manual') {
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      const contextText = relevant.slice(0, 5).map((c, i) => 
-        `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`
-      ).join('\n\n');
+      const contextText = relevant.slice(0, 5).map((c, i) => `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`).join('\n\n');
+      const systemPrompt = `Du bist das APTE-NG Online-Hilfesystem. Beantworte die Frage EXKLUSIV auf Basis des Kontextes. Wenn nicht auffindbar, antworte genau mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
-      const systemPrompt = `Du bist das integrierte APTE-NG Online-Help-System.
-Deine Aufgabe ist es, Fragen zur Konfiguration, Bedienung und Rechtevergabe in APTE-NG streng auf Basis des bereitgestellten Handbuch-Kontextes zu beantworten.
-
-STRIKTE REGELN & ANTI-HALLUZINATION:
-1. EXKLUSIVER KONTEXT: Beantworte die Frage AUSSCHLIESSLICH mit den Fakten aus dem bereitgestellten HANDBUCH-KONTEXT. Erfinde NIEMALS Informationen, Schritte, Namen oder Optionen aus eigenem Wissen oder Vermutungen!
-2. KEINE TREFFER-ANTWORT: Falls die Frage im bereitgestellten Handbuch-Kontext NICHT eindeutig und vollständig beantwortet werden kann, antworte EXAKT und AUSSCHLIESSLICH mit folgendem Satz:
-"${NO_MATCH_TEXT}"
-3. KEINE EINLEITUNGEN: Starte deine Antwort DIREKT mit der Anleitung oder den Fakten. Schreibe KEINE Sätze wie "Basierend auf dem Handbuch..." oder "In APTE-NG...".
-4. KEINE KLICKPFADE: Erwähne KEINE Klickpfade. Starte direkt mit den nummerierten Schritten (1., 2., 3.).
-5. KEINE ERFUNDENEN BILDER: Binde NIEMALS Dateinamen oder Pfade wie 'screenshot.png' oder 'image.jpg' ein.
-
-HANDBUCH-KONTEXT:
-${contextText}`;
-
-      const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
-      const apiKey = userSavedApiKey.trim();
-
+      const apiKey = (localStorage.getItem('APTE_GEMINI_KEY') || "").trim();
       if (apiKey) {
-        const models = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3-flash'];
-
-        for (const modelName of models) {
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-          let attempts = 0;
-          const maxAttempts = 2;
-
-          while (attempts < maxAttempts) {
-            attempts++;
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            try {
-              const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                signal: controller.signal,
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: userQuery }] }],
-                  systemInstruction: { parts: [{ text: systemPrompt }] }
-                })
-              });
-
-              clearTimeout(timeoutId);
-
-              if (response.ok) {
-                const data = await response.json();
-                let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (reply && reply.trim().length > 0) {
-                  reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
-                  reply = postProcessResponse(reply, relevant);
-                  return { text: reply, mode: 'ai' };
-                }
-              }
-
-              if (response.status === 503 && attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                continue;
-              }
-              break;
-            } catch (err) {
-              clearTimeout(timeoutId);
-              if (attempts < maxAttempts && err.name !== 'AbortError') {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                continue;
-              }
-              break;
-            }
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
           }
-        }
+        } catch (e) {}
       }
 
-      // Handbuch-Direktsuche (Selection Fallback falls alle KI-Modelle fehlschlagen)
       return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
     }
 
-    // Load Markdown files automatically from repository
     async function loadMarkdownFiles() {
       const badge = document.getElementById('mdStatusBadge');
       const title = document.getElementById('mdStatusTitle');
@@ -809,15 +658,12 @@ ${contextText}`;
           if (responses.every(r => r.ok)) {
             const texts = await Promise.all(responses.map(r => r.text()));
             texts.forEach((text, idx) => {
-              const fileChunks = parseMarkdownToChunks(text, pair[idx]);
-              loadedChunks.push(...fileChunks);
+              loadedChunks.push(...parseMarkdownToChunks(text, pair[idx]));
             });
             loadedFileNames = pair;
             break;
           }
-        } catch (err) {
-          console.warn("Versuch fehlgeschlagen, lade nächste Dateinamen-Kombination...", err);
-        }
+        } catch (err) {}
       }
 
       if (loadedChunks.length > 0) {
@@ -829,12 +675,11 @@ ${contextText}`;
       } else {
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
         if (title) title.textContent = "Keine Handbuch-Dateien gefunden";
-        if (subtitle) subtitle.textContent = "Bitte Dateien im Ordner ablegen oder manuell indizieren";
+        if (subtitle) subtitle.textContent = "Bitte Handbuch im Admin-Bereich indizieren";
         if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: 0 Chunks`;
       }
     }
 
-    // UI Helper: Append message to chat UI with Mode Badge and Typewriter Effect for local/fallback responses
     function appendMessage(role, content, mode = 'fallback', originalQuery = '') {
       const container = document.getElementById('messagesContainer');
       if (!container) return;
@@ -852,28 +697,16 @@ ${contextText}`;
       } else {
         innerDiv.className = 'max-w-3xl bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden w-full';
         
-        // Mode Badge Header
         let badgeHtml = '';
         if (mode === 'ai') {
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none">
-            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>Antwort via Gemini KI</span>
-          </div>`;
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none"><span>Antwort via Gemini KI</span></div>`;
         } else if (mode === 'selection') {
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
-            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            <span>Handbuch-Direktsuche: Themenauswahl</span>
-          </div>`;
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche: Themenauswahl</span></div>`;
         } else {
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
-            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-            <span>Handbuch-Direktsuche</span>
-          </div>`;
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche</span></div>`;
         }
 
         let cleanedContent = cleanBoilerplateText(content);
-        
-        // If this is a manual answer (fallback), append the "Not satisfied? Show 3 new alternatives" button at the bottom
         if (mode === 'fallback' && originalQuery) {
           cleanedContent += `\n\n---
 <div class="mt-4 pt-3 border-t border-slate-200 text-center">
@@ -884,14 +717,14 @@ ${contextText}`;
         }
         
         const contentBox = document.createElement('div');
-        contentBox.className = 'w-full overflow-hidden break-words';
+        contentBox.className = 'selection-content-box w-full overflow-hidden break-words';
         innerDiv.innerHTML = badgeHtml;
         innerDiv.appendChild(contentBox);
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
         if (mode === 'selection') {
-          contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          contentBox.innerHTML = cleanedContent; // Already raw HTML for interactive buttons
           scrollToBottom();
         } else if (mode === 'fallback') {
           const fullParsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
@@ -906,13 +739,9 @@ ${contextText}`;
               const node = childNodes[index].cloneNode(true);
               if (node.nodeType === 1) {
                 node.style.opacity = '0';
-                node.style.transform = 'translateY(4px)';
-                node.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
+                node.style.transition = 'opacity 0.25s ease-out';
                 contentBox.appendChild(node);
-                requestAnimationFrame(() => {
-                  node.style.opacity = '1';
-                  node.style.transform = 'translateY(0)';
-                });
+                requestAnimationFrame(() => { node.style.opacity = '1'; });
               } else {
                 contentBox.appendChild(node);
               }
@@ -922,7 +751,7 @@ ${contextText}`;
               clearInterval(revealTimer);
               scrollToBottom();
             }
-          }, 90);
+          }, 60);
         } else {
           contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
           scrollToBottom();
@@ -932,15 +761,11 @@ ${contextText}`;
 
     function scrollToBottom() {
       const container = document.getElementById('messagesContainer');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
+      if (container) container.scrollTop = container.scrollHeight;
     }
 
-    // Chat Controller: Send message and retrieve response
     async function handleSendMessage(overrideText) {
       if (isProcessing) return;
-
       const inputEl = document.getElementById('chatInput');
       const text = (overrideText || inputEl?.value || '').trim();
       if (!text) return;
@@ -961,108 +786,63 @@ ${contextText}`;
         const responseObj = await getAIResponse(text);
         appendMessage('assistant', responseObj.text, responseObj.mode, text);
       } catch (err) {
-        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.', 'fallback', text);
-        console.error("Fehler bei der Nachrichtenverarbeitung:", err);
+        appendMessage('assistant', 'Es ist ein Fehler aufgetreten.', 'fallback', text);
       } finally {
         if (indicator) indicator.classList.add('hidden');
         isProcessing = false;
       }
     }
 
-    // UI & Event Setup
     document.addEventListener('DOMContentLoaded', () => {
-      
       loadMarkdownFiles();
 
       const savedApiKey = localStorage.getItem('APTE_GEMINI_KEY');
-      if (savedApiKey) {
-        document.getElementById('geminiApiKeyInput').value = savedApiKey;
-      }
+      if (savedApiKey) document.getElementById('geminiApiKeyInput').value = savedApiKey;
       updateEngineStatusUI();
 
-      // Search Mode Switch Handlers
-      document.getElementById('modeAiBtn')?.addEventListener('click', () => {
-        selectedSearchMode = 'ai';
-        updateSearchModeUI();
-      });
-
-      document.getElementById('modeManualBtn')?.addEventListener('click', () => {
-        selectedSearchMode = 'manual';
-        updateSearchModeUI();
-      });
+      document.getElementById('modeAiBtn')?.addEventListener('click', () => { selectedSearchMode = 'ai'; updateSearchModeUI(); });
+      document.getElementById('modeManualBtn')?.addEventListener('click', () => { selectedSearchMode = 'manual'; updateSearchModeUI(); });
 
       document.getElementById('saveApiKeyBtn')?.addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
         if (val) {
           localStorage.setItem('APTE_GEMINI_KEY', val);
           updateEngineStatusUI();
-          alert("Gemini API-Schlüssel wurde erfolgreich gespeichert!");
+          alert("API-Schlüssel gespeichert!");
         } else {
           localStorage.removeItem('APTE_GEMINI_KEY');
           updateEngineStatusUI();
-          alert("API-Schlüssel entfernt. System nutzt nun Handbuch-Direktsuche.");
+          alert("API-Schlüssel entfernt.");
         }
       });
 
       const adminBtn = document.getElementById('adminAccessBtn');
       const modal = document.getElementById('adminAuthModal');
       const sidebar = document.getElementById('kbSidebar');
-      const loginForm = document.getElementById('adminLoginForm');
-      const authError = document.getElementById('adminAuthError');
 
       if (adminBtn) {
         adminBtn.addEventListener('click', () => {
-          if (isAdminAuthenticated) {
-            sidebar.classList.remove('translate-x-full');
-          } else {
-            const pwdInput = document.getElementById('adminPasswordInput');
-            if (pwdInput) pwdInput.value = '';
-            if (authError) authError.classList.add('hidden');
-            if (modal) modal.classList.remove('hidden');
-          }
+          if (isAdminAuthenticated) sidebar.classList.remove('translate-x-full');
+          else modal.classList.remove('hidden');
         });
       }
 
-      const cancelAuthBtn = document.getElementById('cancelAdminAuthBtn');
-      if (cancelAuthBtn) {
-        cancelAuthBtn.addEventListener('click', () => {
-          if (modal) modal.classList.add('hidden');
-        });
-      }
+      document.getElementById('cancelAdminAuthBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
 
-      async function hashSHA256(str) {
-        const buffer = new TextEncoder().encode(str);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
-      const TARGET_PASS_HASH = "0f5e135be3f8d390a789fa126cb6851f0f3531b46a78ea330ba52ecb614ca83c";
-
-      if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const pwd = document.getElementById('adminPasswordInput').value;
-          const inputHash = await hashSHA256(pwd);
-
-          if (inputHash === TARGET_PASS_HASH || pwd === 'ApteNG#2026!Admin') {
-            isAdminAuthenticated = true;
-            modal.classList.add('hidden');
-            authError.classList.add('hidden');
-            sidebar.classList.remove('translate-x-full');
-          } else {
-            authError.classList.remove('hidden');
-          }
-        });
-      }
-
-      document.getElementById('closeAdminSidebarBtn')?.addEventListener('click', () => {
-        sidebar.classList.add('translate-x-full');
+      document.getElementById('adminLoginForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('adminPasswordInput').value;
+        if (pwd === 'ApteNG#2026!Admin') {
+          isAdminAuthenticated = true;
+          modal.classList.add('hidden');
+          sidebar.classList.remove('translate-x-full');
+        } else {
+          document.getElementById('adminAuthError').classList.remove('hidden');
+        }
       });
 
-      document.getElementById('reloadMdBtn')?.addEventListener('click', () => {
-        loadMarkdownFiles();
-      });
+      document.getElementById('closeAdminSidebarBtn')?.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
+      document.getElementById('reloadMdBtn')?.addEventListener('click', () => loadMarkdownFiles());
 
       document.getElementById('indexManualBtn')?.addEventListener('click', () => {
         const manualText = document.getElementById('mdManualInput').value;
@@ -1071,7 +851,7 @@ ${contextText}`;
           if (chunks.length > 0) {
             indexedChunks = chunks.concat(indexedChunks);
             document.getElementById('chunkCountInfo').textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
-            alert(`${chunks.length} Abschnitte erfolgreich indiziert!`);
+            alert(`${chunks.length} Abschnitte indiziert!`);
           }
         }
       });
@@ -1083,34 +863,29 @@ ${contextText}`;
 
       if (container) {
         container.addEventListener('click', (e) => {
-          // Handle "Retry / Show new alternatives" click at the bottom of an answer
           const retryBtn = e.target.closest('.retry-alternatives-btn');
           if (retryBtn) {
             const query = decodeURIComponent(retryBtn.getAttribute('data-query'));
-            const relevant = findRelevantChunks(query, 10);
-            const selectionHtml = generateSelectionHtml(relevant, 3, query);
-            appendMessage('assistant', selectionHtml, 'selection', query);
+            const relevant = findRelevantChunks(query, 15);
+            appendMessage('assistant', generateSelectionHtml(relevant, 3, query), 'selection', query);
             return;
           }
 
-          // Handle "Load More" click
           const loadMoreBtn = e.target.closest('#loadMoreTopicsBtn');
           if (loadMoreBtn) {
-            const nextCount = parseInt(loadMoreBtn.getAttribute('data-display-count'), 10);
+            const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count'), 10);
             const query = decodeURIComponent(loadMoreBtn.getAttribute('data-query'));
-            const relevant = findRelevantChunks(query, 10);
+            const relevant = findRelevantChunks(query, 15);
             const newHtml = generateSelectionHtml(relevant, nextCount, query);
             
-            // Replace inner HTML of parent message box content box
-            const contentBox = loadMoreBtn.closest('.editorial-prose').querySelector('div');
+            const contentBox = loadMoreBtn.closest('.selection-content-box');
             if (contentBox) {
-              contentBox.innerHTML = marked.parse(newHtml);
+              contentBox.innerHTML = newHtml;
               scrollToBottom();
             }
             return;
           }
 
-          // Handle topic selection from manual search result cards
           const selectBtn = e.target.closest('.select-topic-btn');
           if (selectBtn) {
             const chunkIdx = parseInt(selectBtn.getAttribute('data-chunk-index'), 10);
@@ -1123,40 +898,18 @@ ${contextText}`;
             return;
           }
 
-          const topicBtn = e.target.closest('.related-topic-btn, .quick-prompt-btn');
-          if (topicBtn) {
-            const topic = topicBtn.getAttribute('data-topic') || topicBtn.textContent.replace(/^►\s*/, '').trim();
-            if (topic) handleSendMessage(topic);
-            return;
-          }
-
           const img = e.target.closest('.zoomable-img, img');
-          if (img && !img.closest('#appLogo')) {
-            if (zoomModal && zoomTarget) {
-              zoomTarget.src = img.src;
-              if (zoomCaption) {
-                zoomCaption.textContent = img.alt || img.title || 'APTE-NG Handbuch Screenshot (Zum Schließen irgendwo klicken)';
-              }
-              zoomModal.classList.add('hidden'); // reset if needed
-              zoomModal.classList.remove('hidden');
-            }
+          if (img && !img.closest('#appLogo') && zoomModal && zoomTarget) {
+            zoomTarget.src = img.src;
+            if (zoomCaption) zoomCaption.textContent = img.alt || img.title || 'Screenshot';
+            zoomModal.classList.remove('hidden');
           }
         });
       }
 
-      if (zoomModal) {
-        zoomModal.addEventListener('click', () => {
-          zoomModal.classList.add('hidden');
-        });
-      }
+      if (zoomModal) zoomModal.addEventListener('click', () => zoomModal.classList.add('hidden'));
 
-      const chatForm = document.getElementById('chatForm');
-      if (chatForm) {
-        chatForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          handleSendMessage();
-        });
-      }
+      document.getElementById('chatForm')?.addEventListener('submit', (e) => { e.preventDefault(); handleSendMessage(); });
 
       const chatInput = document.getElementById('chatInput');
       if (chatInput) {
@@ -1164,7 +917,6 @@ ${contextText}`;
           this.style.height = 'auto';
           this.style.height = (this.scrollHeight) + 'px';
         });
-
         chatInput.addEventListener('keydown', function(e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -1178,7 +930,6 @@ ${contextText}`;
         container.innerHTML = '';
         if (welcomeCard) container.appendChild(welcomeCard);
       });
-
     });
   </script>
 </body>
