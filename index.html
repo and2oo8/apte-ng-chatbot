@@ -260,7 +260,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 20:05 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 20:10 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -488,31 +488,59 @@
       const temp = document.createElement('div');
       temp.innerHTML = htmlString;
 
-      // SCHRITT 1: Isolierte Inline-Icons sauber in leere Anführungszeichen (" " / "") der Nachbarelemente einbetten
-      const textElements = temp.querySelectorAll('p, li');
-      textElements.forEach(el => {
-        if (/["“«]\s*["”»]/.test(el.innerHTML)) {
-          const prev = el.previousElementSibling;
-          const next = el.nextElementSibling;
+      // SCHRITT 1: Isolierte Inline-Icons/Buttons finden und DIREKT in leere Anführungszeichen (" " / "") einbetten
+      const quoteRegex = /([„“«"])\s*([”»"])/;
+      const candidateElements = temp.querySelectorAll('p, li, div');
 
-          [prev, next].forEach(sibling => {
-            if (sibling && (sibling.tagName === 'P' || sibling.tagName === 'DIV')) {
-              const img = sibling.querySelector('img');
-              if (img && sibling.textContent.trim() === '') {
-                img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
-                const imgHtml = img.outerHTML;
-                // Sichere Ersetzung mittels Replacer-Funktion verhindert das Ausbrechen von HTML-Attributen
-                el.innerHTML = el.innerHTML.replace(/(["“«])\s*(["”»])/, (match, p1, p2) => `${p1}${imgHtml}${p2}`);
-                sibling.remove();
+      candidateElements.forEach(el => {
+        let attempts = 0;
+        while (quoteRegex.test(el.innerHTML) && attempts < 5) {
+          attempts++;
+          let targetImg = el.querySelector('img');
+          let imgParentToRemove = null;
+
+          if (targetImg) {
+            const p = targetImg.parentElement;
+            if (p && p !== el && (p.tagName === 'P' || p.tagName === 'DIV')) {
+              imgParentToRemove = p;
+            }
+          } else if (el.nextElementSibling) {
+            const next = el.nextElementSibling;
+            const nextImg = next.querySelector('img') || (next.tagName === 'IMG' ? next : null);
+            if (nextImg) {
+              const cloneNext = next.cloneNode(true);
+              cloneNext.querySelectorAll('img').forEach(i => i.remove());
+              if (cloneNext.textContent.trim().length === 0) {
+                targetImg = nextImg;
+                imgParentToRemove = next;
               }
             }
-          });
+          }
+
+          if (targetImg) {
+            targetImg.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
+            targetImg.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
+            
+            const imgHtml = targetImg.outerHTML;
+
+            if (imgParentToRemove) {
+              imgParentToRemove.remove();
+            } else {
+              targetImg.remove();
+            }
+
+            el.innerHTML = el.innerHTML.replace(quoteRegex, (match, p1, p2) => `${p1}${imgHtml}${p2}`);
+          } else {
+            break; // Keine zugehörige Grafik gefunden
+          }
         }
       });
 
-      // SCHRITT 2: Klassifizierung aller verbleibenden Bilder (Inline vs. Standalone-Screenshot)
+      // SCHRITT 2: Klassifizierung aller verbleibenden Bilder (Inline-Icon vs. Standalone-Screenshot)
       const allImages = temp.querySelectorAll('img');
       allImages.forEach(img => {
+        if (img.classList.contains('inline-doc-icon')) return;
+
         const parent = img.parentElement;
         if (!parent) return;
 
@@ -521,7 +549,7 @@
         parentClone.querySelectorAll('img').forEach(i => i.remove());
         const hasSiblingText = parentClone.textContent.trim().length > 0;
 
-        if (hasSiblingText || parent.tagName === 'LI' || parent.tagName === 'SPAN' || img.classList.contains('inline-doc-icon')) {
+        if (hasSiblingText || parent.tagName === 'LI' || parent.tagName === 'SPAN') {
           // Bild befindet sich mitten im Fließtext -> Inline-Icon
           img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
