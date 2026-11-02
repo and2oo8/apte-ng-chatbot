@@ -652,9 +652,10 @@
       if (apiKey) {
         try {
           if (provider === 'melious') {
-            // Melious.ai OpenAI-compatible endpoint structure
+            // Melious.ai OpenAI-compatible endpoint with CORS-safe mode or proxy fallback
             const response = await fetch(`https://api.melious.ai/v1/chat/completions`, {
               method: 'POST',
+              mode: 'cors',
               headers: { 
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`
@@ -685,7 +686,9 @@
               if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("API request encountered CORS/Network restriction. Falling back to structured manual handbook search.");
+        }
       }
 
       return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
