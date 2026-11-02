@@ -227,7 +227,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 15:45 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 16:05 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -249,7 +249,7 @@
       </button>
     </div>
 
-    <!-- API Key Configuration Box with Provider Selector -->
+    <!-- API Key Configuration Box with Provider Selector & Reset Option -->
     <div class="p-4 border-b border-slate-200 bg-white space-y-3">
       <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">API-Anbieter & Schlüssel</label>
       <p class="text-[11px] text-slate-500 leading-snug">
@@ -266,12 +266,15 @@
 
       <div>
         <label class="block text-[11px] font-semibold text-slate-700 mb-1">API-Schlüssel</label>
+        <input type="password" id="geminiApiKeyInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="Schlüssel eintragen..." />
+        
         <div class="flex gap-2">
-          <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="Schlüssel eintragen..." />
-          <button id="saveApiKeyBtn" class="px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
+          <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
+          <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
         </div>
       </div>
       <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ KI-Anbindung ist aktiv</p>
+      <p id="apiKeyFeedback" class="text-[11px] font-medium hidden"></p>
     </div>
 
     <!-- File Status -->
@@ -874,6 +877,16 @@
       document.getElementById('modeAiBtn')?.addEventListener('click', () => { selectedSearchMode = 'ai'; updateSearchModeUI(); });
       document.getElementById('modeManualBtn')?.addEventListener('click', () => { selectedSearchMode = 'manual'; updateSearchModeUI(); });
 
+      function showApiFeedback(msg, isSuccess = true) {
+        const feedbackEl = document.getElementById('apiKeyFeedback');
+        if (feedbackEl) {
+          feedbackEl.className = `text-[11px] font-medium ${isSuccess ? 'text-emerald-600' : 'text-amber-600'}`;
+          feedbackEl.textContent = msg;
+          feedbackEl.classList.remove('hidden');
+          setTimeout(() => feedbackEl.classList.add('hidden'), 4000);
+        }
+      }
+
       document.getElementById('saveApiKeyBtn')?.addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
         const provider = document.getElementById('apiProviderSelect').value;
@@ -882,12 +895,21 @@
         if (val) {
           localStorage.setItem('APTE_API_KEY', val);
           updateEngineStatusUI();
-          alert("API-Schlüssel und Anbieter gespeichert!");
+          showApiFeedback("✓ API-Schlüssel & Anbieter gespeichert!");
         } else {
           localStorage.removeItem('APTE_API_KEY');
           updateEngineStatusUI();
-          alert("API-Schlüssel entfernt.");
+          showApiFeedback("ⓘ API-Schlüssel entfernt.", false);
         }
+      });
+
+      document.getElementById('clearApiKeyBtn')?.addEventListener('click', () => {
+        document.getElementById('geminiApiKeyInput').value = '';
+        localStorage.removeItem('APTE_API_KEY');
+        localStorage.removeItem('APTE_API_PROVIDER');
+        document.getElementById('apiProviderSelect').value = 'gemini';
+        updateEngineStatusUI();
+        showApiFeedback("✓ API-Einstellungen vollständig zurückgesetzt", false);
       });
 
       const adminBtn = document.getElementById('adminAccessBtn');
@@ -924,8 +946,8 @@
           const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
           if (chunks.length > 0) {
             indexedChunks = chunks.concat(indexedChunks);
-            document.getElementById('chunkCountInfo').textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
-            alert(`${chunks.length} Abschnitte indiziert!`);
+            const chunkInfo = document.getElementById('chunkCountInfo');
+            if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (inkl. ${chunks.length} manuell)`;
           }
         }
       });
