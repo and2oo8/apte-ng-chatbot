@@ -293,40 +293,7 @@
 
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // Valid Base64 Encoded Screenshots for 100% Reliable Rendering Across All Browsers
-    const imgAbgabeperiode = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180" fill="none"><rect width="600" height="180" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/><rect x="20" y="20" width="560" height="36" rx="6" fill="#8C2230"/><text x="35" y="43" fill="white" font-family="sans-serif" font-weight="bold" font-size="13">APTE-NG Formulareinstellungen: Abgabeperiode &amp; Fristen</text><rect x="20" y="70" width="260" height="50" rx="6" fill="white" stroke="#94A3B8"/><text x="30" y="90" fill="#475569" font-family="sans-serif" font-size="11">Startdatum &amp; Uhrzeit</text><text x="30" y="108" fill="#0F172A" font-family="sans-serif" font-weight="bold" font-size="12">01.04.2026 - 00:00 Uhr</text><rect x="320" y="70" width="260" height="50" rx="6" fill="white" stroke="#94A3B8"/><text x="330" y="90" fill="#475569" font-family="sans-serif" font-size="11">Enddatum &amp; Uhrzeit</text><text x="330" y="108" fill="#0F172A" font-family="sans-serif" font-weight="bold" font-size="12">15.05.2026 - 23:59 Uhr</text><rect x="20" y="132" width="110" height="32" rx="6" fill="#8C2230"/><text x="40" y="153" fill="white" font-family="sans-serif" font-weight="bold" font-size="12">Speichern</text></svg>`);
-    
-    const imgDatenansicht = "data:image/svg+xml;base64," + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="180" viewBox="0 0 600 180" fill="none"><rect width="600" height="180" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/><rect x="20" y="20" width="560" height="36" rx="6" fill="#0F172A"/><text x="35" y="43" fill="white" font-family="sans-serif" font-weight="bold" font-size="13">Datenansicht konfigurieren: Spaltenauswahl &amp; Bearbeitung</text><rect x="20" y="70" width="560" height="36" rx="4" fill="white" stroke="#E2E8F0"/><text x="35" y="93" fill="#334155" font-family="sans-serif" font-size="12">&#9745; Antragsteller-Name  |  &#9745; Matrikelnummer  |  &#9745; Notenschnitt  |  &#9744; Telefonnummer</text><rect x="20" y="118" width="560" height="36" rx="4" fill="white" stroke="#E2E8F0"/><text x="35" y="141" fill="#334155" font-family="sans-serif" font-size="12">&#9745; In-Place-Editing für Statusänderungen erlauben</text></svg>`);
-
-    // Cleaned Fallback Chunks (Authentic, Direct Step-by-Step Content Only)
-    const fallbackChunks = [
-      {
-        title: "Abgabeperiode und Fristen definieren",
-        path: "Formulare → Layout → Übersicht → Abgabeperiode",
-        content: `1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. \`01.04.2026 00:00\` bis \`15.05.2026 23:59\`):\n\n![APTE-NG Abgabeperiode Einstellungen](${imgAbgabeperiode})\n\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.`,
-        source: "Integrierte Basis"
-      },
-      {
-        title: "Datenansichten erstellen und Spalten konfigurieren",
-        path: "Daten → Datenansichten",
-        content: `1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen:\n\n![APTE-NG Datenansichten Konfiguration](${imgDatenansicht})\n\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.`,
-        source: "Integrierte Basis"
-      },
-      {
-        title: "Nachreich-Funktion verwalten",
-        path: "Daten → Nachreichen",
-        content: "1. Öffnen Sie den jeweiligen Antragsdatensatz unter **Daten**.\n2. Klicken Sie im Datensatz auf **Nachreichen anfordern**.\n3. Wählen Sie die nachzufordernden Dokumente (z. B. 'Immatrikulationsbescheinigung').\n4. Setzen Sie die **Nachreichfrist**.\n5. Der Antragsteller erhält automatisch eine E-Mail mit einem gesichierten Link.",
-        source: "Integrierte Basis"
-      },
-      {
-        title: "Statistikmeldung erstellen",
-        path: "Akten (DSTIP) → Statistikmeldung",
-        content: "1. Navigieren Sie zu **Akten (DSTIP) > Statistikmeldung erstellen**.\n2. Wählen Sie den Berichtszeitraum und die Mandanten aus.\n3. Führen Sie die Validierungsprüfung durch, um fehlende Kennziffern aufzuspüren.\n4. Exportieren Sie die geprüften Daten im vorgegebenen Schnittstellenformat.",
-        source: "Integrierte Basis"
-      }
-    ];
-
-    // State management
+    // State management - EXCLUSIVELY populated from MD files or manual input
     let indexedChunks = [];
     let isProcessing = false;
     let isAdminAuthenticated = false;
@@ -400,7 +367,7 @@
       return chunks;
     }
 
-    // Search & Rank Chunks based on Query Terms
+    // Search & Rank Chunks based on Query Terms - STRICT MATCHING ONLY
     function findRelevantChunks(query, topN = 5) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
@@ -409,7 +376,7 @@
       const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
       const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
 
-      if (tokens.length === 0) return indexedChunks.slice(0, topN);
+      if (tokens.length === 0) return [];
 
       const scored = indexedChunks.map(chunk => {
         let score = 0;
@@ -437,8 +404,9 @@
 
       scored.sort((a, b) => b.score - a.score);
 
+      // Return ONLY chunks with score > 0 (No random fallbacks)
       const filtered = scored.filter(s => s.score > 0).map(s => s.chunk);
-      return filtered.length > 0 ? filtered.slice(0, topN) : indexedChunks.slice(0, topN);
+      return filtered.slice(0, topN);
     }
 
     // Post-process AI response: remove hallucinated prefixes/paths & append interactive buttons for related topics
@@ -462,8 +430,7 @@
       return cleaned;
     }
 
-    // Markdown Parser with Inhaltsverzeichnis (TOC) Detection
-    // Helper: Formats fallback response to strictly output procedural step-by-step guidance without intro fluff
+    // Helper: Formats response to strictly output procedural step-by-step guidance directly from MD
     function formatProceduralFallback(chunk) {
       const lines = chunk.content.split('\n');
       const stepLines = [];
@@ -473,7 +440,6 @@
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Keep Markdown Images
         if (trimmed.startsWith('![')) {
           stepLines.push(trimmed);
           continue;
@@ -501,27 +467,40 @@
       return formattedOutput.trim();
     }
 
-    // AI Response Generator with Explicit Provider Mode Indicator
+    // AI Response Generator with Strict Anti-Hallucination Guardrails
     async function getAIResponse(userQuery) {
+      const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
+
+      if (!indexedChunks || indexedChunks.length === 0) {
+        return { 
+          text: "Das Systemhandbuch ist aktuell nicht geladen. Bitte stellen Sie sicher, dass die Handbuch-Dateien im Verzeichnis liegen oder über die Admin-Konsole indiziert wurden.", 
+          mode: 'fallback' 
+        };
+      }
+
       const relevant = findRelevantChunks(userQuery, 6);
+
+      if (!relevant || relevant.length === 0) {
+        return { text: NO_MATCH_TEXT, mode: 'fallback' };
+      }
       
       const contextText = relevant.map((c, i) => 
         `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`
       ).join('\n\n');
 
       const systemPrompt = `Du bist das integrierte APTE-NG Online-Help-System.
-Deine Aufgabe ist es, Fragen zur Konfiguration, Bedienung und Rechtevergabe in APTE-NG sofort, nüchtern und direkt auf den Punkt zu beantworten.
+Deine Aufgabe ist es, Fragen zur Konfiguration, Bedienung und Rechtevergabe in APTE-NG streng auf Basis des bereitgestellten Handbuch-Kontextes zu beantworten.
 
-STRIKTE FORMAL- UND TON-REGELN:
-1. KEINE EINLEITUNGEN ODER PHRASEN: Starte deine Antwort DIREKT mit den Fakten oder der Anleitung. Es ist STRENG VERBOTEN, Sätze wie "Basierend auf dem Handbuch...", "Laut den Informationen...", "In der Software APTE-NG...", "Hier ist die Anleitung..." oder "Um Ihre Frage zu beantworten..." zu schreiben!
-2. KEINE KLICKPFADE: Erwähne KEINE Klickpfade. Starte direkt mit der Schritt-für-Schritt-Anleitung oder den Fakten.
-3. SCHRITT-FÜR-SCHRITT: Nummeriere Handlungsschritte stets (1., 2., 3.).
-4. KEINE ERFUNDENEN BILDER: Binde Bilder ODER Screenshots NUR DANN EIN, wenn im bereitgestellten Handbuch-Text explizit eine funktionierende Voll-URL (z. B. 'data:image/...' oder 'http...') angegeben ist. Erfinde NIEMALS eigene Dateinamen oder Pfade wie 'screenshot.png', 'bild1.png' oder 'image.jpg'!
-5. VERWANDTE THEMEN: Füge am Ende deiner Antwort immer 2 bis 3 verwandte Themen aus den bereitgestellten Handbuch-Abschnitten an:
+STRIKTE REGELN & ANTI-HALLUZINATION:
+1. EXKLUSIVER KONTEXT: Beantworte die Frage AUSSCHLIESSLICH mit den Fakten aus dem bereitgestellten HANDBUCH-KONTEXT. Erfinde NIEMALS Informationen, Schritte, Namen oder Optionen aus eigenem Wissen oder Vermutungen!
+2. KEINE TREFFER-ANTWORT: Falls die Frage im bereitgestellten Handbuch-Kontext NICHT eindeutig und vollständig beantwortet werden kann, antworte EXAKT und AUSSCHLIESSLICH mit folgendem Satz:
+"${NO_MATCH_TEXT}"
+3. KEINE EINLEITUNGEN: Starte deine Antwort DIREKT mit der Anleitung oder den Fakten. Schreibe KEINE Sätze wie "Basierend auf dem Handbuch..." oder "In APTE-NG...".
+4. KEINE KLICKPFADE: Erwähne KEINE Klickpfade. Starte direkt mit den nummerierten Schritten (1., 2., 3.).
+5. KEINE ERFUNDENEN BILDER: Binde NIEMALS Dateinamen oder Pfade wie 'screenshot.png' oder 'image.jpg' ein.
+6. VERWANDTE THEMEN: Falls vorhanden, führe am Ende 2 bis 3 verwandte Themen aus den Kapiteln an:
    **Verwandte Themen im Handbuch:**
    - ► [Titel des verwandten Abschnitts]
-6. SYNTAX: Nutze Fettschrift für **Buttons**, **Feldnamen**, **Menüpunkte** und **Statuswerte**.
-7. STRENG FAKTISCH: Verwende AUSSCHLIESSLICH die Fakten aus dem Handbuch-Kontext. Erfinde nichts hinzu. Wenn der Kontext keine Information enthält, antworte knapp: "Dazu ist im aktuellen Handbuch keine Information enthalten."
 
 HANDBUCH-KONTEXT:
 ${contextText}`;
@@ -533,7 +512,6 @@ ${contextText}`;
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         try {
-          // Add 8-second timeout controller to prevent hanging forever
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -559,19 +537,14 @@ ${contextText}`;
             }
           }
         } catch (err) {
-          console.warn("Gemini API Aufruf fehlgeschlagen oder Timeout. Nutze Offline-Fallback.", err);
+          console.warn("Gemini API Aufruf fehlgeschlagen oder Timeout. Nutze Handbuch-Direktsuche.", err);
         }
       }
 
-      // Structured Fallback (ohne KI / Offline-Modus)
-      if (!relevant || relevant.length === 0) {
-        return { text: "Zu dieser Anfrage wurden keine passenden Informationen im Handbuch gefunden.", mode: 'fallback' };
-      }
-
+      // Handbuch-Direktsuche (rein auf Basis der geladenen MD-Dateien)
       const topMatch = relevant[0];
       let fallbackText = formatProceduralFallback(topMatch);
 
-      // Verwandte Themen als klickbare Interaktions-Buttons aufbereiten
       const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
       if (additionalMatches.length > 0) {
         fallbackText += `\n\n---\n**Verwandte Themen im Handbuch:**\n`;
@@ -583,7 +556,7 @@ ${contextText}`;
       return { text: fallbackText, mode: 'fallback' };
     }
 
-    // Load Markdown files automatically from repository
+    // Load Markdown files automatically from repository - NO STATIC FALLBACK CHUNKS
     async function loadMarkdownFiles() {
       const badge = document.getElementById('mdStatusBadge');
       const title = document.getElementById('mdStatusTitle');
@@ -626,11 +599,11 @@ ${contextText}`;
         if (subtitle) subtitle.textContent = loadedFileNames.join(' & ');
         if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
       } else {
-        indexedChunks = [...fallbackChunks];
-        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0";
-        if (title) title.textContent = "Integrierte Basis aktiv";
-        if (subtitle) subtitle.textContent = "Dateien nicht gefunden (lokaler Fallback)";
-        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+        indexedChunks = [];
+        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-red-500 shrink-0";
+        if (title) title.textContent = "Keine Handbuch-Dateien geladen";
+        if (subtitle) subtitle.textContent = "Dateien nicht gefunden (Bitte Admin-Bereich prüfen)";
+        if (chunkInfo) chunkInfo.textContent = "Indizierte Wissenseinheiten: 0 Chunks";
       }
     }
 
