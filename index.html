@@ -600,15 +600,6 @@
         .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
         .trim();
 
-      if (!cleaned.includes('related-topic-btn') && relevantChunks && relevantChunks.length > 1) {
-        const otherChunks = relevantChunks.slice(1, 4);
-        let relatedHtml = '\n\n---\n**Verwandte Themen im Handbuch:**\n';
-        otherChunks.forEach(c => {
-          relatedHtml += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button>\n`;
-        });
-        cleaned += relatedHtml;
-      }
-
       return cleanBoilerplateText(cleaned);
     }
 
@@ -685,25 +676,20 @@
         };
       }
 
-      const relevant = findRelevantChunks(userQuery, 6);
+      const relevant = findRelevantChunks(userQuery, 5);
 
       if (!relevant || relevant.length === 0) {
         return { text: NO_MATCH_TEXT, mode: 'fallback' };
       }
 
-      // If user selected Direct Manual Search explicitly
+      // If user selected Direct Manual Search explicitly OR no AI key is active, present interactive topic selection card
       if (selectedSearchMode === 'manual') {
-        const topMatch = relevant[0];
-        let fallbackText = formatProceduralFallback(topMatch, userQuery);
-
-        const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
-        if (additionalMatches.length > 0) {
-          fallbackText += `\n\n---\n**Verwandte Themen im Handbuch:**\n`;
-          additionalMatches.forEach(c => {
-            fallbackText += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button> <span class="text-xs text-slate-500">(${c.path})</span>\n`;
-          });
-        }
-        return { text: cleanBoilerplateText(fallbackText), mode: 'fallback' };
+        const topMatches = relevant.slice(0, 3);
+        let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
+        topMatches.forEach((c, idx) => {
+          selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
+        });
+        return { text: cleanBoilerplateText(selectionHtml), mode: 'selection' };
       }
       
       const contextText = relevant.map((c, i) => 
@@ -720,9 +706,6 @@ STRIKTE REGELN & ANTI-HALLUZINATION:
 3. KEINE EINLEITUNGEN: Starte deine Antwort DIREKT mit der Anleitung oder den Fakten. Schreibe KEINE Sätze wie "Basierend auf dem Handbuch..." oder "In APTE-NG...".
 4. KEINE KLICKPFADE: Erwähne KEINE Klickpfade. Starte direkt mit den nummerierten Schritten (1., 2., 3.).
 5. KEINE ERFUNDENEN BILDER: Binde NIEMALS Dateinamen oder Pfade wie 'screenshot.png' oder 'image.jpg' ein.
-6. VERWANDTE THEMEN: Falls vorhanden, führe am Ende 2 bis 3 verwandte Themen aus den Kapiteln an:
-   **Verwandte Themen im Handbuch:**
-   - ► [Titel des verwandten Abschnitts]
 
 HANDBUCH-KONTEXT:
 ${contextText}`;
@@ -768,23 +751,12 @@ ${contextText}`;
               }
 
               if (response.status === 503 && attempts < maxAttempts) {
-                console.warn(`Gemini API 503 bei '${modelName}'. Wiederholungsversuch in 1s...`);
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 continue;
               }
-
-              const errData = await response.json().catch(() => ({}));
-              console.warn(`Gemini API Modell '${modelName}' fehlgeschlagen (Status ${response.status}). Kaskadiere zum nächsten Modell...`, errData);
               break;
-
             } catch (err) {
               clearTimeout(timeoutId);
-              if (err.name === 'AbortError') {
-                console.warn(`Gemini API Timeout (10s) bei '${modelName}' (Versuch ${attempts}). Kaskadiere zum nächsten Modell...`);
-              } else {
-                console.warn(`Netzwerkfehler bei '${modelName}':`, err);
-              }
-
               if (attempts < maxAttempts && err.name !== 'AbortError') {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 continue;
@@ -795,19 +767,13 @@ ${contextText}`;
         }
       }
 
-      // Handbuch-Direktsuche (Fallback falls alle KI-Modelle fehlschlagen)
-      const topMatch = relevant[0];
-      let fallbackText = formatProceduralFallback(topMatch, userQuery);
-
-      const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
-      if (additionalMatches.length > 0) {
-        fallbackText += `\n\n---\n**Verwandte Themen im Handbuch:**\n`;
-        additionalMatches.forEach(c => {
-          fallbackText += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button> <span class="text-xs text-slate-500">(${c.path})</span>\n`;
-        });
-      }
-
-      return { text: cleanBoilerplateText(fallbackText), mode: 'fallback' };
+      // Handbuch-Direktsuche (Selection Fallback falls alle KI-Modelle fehlschlagen)
+      const topMatches = relevant.slice(0, 3);
+      let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
+      topMatches.forEach((c) => {
+        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
+      });
+      return { text: cleanBoilerplateText(selectionHtml), mode: 'selection' };
     }
 
     // Load Markdown files automatically from repository
@@ -885,6 +851,11 @@ ${contextText}`;
             <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             <span>Antwort via Gemini KI</span>
           </div>`;
+        } else if (mode === 'selection') {
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
+            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <span>Handbuch-Direktsuche: Themenauswahl</span>
+          </div>`;
         } else {
           badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none">
             <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
@@ -894,7 +865,6 @@ ${contextText}`;
 
         const cleanedContent = cleanBoilerplateText(content);
         
-        // Output container inside the card
         const contentBox = document.createElement('div');
         contentBox.className = 'w-full overflow-hidden break-words';
         innerDiv.innerHTML = badgeHtml;
@@ -902,28 +872,25 @@ ${contextText}`;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        // Smooth line-by-line reveal effect for manual mode
-        if (mode === 'fallback') {
+        if (mode === 'selection') {
+          contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          scrollToBottom();
+        } else if (mode === 'fallback') {
           const fullParsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
-          
-          // Create temporary hidden element to parse HTML blocks
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = fullParsed;
           const childNodes = Array.from(tempDiv.childNodes);
-          
-          contentBox.innerHTML = ''; // Clear container
+          contentBox.innerHTML = '';
 
           let index = 0;
           const revealTimer = setInterval(() => {
             if (index < childNodes.length) {
               const node = childNodes[index].cloneNode(true);
-              if (node.nodeType === 1) { // Element node
+              if (node.nodeType === 1) {
                 node.style.opacity = '0';
                 node.style.transform = 'translateY(4px)';
                 node.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
                 contentBox.appendChild(node);
-                
-                // Trigger CSS transition
                 requestAnimationFrame(() => {
                   node.style.opacity = '1';
                   node.style.transform = 'translateY(0)';
@@ -937,7 +904,7 @@ ${contextText}`;
               clearInterval(revealTimer);
               scrollToBottom();
             }
-          }, 90); // Smooth 90ms interval per block/line
+          }, 90);
         } else {
           contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
           scrollToBottom();
@@ -1098,6 +1065,18 @@ ${contextText}`;
 
       if (container) {
         container.addEventListener('click', (e) => {
+          // Handle topic selection from manual search result cards
+          const selectBtn = e.target.closest('.select-topic-btn');
+          if (selectBtn) {
+            const chunkIdx = parseInt(selectBtn.getAttribute('data-chunk-index'), 10);
+            if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
+              const selectedChunk = indexedChunks[chunkIdx];
+              const formattedContent = formatProceduralFallback(selectedChunk, selectedChunk.title);
+              appendMessage('assistant', `### ${selectedChunk.title}\n\n${formattedContent}`, 'fallback');
+            }
+            return;
+          }
+
           const topicBtn = e.target.closest('.related-topic-btn, .quick-prompt-btn');
           if (topicBtn) {
             const topic = topicBtn.getAttribute('data-topic') || topicBtn.textContent.replace(/^►\s*/, '').trim();
@@ -1112,6 +1091,7 @@ ${contextText}`;
               if (zoomCaption) {
                 zoomCaption.textContent = img.alt || img.title || 'APTE-NG Handbuch Screenshot (Zum Schließen irgendwo klicken)';
               }
+              zoomModal.classList.add('hidden'); // reset if needed
               zoomModal.classList.remove('hidden');
             }
           }
