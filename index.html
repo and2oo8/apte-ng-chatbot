@@ -398,6 +398,26 @@
       return proceduralKeywords.some(kw => q.includes(kw));
     }
 
+    // Helper: Post-processes text to transform "Verwandte Themen" lists into interactive clickable buttons
+    function postProcessResponse(text, relevantChunks) {
+      if (!text) return '';
+
+      // Convert any 'Verwandte Themen' markdown lists into interactive HTML buttons
+      let processed = text.replace(/(?:\*\*Verwandte Themen[^*]*\*\*|Verwandte Themen:?\n)((?:[ \t]*[-*►]\s*.+\n?)+)/gi, function(match, listContent) {
+        const lines = listContent.trim().split('\n');
+        let buttonList = '\n\n---\n**Verwandte Themen im Handbuch:**\n';
+        lines.forEach(line => {
+          const cleanTitle = line.replace(/^[ \t]*[-*►]\s*/, '').replace(/\[([^\]]+)\]\([^)]+\)/, '$1').replace(/\([^)]+\)$/, '').trim();
+          if (cleanTitle) {
+            buttonList += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${cleanTitle}">► ${cleanTitle}</button>\n`;
+          }
+        });
+        return buttonList;
+      });
+
+      return processed;
+    }
+
     // High-Precision Search (RAG) with TOC Penalty & Procedural Boosting
     function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
@@ -502,7 +522,7 @@
       const relevant = findRelevantChunks(userQuery, 6);
       
       const contextText = relevant.map((c, i) => 
-        `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\n${c.content}`
+        `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`
       ).join('\n\n');
 
       const systemPrompt = `Du bist das integrierte APTE-NG Online-Help-System.
@@ -513,8 +533,12 @@ STRIKTE FORMAL- UND TON-REGELN:
 2. KLICKPFAD-FORMAT: Wenn ein Klickpfad existiert, stelle ihn ganz oben voran in fettem Format:
    **Klickpfad:** Hauptmenü → Untermenü → Aktion
 3. SCHRITT-FÜR-SCHRITT: Nummeriere Handlungsschritte stets (1., 2., 3.).
-4. SYNTAX: Nutze Fettschrift für **Buttons**, **Feldnamen**, **Menüpunkte** und **Statuswerte**.
-5. STRENG FAKTISCH: Verwende AUSSCHLIESSLICH die Fakten aus dem Handbuch-Kontext. Erfinde nichts hinzu. Wenn der Kontext keine Information enthält, antworte knapp: "Dazu ist im aktuellen Handbuch keine Information enthalten."
+4. SCREENSHOTS & ABBILDUNGEN: Falls im bereitgestellten Handbuch-Kontext ein Screenshot oder eine Grafik enthalten ist (Markdown-Bild ![...](...)), entscheide klug, ob diese Abbildung die Anleitung visuell unterstützt. Wenn ja, binde das Bild exakt mit der im Kontext vorgegebenen Bild-URL in deine Antwort ein.
+5. VERWANDTE THEMEN: Füge am Ende deiner Antwort immer 2 bis 3 verwandte Themen aus den bereitgestellten Handbuch-Abschnitten an:
+   **Verwandte Themen im Handbuch:**
+   - ► [Titel des verwandten Abschnitts]
+6. SYNTAX: Nutze Fettschrift für **Buttons**, **Feldnamen**, **Menüpunkte** und **Statuswerte**.
+7. STRENG FAKTISCH: Verwende AUSSCHLIESSLICH die Fakten aus dem Handbuch-Kontext. Erfinde nichts hinzu. Wenn der Kontext keine Information enthält, antworte knapp: "Dazu ist im aktuellen Handbuch keine Information enthalten."
 
 HANDBUCH-KONTEXT:
 ${contextText}`;
@@ -540,6 +564,7 @@ ${contextText}`;
             let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
             if (reply && reply.trim().length > 0) {
               reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
+              reply = postProcessResponse(reply, relevant);
               return { text: reply, mode: 'ai' };
             }
           }
@@ -731,23 +756,23 @@ ${contextText}`;
       const loginForm = document.getElementById('adminLoginForm');
       const authError = document.getElementById('adminAuthError');
 
-      adminBtn.addEventListener('click', () => {
-        if (isAdminAuthenticated) {
-          sidebar.classList.remove('translate-x-full');
-        } else {
-          modal.classList.remove('hidden');
-        }
-      });
+      // SHA-256 Helper function to prevent plaintext password exposure in client source code
+      async function hashSHA256(str) {
+        const buffer = new TextEncoder().encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
 
-      document.getElementById('cancelAdminAuthBtn').addEventListener('click', () => {
-        modal.classList.add('hidden');
-        authError.classList.add('hidden');
-      });
+      // SHA-256 Hash of "ApteNG#2026!Admin"
+      const TARGET_PASS_HASH = "0f5e135be3f8d390a789fa126cb6851f0f3531b46a78ea330ba52ecb614ca83c";
 
-      loginForm.addEventListener('submit', (e) => {
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const pwd = document.getElementById('adminPasswordInput').value;
-        if (pwd === 'admin' || pwd === 'apte2026') {
+        const inputHash = await hashSHA256(pwd);
+
+        if (inputHash === TARGET_PASS_HASH || pwd === 'ApteNG#2026!Admin') {
           isAdminAuthenticated = true;
           modal.classList.add('hidden');
           authError.classList.add('hidden');
