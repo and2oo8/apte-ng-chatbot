@@ -318,193 +318,64 @@
     let isProcessing = false;
     let isAdminAuthenticated = false;
 
-    // Helper: Markdown Parser to Chunks
+    // Optimized Markdown Parser with precise H1/H2/H3 hierarchy
     function parseMarkdownToChunks(text, sourceName = '') {
       if (!text) return [];
       const lines = text.split('\n');
       const chunks = [];
-      let currentHeader = 'Allgemeines';
-      let currentPath = sourceName || 'APTE-NG Handbuch';
+      let currentH1 = 'APTE-NG Handbuch';
+      let currentH2 = '';
+      let currentH3 = '';
+      let currentTitle = 'Allgemeines';
       let currentContent = [];
 
+      function saveChunk() {
+        const body = currentContent.join('\n').trim();
+        if (body.length > 20) {
+          const pathParts = [currentH1, currentH2, currentH3].filter(Boolean);
+          chunks.push({
+            title: currentTitle,
+            path: pathParts.join(' → '),
+            content: body,
+            source: sourceName
+          });
+        }
+        currentContent = [];
+      }
+
       for (const line of lines) {
-        if (line.startsWith('#')) {
-          if (currentContent.join('\n').trim().length > 0) {
-            chunks.push({
-              title: currentHeader,
-              path: currentPath,
-              content: currentContent.join('\n').trim(),
-              source: sourceName
-            });
-            currentContent = [];
-          }
-          const headerText = line.replace(/^#+\s*/, '').trim();
-          currentHeader = headerText;
-          if (line.startsWith('# ')) {
-            currentPath = headerText;
-          } else if (line.startsWith('## ')) {
-            currentPath = currentPath.split(' → ')[0] + ' → ' + headerText;
-          } else {
-            const parts = currentPath.split(' → ');
-            currentPath = (parts.length > 1 ? parts[0] + ' → ' + parts[1] : currentPath) + ' → ' + headerText;
-          }
+        if (line.startsWith('# ')) {
+          saveChunk();
+          currentH1 = line.replace(/^#\s+/, '').trim();
+          currentH2 = '';
+          currentH3 = '';
+          currentTitle = currentH1;
+        } else if (line.startsWith('## ')) {
+          saveChunk();
+          currentH2 = line.replace(/^##\s+/, '').trim();
+          currentH3 = '';
+          currentTitle = currentH2;
+        } else if (line.startsWith('### ')) {
+          saveChunk();
+          currentH3 = line.replace(/^###\s+/, '').trim();
+          currentTitle = currentH3;
         } else {
           currentContent.push(line);
         }
       }
-
-      if (currentContent.join('\n').trim().length > 0) {
-        chunks.push({
-          title: currentHeader,
-          path: currentPath,
-          content: currentContent.join('\n').trim(),
-          source: sourceName
-        });
-      }
-
+      saveChunk();
       return chunks;
     }
 
     // Helper: Append Chat Messages
-    function appendMessage(role, content) {
-      const container = document.getElementById('messagesContainer');
-      if (!container) return;
-
-      const msgDiv = document.createElement('div');
-      msgDiv.className = role === 'user' 
-        ? 'flex justify-end my-4' 
-        : 'flex justify-start my-4 max-w-3xl mx-auto';
-
-      if (role === 'user') {
-        msgDiv.innerHTML = `
-          <div class="bg-bordeaux text-white px-4 py-3 rounded-2xl rounded-tr-none max-w-lg shadow-sm text-sm">
-            ${escapeHtml(content)}
-          </div>
-        `;
-      } else {
-        const renderedHtml = window.marked ? marked.parse(content) : content;
-        msgDiv.innerHTML = `
-          <div class="bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none w-full shadow-sm">
-            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
-              <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
-              <span class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">APTE-NG Support-Assistent</span>
-            </div>
-            <div class="editorial-prose text-sm leading-relaxed">${renderedHtml}</div>
-          </div>
-        `;
-      }
-
-      container.appendChild(msgDiv);
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function scrollToBottom() {
-      const container = document.getElementById('messagesContainer');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-
-    // Handler: Send Message
-    async function handleSendMessage(customText) {
-      if (isProcessing) return;
-      const inputEl = document.getElementById('chatInput');
-      const query = (customText || inputEl?.value || '').trim();
-      if (!query) return;
-
-      if (inputEl && !customText) {
-        inputEl.value = '';
-        inputEl.style.height = 'auto';
-      }
-
-      isProcessing = true;
-
-      // Render User Message
-      appendMessage('user', query);
-
-      // Typing Indicator
-      const typing = document.getElementById('typingIndicator');
-      if (typing) typing.classList.remove('hidden');
-
-      scrollToBottom();
-
-      try {
-        const reply = await getAIResponse(query);
-        if (typing) typing.classList.add('hidden');
-        appendMessage('assistant', reply);
-      } catch (err) {
-        if (typing) typing.classList.add('hidden');
-        appendMessage('assistant', 'Entschuldigung, bei der Verarbeitung der Anfrage ist ein Fehler aufgetreten: ' + err.message);
-      } finally {
-        isProcessing = false;
-        scrollToBottom();
-      }
-    }
-
-    // Load Markdown Files with multi-filename fallback logic
-    async function loadMarkdownFiles() {
-      const badge = document.getElementById('mdStatusBadge');
-      const title = document.getElementById('mdStatusTitle');
-      const subtitle = document.getElementById('mdStatusSubtitle');
-      const countInfo = document.getElementById('chunkCountInfo');
-
-      const filePairs = [
-        ['apte_ng_anleitung_teil_1.md', 'APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil1.md'],
-        ['apte_ng_anleitung_teil_2.md', 'APTE-NG-Anleitung-v13-Teil2.md', 'APTE-NG-Handbuch-v13-Teil2.md']
-      ];
-
-      let combinedChunks = [];
-      let loadedCount = 0;
-
-      for (const aliasGroup of filePairs) {
-        let loaded = false;
-        for (const filename of aliasGroup) {
-          try {
-            const resp = await fetch(filename);
-            if (resp.ok) {
-              const text = await resp.text();
-              if (text && text.length > 100) {
-                const chunks = parseMarkdownToChunks(text, filename);
-                combinedChunks = combinedChunks.concat(chunks);
-                loadedCount++;
-                loaded = true;
-                break;
-              }
-            }
-          } catch (e) {
-            // try next alias
-          }
-        }
-      }
-
-      if (loadedCount > 0 && combinedChunks.length > 0) {
-        indexedChunks = combinedChunks;
-        if (badge) badge.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0';
-        if (title) title.textContent = `${loadedCount} Handbuch-Dateien geladen`;
-        if (subtitle) subtitle.textContent = `Vollständig indiziert (${loadedCount}/2 Dateien)`;
-      } else {
-        indexedChunks = fallbackChunks;
-        if (badge) badge.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0';
-        if (title) title.textContent = 'Eingebettete Wissensbasis aktiv';
-        if (subtitle) subtitle.textContent = 'Standard-Handbuch-Index geladen';
-      }
-
-      if (countInfo) {
-        countInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
-      }
-    }
-
-    // High-Precision Search (RAG)
+    // High-Precision Search (RAG) with Stopword Filtering
     function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
 
       const normalizedQuery = query.toLowerCase().trim();
-      const terms = normalizedQuery.split(/\s+/).filter(t => t.length > 2);
+      const stopWords = ['wie', 'wo', 'was', 'ist', 'der', 'die', 'das', 'den', 'dem', 'ein', 'eine', 'einen', 'einer', 'kann', 'ich', 'man', 'stelle', 'einstellen', 'finde', 'erstelle', 'bitte', 'hilfe', 'stelle', 'wohin'];
+      const terms = normalizedQuery.split(/[\s,.-]+/).filter(t => t.length > 2 && !stopWords.includes(t));
+      
       if (terms.length === 0) return indexedChunks.slice(0, topK);
 
       const scored = indexedChunks.map(chunk => {
@@ -512,46 +383,45 @@
         const titleLower = chunk.title.toLowerCase();
         const pathLower = chunk.path.toLowerCase();
         const contentLower = chunk.content.toLowerCase();
-        const fullText = titleLower + ' ' + pathLower + ' ' + contentLower;
 
-        // Exact phrase boost
-        if (fullText.includes(normalizedQuery)) score += 15;
+        // Exact query phrase boost
+        if (titleLower.includes(normalizedQuery)) score += 40;
+        if (contentLower.includes(normalizedQuery)) score += 20;
 
         terms.forEach(term => {
-          if (titleLower.includes(term)) score += 8;
-          if (pathLower.includes(term)) score += 5;
+          if (titleLower.includes(term)) score += 15;
+          if (pathLower.includes(term)) score += 10;
           
-          // Term occurrences count in content
-          const count = (contentLower.split(term).length - 1);
-          score += Math.min(count, 5) * 2;
+          const matches = (contentLower.match(new RegExp(term, 'g')) || []).length;
+          score += Math.min(matches, 6) * 3;
         });
 
         return { chunk, score };
       });
 
       scored.sort((a, b) => b.score - a.score);
-
       const matches = scored.filter(s => s.score > 0).map(s => s.chunk);
       return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.slice(0, topK);
     }
 
-    // AI Response Generator via Gemini API or RAG Fallback
+    // AI Response Generator with Strict Direct-Answer Prompting
     async function getAIResponse(userQuery) {
-      const relevant = findRelevantChunks(userQuery);
+      const relevant = findRelevantChunks(userQuery, 6);
       
       const contextText = relevant.map((c, i) => 
-        `--- HANDBUCH AUSZUG ${i+1}: ${c.path} ---\n${c.content}`
+        `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\n${c.content}`
       ).join('\n\n');
 
-      const systemPrompt = `Du bist der offizielle Support-Assistent für die Hochschulsoftware APTE-NG (valucon apps GmbH).
-Beantworte die Anfrage des Nutzers sachlich, präzise und in klar verständlichem Deutsch auf Basis des bereitgestellten Handbuch-Kontexts.
+      const systemPrompt = `Du bist das integrierte APTE-NG Online-Help-System.
+Deine Aufgabe ist es, Fragen zur Konfiguration, Bedienung und Rechtevergabe in APTE-NG sofort, nüchtern und direkt auf den Punkt zu beantworten.
 
-REGELN FÜR DEINE ANTWORT:
-1. Nutze direkte, genaue Klickpfade in der Form: Hauptmenü → Untermenü → Aktion (z. B. Formulare → Layout → Felder).
-2. Strukturiere Handlungsanweisungen immer in nummerierten Schritten (1., 2., 3.).
-3. Nutze Fettschrift für Menüpunkte, Buttons und wichtige Begriffe.
-4. Verwende KEINE Antworten in der ersten Person ("Ich empfehle..."), sondern antworte sachlich-objektiv.
-5. Verwende ausschließlich verifizierte Fakten aus den Handbuch-Auszügen.
+STRIKTE FORMAL- UND TON-REGELN:
+1. KEINE EINLEITUNGEN ODER PHRASEN: Starte deine Antwort DIREKT mit den Fakten oder der Anleitung. Es ist STRENG VERBOTEN, Sätze wie "Basierend auf dem Handbuch...", "Laut den Informationen...", "In der Software APTE-NG...", "Hier ist die Anleitung..." oder "Um Ihre Frage zu beantworten..." zu schreiben!
+2. KLICKPFAD-FORMAT: Wenn ein Klickpfad existiert, stelle ihn ganz oben voran in fettem Format:
+   **Klickpfad:** Hauptmenü → Untermenü → Aktion
+3. SCHRITT-FÜR-SCHRITT: Nummeriere Handlungsschritte stets (1., 2., 3.).
+4. SYNTAX: Nutze Fettschrift für **Buttons**, **Feldnamen**, **Menüpunkte** und **Statuswerte**.
+5. STRENG FAKTISCH: Verwende AUSSCHLIESSLICH die Fakten aus dem Handbuch-Kontext. Erfinde nichts hinzu. Wenn der Kontext keine Information enthält, antworte knapp: "Dazu ist im aktuellen Handbuch keine Information enthalten."
 
 HANDBUCH-KONTEXT:
 ${contextText}`;
@@ -572,19 +442,149 @@ ${contextText}`;
 
         if (response.ok) {
           const data = await response.json();
-          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply && reply.trim().length > 0) return reply;
+          let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply && reply.trim().length > 0) {
+            // Post-processing guardrail: Strip out conversational introductory intros automatically
+            reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
+            return reply;
+          }
         }
       } catch (err) {
         console.warn("Gemini API Aufruf fehlgeschlagen. Nutze strukturierte Lokalausgabe.", err);
       }
 
-      // Structured Fallback
-      let fallbackText = `### Informationen aus dem APTE-NG Handbuch\n\n`;
-      relevant.slice(0, 3).forEach((c, idx) => {
-        fallbackText += `**${idx + 1}. ${c.title}**  \n*Klickpfad: ${c.path}*\n\n${c.content}\n\n---\n\n`;
-      });
+      // Structured Fallback (ohne KI / Offline-Modus)
+      if (!relevant || relevant.length === 0) {
+        return "Zu dieser Anfrage wurden keine passenden Informationen im Handbuch gefunden.";
+      }
+
+      const topMatch = relevant[0];
+      let fallbackText = `**Klickpfad:** ${topMatch.path}\n\n${topMatch.content}`;
+
+      // Weitere Treffer nicht in den Haupttext mischen, sondern als verwandte Themen auflisten
+      const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
+      if (additionalMatches.length > 0) {
+        fallbackText += `\n\n---\n**Verwandte Themen im Handbuch:**\n`;
+        additionalMatches.forEach(c => {
+          fallbackText += `- **${c.title}** (*${c.path}*)\n`;
+        });
+      }
+
       return fallbackText;
+    }
+
+    // Load Markdown files automatically from repository/folder
+    async function loadMarkdownFiles() {
+      const badge = document.getElementById('mdStatusBadge');
+      const title = document.getElementById('mdStatusTitle');
+      const subtitle = document.getElementById('mdStatusSubtitle');
+      const chunkInfo = document.getElementById('chunkCountInfo');
+
+      if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
+      if (title) title.textContent = "Lade Handbuch-Dateien...";
+
+      const filePairs = [
+        ['apte_ng_anleitung_teil_1.md', 'apte_ng_anleitung_teil_2.md'],
+        ['APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Anleitung-v13-Teil2.md'],
+        ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md']
+      ];
+
+      let loadedChunks = [];
+      let loadedFileNames = [];
+
+      for (const pair of filePairs) {
+        try {
+          const responses = await Promise.all(pair.map(file => fetch(file)));
+          if (responses.every(r => r.ok)) {
+            const texts = await Promise.all(responses.map(r => r.text()));
+            texts.forEach((text, idx) => {
+              const fileChunks = parseMarkdownToChunks(text, pair[idx]);
+              loadedChunks.push(...fileChunks);
+            });
+            loadedFileNames = pair;
+            break;
+          }
+        } catch (e) {
+          console.warn("Ladeversuch für Dateipaar fehlgeschlagen:", pair, e);
+        }
+      }
+
+      if (loadedChunks.length > 0) {
+        indexedChunks = loadedChunks;
+        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
+        if (title) title.textContent = "Handbuch geladen";
+        if (subtitle) subtitle.textContent = loadedFileNames.join(' & ');
+        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+      } else {
+        indexedChunks = [...fallbackChunks];
+        if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0";
+        if (title) title.textContent = "Integrierte Basis aktiv";
+        if (subtitle) subtitle.textContent = "Dateien nicht gefunden (lokaler Fallback)";
+        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+      }
+    }
+
+    // UI Helper: Scroll to bottom of message container
+    function scrollToBottom() {
+      const container = document.getElementById('messagesContainer');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    // UI Helper: Append message to chat UI
+    function appendMessage(role, content) {
+      const container = document.getElementById('messagesContainer');
+      if (!container) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+      const innerDiv = document.createElement('div');
+      if (role === 'user') {
+        innerDiv.className = 'max-w-2xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm';
+        innerDiv.textContent = content;
+      } else {
+        innerDiv.className = 'max-w-3xl bg-white border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed';
+        innerDiv.innerHTML = typeof marked !== 'undefined' ? marked.parse(content) : content;
+      }
+
+      msgDiv.appendChild(innerDiv);
+      container.appendChild(msgDiv);
+      scrollToBottom();
+    }
+
+    // Chat Controller: Send message and retrieve response
+    async function handleSendMessage(overrideText) {
+      if (isProcessing) return;
+
+      const inputEl = document.getElementById('chatInput');
+      const text = (overrideText || inputEl?.value || '').trim();
+      if (!text) return;
+
+      if (inputEl && !overrideText) {
+        inputEl.value = '';
+        inputEl.style.height = 'auto';
+      }
+
+      isProcessing = true;
+      appendMessage('user', text);
+
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) indicator.classList.remove('hidden');
+      scrollToBottom();
+
+      try {
+        const aiResponse = await getAIResponse(text);
+        if (indicator) indicator.classList.add('hidden');
+        appendMessage('assistant', aiResponse);
+      } catch (err) {
+        if (indicator) indicator.classList.add('hidden');
+        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.');
+        console.error(err);
+      } finally {
+        isProcessing = false;
+      }
     }
 
     // UI & Event Setup
