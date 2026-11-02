@@ -260,7 +260,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 22:30 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 22:45 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -488,50 +488,65 @@
 
       let text = mdText;
 
-      const isScreenshot = (alt = '', src = '') => {
-        const combined = (alt + ' ' + src).toLowerCase();
-        return combined.includes('screenshot') || 
-               combined.includes('übersicht') || 
-               combined.includes('ansicht') || 
-               combined.includes('dialog') || 
-               combined.includes('fenster') || 
-               combined.includes('abbildung_') || 
-               combined.includes('screen_');
+      const isScreenshotImage = (alt = '', src = '') => {
+        const s = (alt + ' ' + src).toLowerCase();
+        
+        // Explicit button/icon keywords always override screenshot
+        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
+            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
+            s.includes('sichtbar') || s.includes('plus') || s.includes('stift')) {
+          return false;
+        }
+
+        return s.includes('screenshot') || 
+               s.includes('übersicht') || 
+               s.includes('ansicht') || 
+               s.includes('dialog') || 
+               s.includes('fenster') || 
+               s.includes('abbildung') || 
+               s.includes('screen') || 
+               s.includes('formular') || 
+               s.includes('maske') || 
+               s.includes('seite') || 
+               s.includes('modal') || 
+               s.includes('standardlabel') ||
+               s.includes('bereich') ||
+               s.includes('view');
       };
 
-      // Pattern 1: Empty quotes followed on the same or next line by an icon image
-      // e.g. Schalter **" "** klicken \n ![Verwendbar](switch.png)
-      text = text.replace(
-        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?([^\n\r]*?)[\r\n]+\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
-        (match, b1, q1, q2, b2, trailingText, alt, src) => {
-          if (isScreenshot(alt, src)) return match;
-          const openB = b1 || '';
-          const closeB = b2 || '';
-          return `${openB}${q1}![${alt}](${src})${q2}${closeB}${trailingText}`;
-        }
-      );
-
-      // Pattern 2: Icon image on line 1, followed on next line by sentence with empty quotes
-      // e.g. ![Button](btn.png) \n 3. Klicken Sie auf **" "**
+      // 1. FIRST: Check for Icon/Button ABOVE empty quotes on previous line
+      // e.g. ![Ein neues Standardlabel erstellen](btn.png) \n 3. Klicken Sie auf **" "**
       text = text.replace(
         /!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)\s*[\r\n]+\s*([^\r\n"„“«]*?)(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?/g,
         (match, alt, src, prefixText, b1, q1, q2, b2) => {
-          if (isScreenshot(alt, src)) return match;
+          if (isScreenshotImage(alt, src)) return match;
           const openB = b1 || '';
           const closeB = b2 || '';
           return `${prefixText}${openB}${q1}![${alt}](${src})${q2}${closeB}`;
         }
       );
 
-      // Pattern 3: Empty quotes adjacent on same line
+      // 2. SECOND: Check for Icon/Button on SAME LINE right next to empty quotes
       // e.g. Klicken Sie auf **" "** ![Button](btn.png)
       text = text.replace(
         /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
         (match, b1, q1, q2, b2, alt, src) => {
-          if (isScreenshot(alt, src)) return match;
+          if (isScreenshotImage(alt, src)) return match;
           const openB = b1 || '';
           const closeB = b2 || '';
           return `${openB}${q1}![${alt}](${src})${q2}${closeB}`;
+        }
+      );
+
+      // 3. THIRD: Check for Icon/Button BELOW empty quotes on next line
+      // e.g. Schalter **" "** klicken \n ![Verwendbar](switch.png)
+      text = text.replace(
+        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?([^\n\r]*?)[\r\n]+\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
+        (match, b1, q1, q2, b2, trailingText, alt, src) => {
+          if (isScreenshotImage(alt, src)) return match;
+          const openB = b1 || '';
+          const closeB = b2 || '';
+          return `${openB}${q1}![${alt}](${src})${q2}${closeB}${trailingText}`;
         }
       );
 
