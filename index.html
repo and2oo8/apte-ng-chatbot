@@ -106,6 +106,36 @@
     .editorial-prose h3 {
       font-size: 1rem;
     }
+
+    /* Inline doc icons & buttons inside text, lists, and headings */
+    .editorial-prose p img,
+    .editorial-prose li img,
+    .editorial-prose span img,
+    .editorial-prose td img,
+    .editorial-prose .inline-doc-icon {
+      display: inline-block !important;
+      max-height: 1.35em !important;
+      width: auto !important;
+      vertical-align: -0.22em !important;
+      margin: 0 0.25rem !important;
+      padding: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+
+    /* Standalone screenshots */
+    .editorial-prose img.standalone-screenshot {
+      display: block !important;
+      max-height: 16rem !important;
+      width: auto !important;
+      margin: 0.75rem 0 !important;
+      border-radius: 0.5rem !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+      background-color: #ffffff !important;
+      padding: 0.25rem !important;
+    }
   </style>
 </head>
 
@@ -231,7 +261,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:20 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:35 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -447,7 +477,17 @@
         }
 
         if (!href || typeof href !== 'string' || href.includes('[object')) return '';
-        return `<div class="my-3"><img src="${href}" alt="${imgText || 'APTE-NG Handbuch Screenshot'}" title="${imgTitle || ''}" class="zoomable-img max-h-60 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" onerror="this.onerror=null; this.parentElement.style.display='none';" /></div>`;
+
+        // Unterscheidung: Handelt es sich um ein kleines Inline-Icon / Button oder einen großen Screenshot?
+        const isIcon = /icon|btn|button|symbol|pfeil|arrow|small|inline/i.test(href) || 
+                       /icon|btn|button|symbol/i.test(imgText || '') ||
+                       (!imgText || imgText.length < 15);
+
+        const imgClass = isIcon 
+          ? "inline-doc-icon zoomable-img cursor-zoom-in hover:opacity-80 transition" 
+          : "standalone-screenshot zoomable-img cursor-zoom-in hover:opacity-95 transition object-contain";
+
+        return `<img src="${href}" alt="${imgText || 'APTE-NG Handbuch Abbildung'}" title="${imgTitle || imgText || ''}" class="${imgClass}" onerror="this.onerror=null; this.style.display='none';" />`;
       };
       marked.setOptions({ renderer });
     }
