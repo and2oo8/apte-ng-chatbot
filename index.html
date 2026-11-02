@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APTE-NG | Dokumentations Assistent (valucon apps)</title>
+  <title>APTE-NG | Support-Assistent (valucon apps)</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -154,12 +154,12 @@
             <div class="flex items-center gap-2">
               <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Handbuch v13 indiziert
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Anleitung v13 indiziert
               </span>
             </div>
           </div>
           <p class="text-sm text-slate-700 leading-relaxed mb-3">
-            Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert präzise Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis des offiziellen Systemhandbuchs. Wählen Sie ein Thema oder stellen Sie direkt eine Frage:
+            Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis der offiziellen Systemanleitung. Wählen Sie ein Thema oder stellen Sie direkt eine Frage:
           </p>
           <div class="flex flex-wrap gap-2 text-xs">
             <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wo stelle ich die Abgabeperiode ein?</button>
@@ -541,20 +541,16 @@ ${contextText}`;
       const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
       const apiKey = userSavedApiKey.trim();
 
-      // Modell-Kaskade: Beginnt mit gemini-3.8-flash gemäß Google API-Empfehlung
-      const candidateModels = [
-        'gemini-3.8-flash',
-        'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash'
-      ];
+      // Ausschließliche Verwendung des aktuellen Standardmodells gemini-3.8-flash
+      const modelName = 'gemini-3.8-flash';
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-      for (const modelName of candidateModels) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
+      // Retry-Logik für temporäre 503-Überlastungen von Google
+      let retries = 2;
+      while (retries >= 0) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s Timeout
+          const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s Timeout
 
           const response = await fetch(apiUrl, {
             method: 'POST',
@@ -579,10 +575,19 @@ ${contextText}`;
           } else {
             const errorText = await response.text();
             console.warn(`Gemini API Versuch mit Modell '${modelName}' (Status ${response.status}):`, errorText);
+
+            // Bei temporärer Server-Überlastung (503) kurz warten und erneut versuchen
+            if (response.status === 503 && retries > 0) {
+              console.info("Gemini API ist kurzzeitig überlastet (503). Automatischer Wiederholungsversuch in 1.2s...");
+              await new Promise(resolve => setTimeout(resolve, 1200));
+            } else {
+              break; // Bei dauerhaften Fehlern (z. B. 400 oder 403) direkt abbrechen
+            }
           }
         } catch (err) {
           console.warn(`Gemini API Aufruf für '${modelName}' fehlgeschlagen oder Timeout.`, err);
         }
+        retries--;
       }
 
       // Handbuch-Direktsuche (rein auf Basis der geladenen MD-Dateien)
