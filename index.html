@@ -902,27 +902,42 @@ ${contextText}`;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        // Streaming effect for manual mode
+        // Smooth line-by-line reveal effect for manual mode
         if (mode === 'fallback') {
           const fullParsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
           
-          let currentLength = 0;
-          const totalLength = cleanedContent.length;
-          const stepSize = Math.max(3, Math.floor(totalLength / 60));
+          // Create temporary hidden element to parse HTML blocks
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = fullParsed;
+          const childNodes = Array.from(tempDiv.childNodes);
+          
+          contentBox.innerHTML = ''; // Clear container
 
-          const timer = setInterval(() => {
-            currentLength += stepSize;
-            if (currentLength >= totalLength) {
-              currentLength = totalLength;
-              clearInterval(timer);
-              contentBox.innerHTML = fullParsed;
+          let index = 0;
+          const revealTimer = setInterval(() => {
+            if (index < childNodes.length) {
+              const node = childNodes[index].cloneNode(true);
+              if (node.nodeType === 1) { // Element node
+                node.style.opacity = '0';
+                node.style.transform = 'translateY(4px)';
+                node.style.transition = 'opacity 0.25s ease-out, transform 0.25s ease-out';
+                contentBox.appendChild(node);
+                
+                // Trigger CSS transition
+                requestAnimationFrame(() => {
+                  node.style.opacity = '1';
+                  node.style.transform = 'translateY(0)';
+                });
+              } else {
+                contentBox.appendChild(node);
+              }
+              index++;
               scrollToBottom();
             } else {
-              const partialText = cleanedContent.slice(0, currentLength);
-              contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(partialText) : partialText;
+              clearInterval(revealTimer);
               scrollToBottom();
             }
-          }, 18);
+          }, 90); // Smooth 90ms interval per block/line
         } else {
           contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
           scrollToBottom();
