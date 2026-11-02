@@ -227,7 +227,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:31 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 12:37 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -513,7 +513,7 @@
     function findRelevantChunks(query, topN = 5) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen)\b/i.test(query);
 
       const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
@@ -522,7 +522,7 @@
 
       if (tokens.length === 0) return [];
 
-      const scored = indexedChunks.map(chunk => {
+      const scored = indexedChunks.map((chunk, index) => {
         let score = 0;
         const titleLower = chunk.title.toLowerCase();
         const pathLower = chunk.path.toLowerCase();
@@ -539,7 +539,7 @@
           }
         });
 
-        // Boost score for procedural content if user asked "Wie / Wo geht XYZ?"
+        // Boost score for procedural content if user asked "Wie / Wo geht XYZ?" or "XYZ erstellen"
         if (isProceduralQuery && score > 0) {
           const proceduralTriggers = [
             'vorgehensweise',
@@ -547,25 +547,48 @@
             'anleitung',
             'schritt-für-schritt',
             'konfiguration:',
-            'neuerstellung:'
+            'neuerstellung:',
+            'hinzufügen'
           ];
           
           proceduralTriggers.forEach(trigger => {
-            if (contentLower.includes(trigger)) score += 8;
+            if (contentLower.includes(trigger)) score += 10;
           });
 
-          if (/1\.\s+.*2\.\s+/.test(chunk.content)) {
-            score += 10;
+          if (/1\.\s+.*2\.\s+/.test(chunk.content) || /1\.\s+Öffnen/.test(chunk.content)) {
+            score += 15;
           }
         }
 
-        return { chunk, score };
+        return { chunk, score, index };
       });
 
       scored.sort((a, b) => b.score - a.score);
 
-      const filtered = scored.filter(s => s.score > 0).map(s => s.chunk);
-      return filtered.slice(0, topN);
+      const filtered = scored.filter(s => s.score > 0);
+      
+      // Lookahead/Merge: If top chunk is short intro without steps, look if next consecutive chunk in MD contains the steps
+      if (filtered.length > 0 && isProceduralQuery) {
+        const topScored = filtered[0];
+        const topChunk = topScored.chunk;
+        const idx = topScored.index;
+
+        const hasSteps = /1\.\s+/.test(topChunk.content) || /gehen sie wie folgt vor/i.test(topChunk.content);
+
+        if (!hasSteps && idx < indexedChunks.length - 1) {
+          const nextChunk = indexedChunks[idx + 1];
+          if (/1\.\s+/.test(nextChunk.content) || /gehen sie wie folgt vor/i.test(nextChunk.content)) {
+            // Append next chunk to form a complete response
+            const mergedChunk = {
+              ...topChunk,
+              content: topChunk.content + '\n\n### ' + nextChunk.title + '\n\n' + nextChunk.content
+            };
+            return [mergedChunk, ...filtered.slice(1).map(s => s.chunk)].slice(0, topN);
+          }
+        }
+      }
+
+      return filtered.map(s => s.chunk).slice(0, topN);
     }
 
     // Post-process AI response: remove hallucinated prefixes/paths & append interactive buttons for related topics
