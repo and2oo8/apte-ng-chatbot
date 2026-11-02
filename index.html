@@ -129,8 +129,14 @@
       </div>
     </div>
 
-    <!-- Admin Button -->
+    <!-- Live Status Indicator & Admin Button -->
     <div class="flex items-center gap-3">
+      <!-- Live Engine Mode Badge -->
+      <div id="liveEngineBadge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border transition">
+        <span id="liveEngineDot" class="w-2 h-2 rounded-full"></span>
+        <span id="liveEngineText">Prüfe Modus...</span>
+      </div>
+
       <button id="adminAccessBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-bordeaux hover:bg-slate-100 border border-slate-200 transition">
         <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         <span id="adminBtnLabel">Admin</span>
@@ -150,9 +156,15 @@
         
         <!-- User-friendly Welcome Card -->
         <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Handbuch v13 indiziert</span>
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Handbuch v13 indiziert</span>
+            </div>
+            <!-- Active Mode Indicator in Card -->
+            <span id="welcomeModeBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md border bg-slate-100 text-slate-600 border-slate-200">
+              Modus: Handbuch-Direktsuche
+            </span>
           </div>
           <p class="text-sm text-slate-700 leading-relaxed mb-3">
             Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert präzise Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis des offiziellen Systemhandbuchs. Wählen Sie ein Thema oder stellen Sie direkt eine Frage:
@@ -213,13 +225,13 @@
       <div class="p-4 border-b border-slate-200 bg-white space-y-2">
         <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Gemini API-Schlüssel</label>
         <p class="text-[11px] text-slate-500 leading-snug">
-          Der API-Schlüssel aktiviert die KI-gestützte Beantwortung. Ohne Schlüssel wird der interne Handbuch-Filter genutzt.
+          Das System versucht vorrangig Antworten mit der <strong>Gemini KI</strong> zu generieren. Ist kein Schlüssel hinterlegt oder schlägt die API fehl, wird automatisch die <strong>Handbuch-Direktsuche</strong> genutzt.
         </p>
         <div class="flex gap-2">
           <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="AIzaSy..." />
           <button id="saveApiKeyBtn" class="px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
         </div>
-        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ API-Schlüssel ist konfiguriert</p>
+        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ Gemini KI ist aktiv</p>
       </div>
 
       <!-- File Status -->
@@ -297,6 +309,43 @@
     let indexedChunks = [];
     let isProcessing = false;
     let isAdminAuthenticated = false;
+
+    // Helper: Update status badges across the UI based on API key availability
+    function updateEngineStatusUI() {
+      const savedApiKey = (localStorage.getItem('APTE_GEMINI_KEY') || '').trim();
+      const hasKey = savedApiKey.length > 5;
+
+      const liveBadge = document.getElementById('liveEngineBadge');
+      const liveDot = document.getElementById('liveEngineDot');
+      const liveText = document.getElementById('liveEngineText');
+      const welcomeBadge = document.getElementById('welcomeModeBadge');
+      const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+      if (hasKey) {
+        if (liveBadge) liveBadge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200";
+        if (liveDot) liveDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        if (liveText) liveText.textContent = "Gemini KI aktiv";
+        if (welcomeBadge) {
+          welcomeBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-md border bg-emerald-50 text-emerald-700 border-emerald-200";
+          welcomeBadge.textContent = "Modus: Gemini KI (Primär)";
+        }
+        if (apiKeyStatus) {
+          apiKeyStatus.classList.remove('hidden');
+          apiKeyStatus.textContent = "✓ Gemini KI ist aktiv (Fallback auf Direktsuche bei Fehler)";
+        }
+      } else {
+        if (liveBadge) liveBadge.className = "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border bg-amber-50 text-amber-800 border-amber-200";
+        if (liveDot) liveDot.className = "w-2 h-2 rounded-full bg-amber-500";
+        if (liveText) liveText.textContent = "Direktsuche (Kein Key)";
+        if (welcomeBadge) {
+          welcomeBadge.className = "text-[11px] font-bold px-2.5 py-0.5 rounded-md border bg-amber-50 text-amber-800 border-amber-200";
+          welcomeBadge.textContent = "Modus: Handbuch-Direktsuche";
+        }
+        if (apiKeyStatus) {
+          apiKeyStatus.classList.add('hidden');
+        }
+      }
+    }
 
     // Configure Marked.js renderer for zoomable responsive images with graceful fallback
     if (typeof marked !== 'undefined') {
@@ -690,24 +739,24 @@ ${contextText}`;
       
       loadMarkdownFiles();
 
-      // Check Saved Gemini Key
+      // Check Saved Gemini Key & Update UI Status
       const savedApiKey = localStorage.getItem('APTE_GEMINI_KEY');
       if (savedApiKey) {
         document.getElementById('geminiApiKeyInput').value = savedApiKey;
-        document.getElementById('apiKeyStatus').classList.remove('hidden');
       }
+      updateEngineStatusUI();
 
       // Save API Key
       document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
         if (val) {
           localStorage.setItem('APTE_GEMINI_KEY', val);
-          document.getElementById('apiKeyStatus').classList.remove('hidden');
+          updateEngineStatusUI();
           alert("Gemini API-Schlüssel wurde erfolgreich gespeichert!");
         } else {
           localStorage.removeItem('APTE_GEMINI_KEY');
-          document.getElementById('apiKeyStatus').classList.add('hidden');
-          alert("API-Schlüssel entfernt.");
+          updateEngineStatusUI();
+          alert("API-Schlüssel entfernt. System nutzt nun Handbuch-Direktsuche.");
         }
       });
 
