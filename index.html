@@ -323,9 +323,20 @@
     // Configure Marked.js renderer for zoomable responsive images with graceful fallback
     if (typeof marked !== 'undefined') {
       const renderer = new marked.Renderer();
-      renderer.image = function(href, title, text) {
-        if (!href) return '';
-        return `<div class="my-3"><img src="${href}" alt="${text || 'APTE-NG Handbuch Screenshot'}" title="${title || ''}" class="zoomable-img max-h-60 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" onerror="this.onerror=null; this.parentElement.style.display='none';" /></div>`;
+      renderer.image = function(tokenOrHref, title, text) {
+        let href = tokenOrHref;
+        let imgTitle = title;
+        let imgText = text;
+
+        // Support for Marked.js v12+ object parameters
+        if (typeof tokenOrHref === 'object' && tokenOrHref !== null) {
+          href = tokenOrHref.href;
+          imgTitle = tokenOrHref.title;
+          imgText = tokenOrHref.text;
+        }
+
+        if (!href || typeof href !== 'string' || href.includes('[object')) return '';
+        return `<div class="my-3"><img src="${href}" alt="${imgText || 'APTE-NG Handbuch Screenshot'}" title="${imgTitle || ''}" class="zoomable-img max-h-60 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" onerror="this.onerror=null; this.parentElement.style.display='none';" /></div>`;
       };
       marked.setOptions({ renderer });
     }
@@ -530,12 +541,12 @@ ${contextText}`;
       const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
       const apiKey = userSavedApiKey.trim();
 
-      // Modellbezeichnung auf das offizielle gemini-3-flash-preview aktualisiert
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      // Gültiges offizielles REST-Modell der Gemini API: gemini-2.5-flash
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s Timeout
 
         const response = await fetch(apiUrl, {
           method: 'POST',
