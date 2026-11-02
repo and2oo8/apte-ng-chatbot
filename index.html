@@ -541,39 +541,48 @@ ${contextText}`;
       const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
       const apiKey = userSavedApiKey.trim();
 
-      // Gültiges offizielles REST-Modell der Gemini API: gemini-2.5-flash
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+      // Modell-Kaskade: Beginnt mit gemini-3.8-flash gemäß Google API-Empfehlung
+      const candidateModels = [
+        'gemini-3.8-flash',
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash'
+      ];
 
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s Timeout
+      for (const modelName of candidateModels) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: userQuery }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] }
-          })
-        });
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s Timeout
 
-        clearTimeout(timeoutId);
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userQuery }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply && reply.trim().length > 0) {
-            reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
-            reply = postProcessResponse(reply, relevant);
-            return { text: reply, mode: 'ai' };
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const data = await response.json();
+            let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply && reply.trim().length > 0) {
+              reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
+              reply = postProcessResponse(reply, relevant);
+              return { text: reply, mode: 'ai' };
+            }
+          } else {
+            const errorText = await response.text();
+            console.warn(`Gemini API Versuch mit Modell '${modelName}' (Status ${response.status}):`, errorText);
           }
-        } else {
-          const errorText = await response.text();
-          console.error(`Gemini API Fehler (Status ${response.status}):`, errorText);
+        } catch (err) {
+          console.warn(`Gemini API Aufruf für '${modelName}' fehlgeschlagen oder Timeout.`, err);
         }
-      } catch (err) {
-        console.warn("Gemini API Aufruf fehlgeschlagen oder Timeout. Nutze Handbuch-Direktsuche.", err);
       }
 
       // Handbuch-Direktsuche (rein auf Basis der geladenen MD-Dateien)
