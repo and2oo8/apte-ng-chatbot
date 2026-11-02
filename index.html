@@ -404,7 +404,9 @@
     function findRelevantChunks(query, topN = 5) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
-      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng']);
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
+
+      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
       const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
       const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
@@ -418,18 +420,34 @@
         const contentLower = chunk.content.toLowerCase();
 
         tokens.forEach(token => {
-          if (titleLower.includes(token)) score += 10;
-          if (pathLower.includes(token)) score += 5;
+          if (titleLower.includes(token)) score += 12;
+          if (pathLower.includes(token)) score += 6;
 
           const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
           const matches = contentLower.match(regex);
           if (matches) {
-            score += Math.min(matches.length, 5) * 2;
+            score += Math.min(matches.length, 6) * 2;
           }
         });
 
-        if (/^(wie|wo|schritte|anleitung)/i.test(query.trim())) {
-          if (/1\.\s+|2\.\s+/.test(chunk.content)) score += 5;
+        // Boost score for procedural content if user asked "Wie / Wo geht XYZ?"
+        if (isProceduralQuery && score > 0) {
+          const proceduralTriggers = [
+            'vorgehensweise',
+            'gehen sie wie folgt vor',
+            'anleitung',
+            'schritt-für-schritt',
+            'konfiguration:',
+            'neuerstellung:'
+          ];
+          
+          proceduralTriggers.forEach(trigger => {
+            if (contentLower.includes(trigger)) score += 8;
+          });
+
+          if (/1\.\s+.*2\.\s+/.test(chunk.content)) {
+            score += 10;
+          }
         }
 
         return { chunk, score };
@@ -464,22 +482,44 @@
     }
 
     // Helper: Formats response to strictly output procedural step-by-step guidance directly from MD
-    function formatProceduralFallback(chunk) {
+    function formatProceduralFallback(chunk, query = '') {
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
+
       const lines = chunk.content.split('\n');
       const stepLines = [];
       const noteLines = [];
+      let inProceduralBlock = false;
 
       for (let line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
+        // Keep Markdown images intact for zoom
         if (trimmed.startsWith('![')) {
           stepLines.push(trimmed);
           continue;
         }
 
-        if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed) || /^(schritt\s+\d+|vorgehensweise|anleitung):/i.test(trimmed)) {
+        // Detect explicit procedural headers or triggers in the manual text
+        if (
+          /^(vorgehensweise|gehen sie wie folgt vor|anleitung|schritte|vorgehen):?/i.test(trimmed) ||
+          /^(anleitung zur|vorgehensweise zur|schritt-für-schritt)/i.test(trimmed)
+        ) {
+          inProceduralBlock = true;
+          stepLines.push(`**${trimmed.replace(/[*_]/g, '')}**`);
+          continue;
+        }
+
+        // List items or step numbers
+        if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed)) {
+          inProceduralBlock = true;
           stepLines.push(trimmed);
+        } else if (inProceduralBlock && !trimmed.startsWith('#')) {
+          if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
+            noteLines.push(trimmed);
+          } else {
+            stepLines.push(trimmed);
+          }
         } else if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
           noteLines.push(trimmed);
         }
@@ -487,13 +527,13 @@
 
       let formattedOutput = '';
 
-      if (stepLines.length > 0) {
-        formattedOutput += `**Schritt-für-Schritt-Anleitung:**\n\n${stepLines.join('\n')}\n\n`;
+      if (stepLines.length > 0 && isProceduralQuery) {
+        formattedOutput += `${stepLines.join('\n\n')}\n\n`;
       } else {
         formattedOutput = chunk.content;
       }
 
-      if (noteLines.length > 0) {
+      if (noteLines.length > 0 && !formattedOutput.includes(noteLines[0])) {
         formattedOutput += `${noteLines.join('\n')}\n`;
       }
 
@@ -611,7 +651,7 @@ ${contextText}`;
 
       // Handbuch-Direktsuche (Fallback falls alle KI-Modelle fehlschlagen)
       const topMatch = relevant[0];
-      let fallbackText = formatProceduralFallback(topMatch);
+      let fallbackText = formatProceduralFallback(topMatch, userQuery);
 
       const additionalMatches = relevant.slice(1, 4).filter(c => c.title !== topMatch.title && c.path !== topMatch.path);
       if (additionalMatches.length > 0) {
