@@ -756,6 +756,26 @@ ${contextText}`;
       const loginForm = document.getElementById('adminLoginForm');
       const authError = document.getElementById('adminAuthError');
 
+      if (adminBtn) {
+        adminBtn.addEventListener('click', () => {
+          if (isAdminAuthenticated) {
+            sidebar.classList.remove('translate-x-full');
+          } else {
+            const pwdInput = document.getElementById('adminPasswordInput');
+            if (pwdInput) pwdInput.value = '';
+            if (authError) authError.classList.add('hidden');
+            if (modal) modal.classList.remove('hidden');
+          }
+        });
+      }
+
+      const cancelAuthBtn = document.getElementById('cancelAdminAuthBtn');
+      if (cancelAuthBtn) {
+        cancelAuthBtn.addEventListener('click', () => {
+          if (modal) modal.classList.add('hidden');
+        });
+      }
+
       // SHA-256 Helper function to prevent plaintext password exposure in client source code
       async function hashSHA256(str) {
         const buffer = new TextEncoder().encode(str);
