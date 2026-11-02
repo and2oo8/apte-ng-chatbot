@@ -191,7 +191,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 11:47 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 11:55 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -306,11 +306,11 @@
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
       return text
-        .replace(/^.*Vervielfältigung.*$/gmi, '')
-        .replace(/^.*Seite\s+\d+.*$/gmi, '')
-        .replace(/valucon apps GmbH/gi, '')
+        .replace(/.*Vervielfältigung.*$/gmi, '')
+        .replace(/.*Seite\s+\d+.*$/gmi, '')
+        .replace(/.*valucon\s+apps\s+GmbH.*$/gmi, '')
         .replace(/^\s*APTE-NG\s*$/gmi, '')
-        .replace(/^\s*(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben)\s+(?:Datenansichten|Layout|Felder|Übersicht|Akteure|Mitarbeitende|Nachrichten)\s*$/gmi, '')
+        .replace(/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben)\s+(?:\([^)]+\)\s+)?.*$/gmi, '')
         .replace(/\n{3,}/g, '\n\n')
         .trim();
     }
@@ -341,7 +341,6 @@
         let imgTitle = title;
         let imgText = text;
 
-        // Support for Marked.js v12+ object parameters
         if (typeof tokenOrHref === 'object' && tokenOrHref !== null) {
           href = tokenOrHref.href;
           imgTitle = tokenOrHref.title;
@@ -469,7 +468,6 @@
 
       scored.sort((a, b) => b.score - a.score);
 
-      // Return ONLY chunks with score > 0 (No random fallbacks)
       const filtered = scored.filter(s => s.score > 0).map(s => s.chunk);
       return filtered.slice(0, topN);
     }
@@ -492,14 +490,16 @@
         cleaned += relatedHtml;
       }
 
-      return cleaned;
+      return cleanBoilerplateText(cleaned);
     }
 
     // Helper: Formats response to strictly output procedural step-by-step guidance directly from MD
     function formatProceduralFallback(chunk, query = '') {
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
+      if (!chunk || !chunk.content) return '';
 
       const cleanedContent = cleanBoilerplateText(chunk.content);
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
+
       const lines = cleanedContent.split('\n');
       const stepLines = [];
       const noteLines = [];
@@ -555,226 +555,6 @@
       return cleanBoilerplateText(formattedOutput);
     }
 
-    // Configure Marked.js renderer for zoomable responsive images with graceful fallback
-    if (typeof marked !== 'undefined') {
-      const renderer = new marked.Renderer();
-      renderer.image = function(tokenOrHref, title, text) {
-        let href = tokenOrHref;
-        let imgTitle = title;
-        let imgText = text;
-
-        // Support for Marked.js v12+ object parameters
-        if (typeof tokenOrHref === 'object' && tokenOrHref !== null) {
-          href = tokenOrHref.href;
-          imgTitle = tokenOrHref.title;
-          imgText = tokenOrHref.text;
-        }
-
-        if (!href || typeof href !== 'string' || href.includes('[object')) return '';
-        return `<div class="my-3"><img src="${href}" alt="${imgText || 'APTE-NG Handbuch Screenshot'}" title="${imgTitle || ''}" class="zoomable-img max-h-60 rounded-lg border border-slate-200 shadow-sm cursor-zoom-in hover:opacity-95 transition object-contain bg-white p-1" onerror="this.onerror=null; this.parentElement.style.display='none';" /></div>`;
-      };
-      marked.setOptions({ renderer });
-    }
-
-    // Parse raw markdown text into indexed chunk objects
-    function parseMarkdownToChunks(text, sourceName) {
-      if (!text || typeof text !== 'string') return [];
-      
-      const lines = text.split('\n');
-      const chunks = [];
-      let currentHeading = 'Allgemein';
-      let currentPath = sourceName || 'Handbuch';
-      let currentContent = [];
-      let headingStack = [];
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
-
-        if (headingMatch) {
-          if (currentContent.length > 0) {
-            const bodyText = currentContent.join('\n').trim();
-            const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-            if (bodyText.length > 20 && !isTOC) {
-              chunks.push({
-                title: currentHeading,
-                path: currentPath,
-                content: bodyText,
-                source: sourceName
-              });
-            }
-            currentContent = [];
-          }
-
-          const level = headingMatch[1].length;
-          const titleText = headingMatch[2].replace(/[*_]/g, '').trim();
-
-          headingStack = headingStack.slice(0, level - 1);
-          headingStack.push(titleText);
-
-          currentHeading = titleText;
-          currentPath = headingStack.join(' → ');
-        } else {
-          currentContent.push(line);
-        }
-      }
-
-      if (currentContent.length > 0) {
-        const bodyText = currentContent.join('\n').trim();
-        const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-        if (bodyText.length > 20 && !isTOC) {
-          chunks.push({
-            title: currentHeading,
-            path: currentPath,
-            content: bodyText,
-            source: sourceName
-          });
-        }
-      }
-
-      return chunks;
-    }
-
-    // Search & Rank Chunks based on Query Terms - STRICT MATCHING ONLY
-    function findRelevantChunks(query, topN = 5) {
-      if (!indexedChunks || indexedChunks.length === 0) return [];
-
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
-
-      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
-      
-      const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
-      const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
-
-      if (tokens.length === 0) return [];
-
-      const scored = indexedChunks.map(chunk => {
-        let score = 0;
-        const titleLower = chunk.title.toLowerCase();
-        const pathLower = chunk.path.toLowerCase();
-        const contentLower = chunk.content.toLowerCase();
-
-        tokens.forEach(token => {
-          if (titleLower.includes(token)) score += 12;
-          if (pathLower.includes(token)) score += 6;
-
-          const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-          const matches = contentLower.match(regex);
-          if (matches) {
-            score += Math.min(matches.length, 6) * 2;
-          }
-        });
-
-        // Boost score for procedural content if user asked "Wie / Wo geht XYZ?"
-        if (isProceduralQuery && score > 0) {
-          const proceduralTriggers = [
-            'vorgehensweise',
-            'gehen sie wie folgt vor',
-            'anleitung',
-            'schritt-für-schritt',
-            'konfiguration:',
-            'neuerstellung:'
-          ];
-          
-          proceduralTriggers.forEach(trigger => {
-            if (contentLower.includes(trigger)) score += 8;
-          });
-
-          if (/1\.\s+.*2\.\s+/.test(chunk.content)) {
-            score += 10;
-          }
-        }
-
-        return { chunk, score };
-      });
-
-      scored.sort((a, b) => b.score - a.score);
-
-      // Return ONLY chunks with score > 0 (No random fallbacks)
-      const filtered = scored.filter(s => s.score > 0).map(s => s.chunk);
-      return filtered.slice(0, topN);
-    }
-
-    // Post-process AI response: remove hallucinated prefixes/paths & append interactive buttons for related topics
-    function postProcessResponse(replyText, relevantChunks) {
-      if (!replyText) return '';
-
-      let cleaned = replyText
-        .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
-        .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
-        .trim();
-
-      if (!cleaned.includes('related-topic-btn') && relevantChunks && relevantChunks.length > 1) {
-        const otherChunks = relevantChunks.slice(1, 4);
-        let relatedHtml = '\n\n---\n**Verwandte Themen im Handbuch:**\n';
-        otherChunks.forEach(c => {
-          relatedHtml += `- <button class="related-topic-btn text-bordeaux hover:underline font-semibold cursor-pointer text-left inline-block my-0.5" data-topic="${c.title}">► ${c.title}</button>\n`;
-        });
-        cleaned += relatedHtml;
-      }
-
-      return cleaned;
-    }
-
-    // Helper: Formats response to strictly output procedural step-by-step guidance directly from MD
-    function formatProceduralFallback(chunk, query = '') {
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen)/i.test(query.trim()) || /\b(wie|wo)\b/i.test(query);
-
-      const lines = chunk.content.split('\n');
-      const stepLines = [];
-      const noteLines = [];
-      let inProceduralBlock = false;
-
-      for (let line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        // Keep Markdown images intact for zoom
-        if (trimmed.startsWith('![')) {
-          stepLines.push(trimmed);
-          continue;
-        }
-
-        // Detect explicit procedural headers or triggers in the manual text
-        if (
-          /^(vorgehensweise|gehen sie wie folgt vor|anleitung|schritte|vorgehen):?/i.test(trimmed) ||
-          /^(anleitung zur|vorgehensweise zur|schritt-für-schritt)/i.test(trimmed)
-        ) {
-          inProceduralBlock = true;
-          stepLines.push(`**${trimmed.replace(/[*_]/g, '')}**`);
-          continue;
-        }
-
-        // List items or step numbers
-        if (/^(\d+[\.\)]|[\-\*])\s+/.test(trimmed)) {
-          inProceduralBlock = true;
-          stepLines.push(trimmed);
-        } else if (inProceduralBlock && !trimmed.startsWith('#')) {
-          if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
-            noteLines.push(trimmed);
-          } else {
-            stepLines.push(trimmed);
-          }
-        } else if (/^\*(hinweis|ergebnis|beachte|wichtig)\*?:/i.test(trimmed) || /^hinweis:/i.test(trimmed)) {
-          noteLines.push(trimmed);
-        }
-      }
-
-      let formattedOutput = '';
-
-      if (stepLines.length > 0 && isProceduralQuery) {
-        formattedOutput += `${stepLines.join('\n\n')}\n\n`;
-      } else {
-        formattedOutput = chunk.content;
-      }
-
-      if (noteLines.length > 0 && !formattedOutput.includes(noteLines[0])) {
-        formattedOutput += `${noteLines.join('\n')}\n`;
-      }
-
-      return formattedOutput.trim();
-    }
-
     // AI Response Generator with Gemini Model Cascade (3.8 -> 3.6 -> 3) & Strict Fallback
     async function getAIResponse(userQuery) {
       const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
@@ -817,7 +597,6 @@ ${contextText}`;
       const apiKey = userSavedApiKey.trim();
 
       if (apiKey) {
-        // Model Cascade Sequence: 3.8-flash -> 3.6-flash -> 3-flash
         const models = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3-flash'];
 
         for (const modelName of models) {
@@ -829,7 +608,7 @@ ${contextText}`;
           while (attempts < maxAttempts) {
             attempts++;
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s Timeout pro Versuch
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
 
             try {
               const response = await fetch(apiUrl, {
@@ -854,14 +633,12 @@ ${contextText}`;
                 }
               }
 
-              // On temporary demand overload (503), retry once after a short pause
               if (response.status === 503 && attempts < maxAttempts) {
                 console.warn(`Gemini API 503 bei '${modelName}'. Wiederholungsversuch in 1s...`);
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 continue;
               }
 
-              // On rate limit (429), not found (404) or other status, break to cascade to the next model
               const errData = await response.json().catch(() => ({}));
               console.warn(`Gemini API Modell '${modelName}' fehlgeschlagen (Status ${response.status}). Kaskadiere zum nächsten Modell...`, errData);
               break;
@@ -878,7 +655,7 @@ ${contextText}`;
                 await new Promise(resolve => setTimeout(resolve, 500));
                 continue;
               }
-              break; // Try next model in cascade
+              break;
             }
           }
         }
@@ -896,7 +673,7 @@ ${contextText}`;
         });
       }
 
-      return { text: fallbackText, mode: 'fallback' };
+      return { text: cleanBoilerplateText(fallbackText), mode: 'fallback' };
     }
 
     // Load Markdown files automatically from repository
@@ -971,7 +748,7 @@ ${contextText}`;
         innerDiv.className = 'max-w-2xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm';
         innerDiv.textContent = content;
       } else {
-        innerDiv.className = 'max-w-3xl bg-white border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative';
+        innerDiv.className = 'max-w-3xl bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative';
         
         // Mode Badge Header
         let badgeHtml = '';
@@ -987,7 +764,8 @@ ${contextText}`;
           </div>`;
         }
 
-        const parsedContent = typeof marked !== 'undefined' ? marked.parse(content) : content;
+        const cleanedContent = cleanBoilerplateText(content);
+        const parsedContent = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
         innerDiv.innerHTML = badgeHtml + parsedContent;
       }
 
@@ -1033,14 +811,12 @@ ${contextText}`;
       
       loadMarkdownFiles();
 
-      // Check Saved Gemini Key & Update UI Status
       const savedApiKey = localStorage.getItem('APTE_GEMINI_KEY');
       if (savedApiKey) {
         document.getElementById('geminiApiKeyInput').value = savedApiKey;
       }
       updateEngineStatusUI();
 
-      // Save API Key
       document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
         const val = document.getElementById('geminiApiKeyInput').value.trim();
         if (val) {
@@ -1054,7 +830,6 @@ ${contextText}`;
         }
       });
 
-      // Admin Auth & Modal Trigger
       const adminBtn = document.getElementById('adminAccessBtn');
       const modal = document.getElementById('adminAuthModal');
       const sidebar = document.getElementById('kbSidebar');
@@ -1081,7 +856,6 @@ ${contextText}`;
         });
       }
 
-      // SHA-256 Helper function to prevent plaintext password exposure in client source code
       async function hashSHA256(str) {
         const buffer = new TextEncoder().encode(str);
         const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
@@ -1089,7 +863,6 @@ ${contextText}`;
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       }
 
-      // SHA-256 Hash of "ApteNG#2026!Admin"
       const TARGET_PASS_HASH = "0f5e135be3f8d390a789fa126cb6851f0f3531b46a78ea330ba52ecb614ca83c";
 
       loginForm.addEventListener('submit', async (e) => {
@@ -1127,7 +900,6 @@ ${contextText}`;
         }
       });
 
-      // Global Event Delegation for Interactive Prompt Buttons & Screenshot Lightbox Zoom
       const container = document.getElementById('messagesContainer');
       const zoomModal = document.getElementById('imageZoomModal');
       const zoomTarget = document.getElementById('imageZoomTarget');
@@ -1135,7 +907,6 @@ ${contextText}`;
 
       if (container) {
         container.addEventListener('click', (e) => {
-          // Related Topic Button Click
           const topicBtn = e.target.closest('.related-topic-btn, .quick-prompt-btn');
           if (topicBtn) {
             const topic = topicBtn.getAttribute('data-topic') || topicBtn.textContent.replace(/^►\s*/, '').trim();
@@ -1143,7 +914,6 @@ ${contextText}`;
             return;
           }
 
-          // Screenshot Zoom Click
           const img = e.target.closest('.zoomable-img, img');
           if (img && !img.closest('#appLogo')) {
             if (zoomModal && zoomTarget) {
@@ -1157,14 +927,12 @@ ${contextText}`;
         });
       }
 
-      // Close Zoom Lightbox
       if (zoomModal) {
         zoomModal.addEventListener('click', () => {
           zoomModal.classList.add('hidden');
         });
       }
 
-      // Chat Input Events
       const chatForm = document.getElementById('chatForm');
       if (chatForm) {
         chatForm.addEventListener('submit', (e) => {
