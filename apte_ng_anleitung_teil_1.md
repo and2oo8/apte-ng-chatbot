@@ -5491,9 +5491,9 @@ Dieses Kapitel beschreibt das Erstellen und Konfigurieren von Datenansichten auf
 
 Datenansichten beinhalten individuell festgelegte Datensätze auf Basis von Filtern und Zugriffsrechten. Die Standard-Datenansichten “Eingereichte Daten” und “Nicht eingereicht” enthalten **alle** Datensätze und sind nicht änderbar.
 
-### Datenansicht erstellen
+### Datenansicht hinzufügen
 
-Um eine neue Datenansicht zu erstellen, gehen Sie wie folgt vor:
+Um eine neue Datenansicht hinzuzufügen, gehen Sie wie folgt vor:
 
 1. Öffnen Sie die Seite **“Daten”** > **“Datenansichten”**
 
