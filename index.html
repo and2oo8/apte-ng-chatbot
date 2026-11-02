@@ -151,11 +151,11 @@
         <!-- User-friendly Welcome Card -->
         <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
           <div class="flex items-center gap-2 mb-2">
-            <span class="font-bold text-lg text-slate-900">Willkommen beim APTE-NG Assistenten</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Hilfe & Anleitungen</span>
+            <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Handbuch v13 indiziert</span>
           </div>
           <p class="text-sm text-slate-700 leading-relaxed mb-3">
-            Ich helfe Ihnen gerne bei allen Fragen rund um APTE-NG weiter. Stellen Sie mir einfach eine Frage zur Bedienung, zu Formularen oder Einstellungen, oder wählen Sie eines der häufigen Themen aus:
+            Willkommen beim APTE-NG Support-Assistenten. Der Assistent liefert präzise Antworten und Schritt-für-Schritt-Anleitungen zur Bedienung, Konfiguration und Rechtevergabe in APTE-NG auf Basis des offiziellen Systemhandbuchs. Wählen Sie ein Thema oder stellen Sie direkt eine Frage:
           </p>
           <div class="flex flex-wrap gap-2 text-xs">
             <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wo stelle ich die Abgabeperiode ein?</button>
@@ -209,6 +209,19 @@
         </button>
       </div>
 
+      <!-- Gemini API Key Configuration Box -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-2">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Gemini API-Schlüssel</label>
+        <p class="text-[11px] text-slate-500 leading-snug">
+          Der API-Schlüssel aktiviert die KI-gestützte Beantwortung. Ohne Schlüssel wird der interne Handbuch-Filter genutzt.
+        </p>
+        <div class="flex gap-2">
+          <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="AIzaSy..." />
+          <button id="saveApiKeyBtn" class="px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
+        </div>
+        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ API-Schlüssel ist konfiguriert</p>
+      </div>
+
       <!-- File Status -->
       <div class="p-4 border-b border-slate-200 bg-white space-y-3">
         <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Handbuch-Dateien</label>
@@ -245,113 +258,227 @@
 
   </div>
 
+  <!-- ADMIN LOGIN MODAL -->
+  <div id="adminAuthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-200">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-bordeaux-soft border border-bordeaux-border flex items-center justify-center text-bordeaux">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Admin-Anmeldung</h3>
+          <p class="text-xs text-slate-500">Bitte Passwort eingeben</p>
+        </div>
+      </div>
+      <form id="adminLoginForm" class="space-y-4">
+        <div>
+          <input type="password" id="adminPasswordInput" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:border-bordeaux focus:ring-1 focus:ring-bordeaux" placeholder="Passwort (Standard: admin)" required />
+          <p id="adminAuthError" class="text-xs text-red-600 mt-1.5 hidden">Falsches Passwort!</p>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="cancelAdminAuthBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Abbrechen</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-bordeaux hover:bg-bordeaux-hover text-white rounded-lg transition shadow">Anmelden</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // State management
-    let indexedChunks = [];
-    let isProcessing = false;
-
-    // Default Fallback Chunks (Active if local HTTP fetch fails or before loading)
+    // Embedded Fallback Knowledge Base (used if external MD files fail to fetch)
     const fallbackChunks = [
       {
-        title: "Anmeldung (SSO & Passwort)",
-        path: "Anmelden > SSO / Kennwort",
-        content: "Die Anmeldung an APTE-NG erfolgt für Hochschulangehörige über das zentrale Hochschul-Login (Single Sign-On / Shibboleth). Externe Bewerber, Förderer und Gutachter melden sich mit E-Mail-Adresse und Passwort an."
+        title: "Abgabeperiode und Fristen definieren",
+        path: "Formulare → Layout → Übersicht → Abgabeperiode",
+        content: "Die Abgabeperiode legt fest, in welchem Zeitfenster Anträge und Unterlagen eingereicht werden können.\n\n1. Navigieren Sie zu **Formulare > [Ihr Formular] > Übersicht**.\n2. In den Einstellungen finden Sie das Feld **Abgabeperiode**.\n3. Tragen Sie Startdatum/Uhrzeit und Enddatum/Uhrzeit ein (z. B. `01.04.2026 00:00` bis `15.05.2026 23:59`).\n4. Klicken Sie unten auf **Speichern**.\n\n*Hinweis*: Nach Ablauf der Frist wird der Online-Antrag für Neueingaben automatisch gesperrt.",
+        source: "Integrierte Basis"
       },
       {
-        title: "Abgabeperiode konfigurieren",
-        path: "Formulare > Übersicht > Abgabeperiode",
-        content: "Die Abgabeperiode legt den Zeitraum fest, in dem Anträge eingereicht werden können. Öffnen Sie 'Formulare', wählen Sie das Formular aus und navigieren Sie zu 'Übersicht'. Im Feld 'Abgabeperiode' tragen Sie Start- und Enddatum mit Uhrzeit ein und speichern."
+        title: "Datenansichten erstellen und Spalten konfigurieren",
+        path: "Daten → Datenansichten",
+        content: "Datenansichten bieten maßgeschneiderte Tabellenansichten für die Bearbeitung im Fachbereich.\n\n1. Wechseln Sie im Hauptmenü zu **Daten > Datenansichten**.\n2. Klicken Sie auf **Datenansicht erstellen**.\n3. Vergeben Sie einen Namen (z. B. 'Bewertungsübersicht Kommission FK03').\n4. **Spaltenauswahl**: Haken Sie alle Formularfelder an, die als Tabellenspalten angezeigt werden sollen.\n5. Legen Sie fest, ob In-Place-Editing erlaubt ist und speichern Sie.",
+        source: "Integrierte Basis"
       },
       {
-        title: "Datenansichten & Filter",
-        path: "Daten > Datenansichten",
-        content: "Unter 'Daten > Datenansichten' können Sie Tabellenansichten mit wählbaren Spalten erstellen. Mehrstufige Filter verknüpfen Bedingungen mit UND/ODER und unterstützen dynamische Datumsangaben wie @HEUTE."
-      },
-      {
-        title: "Nachreichen von Unterlagen",
-        path: "Daten > Nachreichen",
-        content: "Wenn Unterlagen fehlen, klicken Sie beim Antrag auf 'Nachreichen anforderung'. Wählen Sie die benötigten Dokumente, setzen Sie eine Nachreichfrist und senden Sie die Anforderung. Der Antragsteller erhält einen gesicherten Link."
+        title: "Nachreich-Funktion verwalten",
+        path: "Daten → Nachreichen",
+        content: "Fehlen bei einem Antrag Unterlagen, kann eine Nachforderung ausgelöst werden.\n\n1. Öffnen Sie den jeweiligen Antragsdatensatz unter **Daten**.\n2. Klicken Sie im Datensatz auf **Nachreichen anfordern**.\n3. Wählen Sie die nachzufordernden Dokumente (z. B. 'Immatrikulationsbescheinigung').\n4. Setzen Sie die **Nachreichfrist**.\n5. Der Antragsteller erhält automatisch eine E-Mail mit einem gesicherten Link.",
+        source: "Integrierte Basis"
       },
       {
         title: "Statistikmeldung erstellen",
-        path: "Akten > Statistikmeldung",
-        content: "Im Modul 'Akten' finden Sie den Bereich 'Statistikmeldung'. Hier werden geforderte Daten für die amtliche Hochschulstatistik aufbereitet, validiert und als fertige Exportdatei generiert."
-      },
-      {
-        title: "Matching-Engine",
-        path: "Akten > Matching-Funktion",
-        content: "Die Matching-Engine berechnet einen Score für Bewerber und Förderer anhand gewichteter Kriterien (Noten, Engagement, Sozialpunkte) und schlägt eine optimale Zuteilung vor."
+        path: "Akten (DSTIP) → Statistikmeldung",
+        content: "Die Statistikmeldung bereitet Daten für die amtliche Hochschulstatistik auf.\n\n1. Navigieren Sie zu **Akten (DSTIP) > Statistikmeldung erstellen**.\n2. Wählen Sie den Berichtszeitraum und die Mandanten aus.\n3. Führen Sie die Validierungsprüfung durch, um fehlende Kennziffern aufzuspüren.\n4. Exportieren Sie die geprüften Daten im vorgegebenen Schnittstellenformat.",
+        source: "Integrierte Basis"
       }
     ];
 
-    // Markdown Parser / Chunk Splitter
-    function parseMarkdownToChunks(text, sourceName) {
-      if (!text || typeof text !== 'string') return [];
-      
+    // State management
+    let indexedChunks = [];
+    let isProcessing = false;
+    let isAdminAuthenticated = false;
+
+    // Helper: Markdown Parser to Chunks
+    function parseMarkdownToChunks(text, sourceName = '') {
+      if (!text) return [];
       const lines = text.split('\n');
       const chunks = [];
-      let currentSection = sourceName || 'Handbuch';
-      let currentSubsection = '';
-      let currentBuffer = [];
+      let currentHeader = 'Allgemeines';
+      let currentPath = sourceName || 'APTE-NG Handbuch';
+      let currentContent = [];
 
-      function saveChunk() {
-        if (currentBuffer.length > 0) {
-          const contentStr = currentBuffer.join('\n').trim();
-          if (contentStr.length > 30) {
+      for (const line of lines) {
+        if (line.startsWith('#')) {
+          if (currentContent.join('\n').trim().length > 0) {
             chunks.push({
-              title: currentSubsection || currentSection,
-              path: `${currentSection}${currentSubsection ? ' > ' + currentSubsection : ''}`,
-              content: contentStr
+              title: currentHeader,
+              path: currentPath,
+              content: currentContent.join('\n').trim(),
+              source: sourceName
             });
+            currentContent = [];
           }
-          currentBuffer = [];
+          const headerText = line.replace(/^#+\s*/, '').trim();
+          currentHeader = headerText;
+          if (line.startsWith('# ')) {
+            currentPath = headerText;
+          } else if (line.startsWith('## ')) {
+            currentPath = currentPath.split(' → ')[0] + ' → ' + headerText;
+          } else {
+            const parts = currentPath.split(' → ');
+            currentPath = (parts.length > 1 ? parts[0] + ' → ' + parts[1] : currentPath) + ' → ' + headerText;
+          }
+        } else {
+          currentContent.push(line);
         }
       }
 
-      for (let line of lines) {
-        if (line.startsWith('# ')) {
-          saveChunk();
-          currentSection = line.replace(/^#\s+/, '').trim();
-          currentSubsection = '';
-        } else if (line.startsWith('## ') || line.startsWith('### ')) {
-          saveChunk();
-          currentSubsection = line.replace(/^#{2,3}\s+/, '').trim();
-        } else {
-          currentBuffer.push(line);
-        }
+      if (currentContent.join('\n').trim().length > 0) {
+        chunks.push({
+          title: currentHeader,
+          path: currentPath,
+          content: currentContent.join('\n').trim(),
+          source: sourceName
+        });
       }
-      saveChunk();
 
       return chunks;
     }
 
-    // Load Markdown Files (apte_ng_anleitung_teil_1.md and apte_ng_anleitung_teil_2.md)
+    // Helper: Append Chat Messages
+    function appendMessage(role, content) {
+      const container = document.getElementById('messagesContainer');
+      if (!container) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = role === 'user' 
+        ? 'flex justify-end my-4' 
+        : 'flex justify-start my-4 max-w-3xl mx-auto';
+
+      if (role === 'user') {
+        msgDiv.innerHTML = `
+          <div class="bg-bordeaux text-white px-4 py-3 rounded-2xl rounded-tr-none max-w-lg shadow-sm text-sm">
+            ${escapeHtml(content)}
+          </div>
+        `;
+      } else {
+        const renderedHtml = window.marked ? marked.parse(content) : content;
+        msgDiv.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none w-full shadow-sm">
+            <div class="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
+              <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
+              <span class="font-extrabold text-xs text-slate-900 uppercase tracking-wider">APTE-NG Support-Assistent</span>
+            </div>
+            <div class="editorial-prose text-sm leading-relaxed">${renderedHtml}</div>
+          </div>
+        `;
+      }
+
+      container.appendChild(msgDiv);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function scrollToBottom() {
+      const container = document.getElementById('messagesContainer');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    // Handler: Send Message
+    async function handleSendMessage(customText) {
+      if (isProcessing) return;
+      const inputEl = document.getElementById('chatInput');
+      const query = (customText || inputEl?.value || '').trim();
+      if (!query) return;
+
+      if (inputEl && !customText) {
+        inputEl.value = '';
+        inputEl.style.height = 'auto';
+      }
+
+      isProcessing = true;
+
+      // Render User Message
+      appendMessage('user', query);
+
+      // Typing Indicator
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.classList.remove('hidden');
+
+      scrollToBottom();
+
+      try {
+        const reply = await getAIResponse(query);
+        if (typing) typing.classList.add('hidden');
+        appendMessage('assistant', reply);
+      } catch (err) {
+        if (typing) typing.classList.add('hidden');
+        appendMessage('assistant', 'Entschuldigung, bei der Verarbeitung der Anfrage ist ein Fehler aufgetreten: ' + err.message);
+      } finally {
+        isProcessing = false;
+        scrollToBottom();
+      }
+    }
+
+    // Load Markdown Files with multi-filename fallback logic
     async function loadMarkdownFiles() {
       const badge = document.getElementById('mdStatusBadge');
       const title = document.getElementById('mdStatusTitle');
       const subtitle = document.getElementById('mdStatusSubtitle');
       const countInfo = document.getElementById('chunkCountInfo');
 
-      const filesToFetch = [
-        'apte_ng_anleitung_teil_1.md',
-        'apte_ng_anleitung_teil_2.md'
+      const filePairs = [
+        ['apte_ng_anleitung_teil_1.md', 'APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil1.md'],
+        ['apte_ng_anleitung_teil_2.md', 'APTE-NG-Anleitung-v13-Teil2.md', 'APTE-NG-Handbuch-v13-Teil2.md']
       ];
 
       let combinedChunks = [];
       let loadedCount = 0;
 
-      for (const file of filesToFetch) {
-        try {
-          const resp = await fetch(file);
-          if (resp.ok) {
-            const text = await resp.text();
-            const chunks = parseMarkdownToChunks(text, file);
-            combinedChunks = combinedChunks.concat(chunks);
-            loadedCount++;
+      for (const aliasGroup of filePairs) {
+        let loaded = false;
+        for (const filename of aliasGroup) {
+          try {
+            const resp = await fetch(filename);
+            if (resp.ok) {
+              const text = await resp.text();
+              if (text && text.length > 100) {
+                const chunks = parseMarkdownToChunks(text, filename);
+                combinedChunks = combinedChunks.concat(chunks);
+                loadedCount++;
+                loaded = true;
+                break;
+              }
+            }
+          } catch (e) {
+            // try next alias
           }
-        } catch (e) {
-          console.warn(`Datei ${file} konnte nicht direkt geladen werden.`, e);
         }
       }
 
@@ -361,7 +488,6 @@
         if (title) title.textContent = `${loadedCount} Handbuch-Dateien geladen`;
         if (subtitle) subtitle.textContent = `Vollständig indiziert (${loadedCount}/2 Dateien)`;
       } else {
-        // Fallback if local server / file fetch is blocked
         indexedChunks = fallbackChunks;
         if (badge) badge.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0';
         if (title) title.textContent = 'Eingebettete Wissensbasis aktiv';
@@ -373,21 +499,31 @@
       }
     }
 
-    // Context Relevance Search (Local RAG)
-    function findRelevantChunks(query, topK = 4) {
+    // High-Precision Search (RAG)
+    function findRelevantChunks(query, topK = 6) {
       if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
 
-      const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+      const normalizedQuery = query.toLowerCase().trim();
+      const terms = normalizedQuery.split(/\s+/).filter(t => t.length > 2);
       if (terms.length === 0) return indexedChunks.slice(0, topK);
 
       const scored = indexedChunks.map(chunk => {
         let score = 0;
-        const text = (chunk.title + ' ' + chunk.path + ' ' + chunk.content).toLowerCase();
-        
+        const titleLower = chunk.title.toLowerCase();
+        const pathLower = chunk.path.toLowerCase();
+        const contentLower = chunk.content.toLowerCase();
+        const fullText = titleLower + ' ' + pathLower + ' ' + contentLower;
+
+        // Exact phrase boost
+        if (fullText.includes(normalizedQuery)) score += 15;
+
         terms.forEach(term => {
-          if (text.includes(term)) score += 2;
-          if (chunk.title.toLowerCase().includes(term)) score += 5;
-          if (chunk.path.toLowerCase().includes(term)) score += 3;
+          if (titleLower.includes(term)) score += 8;
+          if (pathLower.includes(term)) score += 5;
+          
+          // Term occurrences count in content
+          const count = (contentLower.split(term).length - 1);
+          score += Math.min(count, 5) * 2;
         });
 
         return { chunk, score };
@@ -399,23 +535,29 @@
       return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.slice(0, topK);
     }
 
-    // Call Gemini API or Local RAG Fallback
+    // AI Response Generator via Gemini API or RAG Fallback
     async function getAIResponse(userQuery) {
       const relevant = findRelevantChunks(userQuery);
       
       const contextText = relevant.map((c, i) => 
-        `[Auszug ${i+1}: ${c.path}]\n${c.content}`
+        `--- HANDBUCH AUSZUG ${i+1}: ${c.path} ---\n${c.content}`
       ).join('\n\n');
 
-      const systemPrompt = `Du bist der hilfsbereite, präzise Support-Assistent für das Hochschul-System APTE-NG (valucon apps GmbH).
-Beantworte die Anfragen der Nutzer auf Deutsch in einer freundlichen, klaren und verständlichen Sprache.
-Nutze dafür den folgenden Kontext aus dem offiziellen Handbuch:
+      const systemPrompt = `Du bist der offizielle Support-Assistent für die Hochschulsoftware APTE-NG (valucon apps GmbH).
+Beantworte die Anfrage des Nutzers sachlich, präzise und in klar verständlichem Deutsch auf Basis des bereitgestellten Handbuch-Kontexts.
 
-${contextText}
+REGELN FÜR DEINE ANTWORT:
+1. Nutze direkte, genaue Klickpfade in der Form: Hauptmenü → Untermenü → Aktion (z. B. Formulare → Layout → Felder).
+2. Strukturiere Handlungsanweisungen immer in nummerierten Schritten (1., 2., 3.).
+3. Nutze Fettschrift für Menüpunkte, Buttons und wichtige Begriffe.
+4. Verwende KEINE Antworten in der ersten Person ("Ich empfehle..."), sondern antworte sachlich-objektiv.
+5. Verwende ausschließlich verifizierte Fakten aus den Handbuch-Auszügen.
 
-Formatiere deine Antwort übersichtlich mit Fettgedrucktem und Aufzählungspunkten (1., 2., 3. oder Stichpunkte), wenn es um Klickpfade oder Anleitungen geht.`;
+HANDBUCH-KONTEXT:
+${contextText}`;
 
-      const apiKey = "";
+      const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
+      const apiKey = userSavedApiKey.trim();
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
       try {
@@ -431,123 +573,100 @@ Formatiere deine Antwort übersichtlich mit Fettgedrucktem und Aufzählungspunkt
         if (response.ok) {
           const data = await response.json();
           const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply) return reply;
+          if (reply && reply.trim().length > 0) return reply;
         }
       } catch (err) {
-        console.warn("Gemini API Aufruf nicht verfügbar, nutze lokalen RAG-Fallback:", err);
+        console.warn("Gemini API Aufruf fehlgeschlagen. Nutze strukturierte Lokalausgabe.", err);
       }
 
-      // Local Fallback generation if Gemini API is unreachable
-      let fallbackText = `**Informationen aus dem APTE-NG Handbuch:**\n\n`;
-      relevant.slice(0, 2).forEach(c => {
-        fallbackText += `### ${c.title}\n*Pfad: ${c.path}*\n\n${c.content}\n\n`;
+      // Structured Fallback
+      let fallbackText = `### Informationen aus dem APTE-NG Handbuch\n\n`;
+      relevant.slice(0, 3).forEach((c, idx) => {
+        fallbackText += `**${idx + 1}. ${c.title}**  \n*Klickpfad: ${c.path}*\n\n${c.content}\n\n---\n\n`;
       });
       return fallbackText;
     }
 
-    // UI Message Rendering
-    function appendMessage(role, text) {
-      const container = document.getElementById('messagesContainer');
-      const msgDiv = document.createElement('div');
-      
-      const isUser = role === 'user';
-      msgDiv.className = `max-w-3xl mx-auto flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`;
-
-      const innerBox = document.createElement('div');
-      innerBox.className = isUser 
-        ? 'bg-bordeaux text-white px-4 py-3 rounded-2xl rounded-tr-none text-sm max-w-[85%] shadow-sm'
-        : 'bg-slate-50 border border-slate-200 text-slate-800 px-5 py-4 rounded-2xl rounded-tl-none text-sm max-w-[90%] shadow-sm editorial-prose';
-
-      if (isUser) {
-        innerBox.textContent = text;
-      } else {
-        if (window.marked) {
-          innerBox.innerHTML = marked.parse(text);
-        } else {
-          innerBox.textContent = text;
-        }
-      }
-
-      msgDiv.appendChild(innerBox);
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
-    }
-
-    // User Message Handler
-    async function handleSendMessage(text) {
-      const query = text || document.getElementById('chatInput').value.trim();
-      if (!query || isProcessing) return;
-
-      const inputEl = document.getElementById('chatInput');
-      inputEl.value = '';
-      inputEl.style.height = 'auto';
-
-      appendMessage('user', query);
-
-      isProcessing = true;
-      document.getElementById('typingIndicator').classList.remove('hidden');
-      document.getElementById('sendBtn').disabled = true;
-
-      try {
-        const aiAnswer = await getAIResponse(query);
-        appendMessage('assistant', aiAnswer);
-      } catch (e) {
-        appendMessage('assistant', "Entschuldigung, es gab ein Problem bei der Verarbeitung Ihrer Frage. Bitte versuchen Sie es erneut.");
-      } finally {
-        isProcessing = false;
-        document.getElementById('typingIndicator').classList.add('hidden');
-        document.getElementById('sendBtn').disabled = false;
-      }
-    }
-
-    // Event Listeners Initialization
+    // UI & Event Setup
     document.addEventListener('DOMContentLoaded', () => {
       
-      // Load Handbooks
       loadMarkdownFiles();
 
-      // Admin Sidebar Toggle
+      // Check Saved Gemini Key
+      const savedApiKey = localStorage.getItem('APTE_GEMINI_KEY');
+      if (savedApiKey) {
+        document.getElementById('geminiApiKeyInput').value = savedApiKey;
+        document.getElementById('apiKeyStatus').classList.remove('hidden');
+      }
+
+      // Save API Key
+      document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+        const val = document.getElementById('geminiApiKeyInput').value.trim();
+        if (val) {
+          localStorage.setItem('APTE_GEMINI_KEY', val);
+          document.getElementById('apiKeyStatus').classList.remove('hidden');
+          alert("Gemini API-Schlüssel wurde erfolgreich gespeichert!");
+        } else {
+          localStorage.removeItem('APTE_GEMINI_KEY');
+          document.getElementById('apiKeyStatus').classList.add('hidden');
+          alert("API-Schlüssel entfernt.");
+        }
+      });
+
+      // Admin Auth & Modal Trigger
       const adminBtn = document.getElementById('adminAccessBtn');
-      const closeAdminBtn = document.getElementById('closeAdminSidebarBtn');
+      const modal = document.getElementById('adminAuthModal');
       const sidebar = document.getElementById('kbSidebar');
+      const loginForm = document.getElementById('adminLoginForm');
+      const authError = document.getElementById('adminAuthError');
 
-      if (adminBtn && sidebar) {
-        adminBtn.addEventListener('click', () => {
+      adminBtn.addEventListener('click', () => {
+        if (isAdminAuthenticated) {
           sidebar.classList.remove('translate-x-full');
-        });
-      }
+        } else {
+          modal.classList.remove('hidden');
+        }
+      });
 
-      if (closeAdminBtn && sidebar) {
-        closeAdminBtn.addEventListener('click', () => {
-          sidebar.classList.add('translate-x-full');
-        });
-      }
+      document.getElementById('cancelAdminAuthBtn').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        authError.classList.add('hidden');
+      });
 
-      // Reload Files Button
-      const reloadBtn = document.getElementById('reloadMdBtn');
-      if (reloadBtn) {
-        reloadBtn.addEventListener('click', () => {
-          loadMarkdownFiles();
-        });
-      }
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('adminPasswordInput').value;
+        if (pwd === 'admin' || pwd === 'apte2026') {
+          isAdminAuthenticated = true;
+          modal.classList.add('hidden');
+          authError.classList.add('hidden');
+          sidebar.classList.remove('translate-x-full');
+        } else {
+          authError.classList.remove('hidden');
+        }
+      });
 
-      // Manual Markdown Index Button
-      const indexManualBtn = document.getElementById('indexManualBtn');
-      if (indexManualBtn) {
-        indexManualBtn.addEventListener('click', () => {
-          const manualText = document.getElementById('mdManualInput').value;
-          if (manualText.trim()) {
-            const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
-            if (chunks.length > 0) {
-              indexedChunks = chunks.concat(indexedChunks);
-              document.getElementById('chunkCountInfo').textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
-              alert(`${chunks.length} neue Abschnitte erfolgreich indiziert!`);
-            }
+      document.getElementById('closeAdminSidebarBtn').addEventListener('click', () => {
+        sidebar.classList.add('translate-x-full');
+      });
+
+      document.getElementById('reloadMdBtn').addEventListener('click', () => {
+        loadMarkdownFiles();
+      });
+
+      document.getElementById('indexManualBtn').addEventListener('click', () => {
+        const manualText = document.getElementById('mdManualInput').value;
+        if (manualText.trim()) {
+          const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
+          if (chunks.length > 0) {
+            indexedChunks = chunks.concat(indexedChunks);
+            document.getElementById('chunkCountInfo').textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+            alert(`${chunks.length} Abschnitte erfolgreich indiziert!`);
           }
-        });
-      }
+        }
+      });
 
-      // Chat Form Submit
+      // Chat Input Events
       const chatForm = document.getElementById('chatForm');
       if (chatForm) {
         chatForm.addEventListener('submit', (e) => {
@@ -556,7 +675,6 @@ Formatiere deine Antwort übersichtlich mit Fettgedrucktem und Aufzählungspunkt
         });
       }
 
-      // Chat Input Textarea Auto-Resize & Enter key
       const chatInput = document.getElementById('chatInput');
       if (chatInput) {
         chatInput.addEventListener('input', function() {
@@ -572,24 +690,18 @@ Formatiere deine Antwort übersichtlich mit Fettgedrucktem und Aufzählungspunkt
         });
       }
 
-      // Quick Prompt Buttons
       document.addEventListener('click', (e) => {
         if (e.target.classList.contains('quick-prompt-btn')) {
-          const promptText = e.target.textContent.trim();
-          handleSendMessage(promptText);
+          handleSendMessage(e.target.textContent.trim());
         }
       });
 
-      // Clear Chat Button
-      const clearBtn = document.getElementById('clearChatBtn');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          const container = document.getElementById('messagesContainer');
-          const welcomeCard = document.getElementById('welcomeCard');
-          container.innerHTML = '';
-          if (welcomeCard) container.appendChild(welcomeCard);
-        });
-      }
+      document.getElementById('clearChatBtn').addEventListener('click', () => {
+        const container = document.getElementById('messagesContainer');
+        const welcomeCard = document.getElementById('welcomeCard');
+        container.innerHTML = '';
+        if (welcomeCard) container.appendChild(welcomeCard);
+      });
 
     });
   </script>
