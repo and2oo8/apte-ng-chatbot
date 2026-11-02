@@ -227,7 +227,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 13:08 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 13:30 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -510,7 +510,7 @@
     }
 
     // Search & Rank Chunks based on Query Terms - STRICT MATCHING ONLY
-    function findRelevantChunks(query, topN = 5) {
+    function findRelevantChunks(query, topN = 10) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
       const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen)\b/i.test(query);
@@ -665,6 +665,24 @@
       return cleanBoilerplateText(formattedOutput);
     }
 
+    // Helper: Generate selection HTML list with pagination state
+    function generateSelectionHtml(relevantChunks, displayCount = 3, query = '') {
+      const shownChunks = relevantChunks.slice(0, displayCount);
+      const hasMore = displayCount < relevantChunks.length;
+
+      let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
+      
+      shownChunks.forEach((c) => {
+        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
+      });
+
+      if (hasMore) {
+        selectionHtml += `\n<div class="mt-3 text-center"><button id="loadMoreTopicsBtn" class="load-more-btn px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition shadow-sm cursor-pointer w-full" data-display-count="${displayCount + 3}" data-query="${encodeURIComponent(query)}">🔍 Mehr passende Themen anzeigen (weitere Vorschläge laden)...</button></div>`;
+      }
+
+      return cleanBoilerplateText(selectionHtml);
+    }
+
     // AI Response Generator with Gemini Model Cascade (3.8 -> 3.6 -> 3) & Strict Fallback
     async function getAIResponse(userQuery) {
       const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
@@ -676,23 +694,18 @@
         };
       }
 
-      const relevant = findRelevantChunks(userQuery, 5);
+      const relevant = findRelevantChunks(userQuery, 10);
 
       if (!relevant || relevant.length === 0) {
         return { text: NO_MATCH_TEXT, mode: 'fallback' };
       }
 
-      // If user selected Direct Manual Search explicitly OR no AI key is active, present interactive topic selection card
+      // If user selected Direct Manual Search explicitly OR no AI key is active, present interactive topic selection card (paginated)
       if (selectedSearchMode === 'manual') {
-        const topMatches = relevant.slice(0, 3);
-        let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
-        topMatches.forEach((c, idx) => {
-          selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
-        });
-        return { text: cleanBoilerplateText(selectionHtml), mode: 'selection' };
+        return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      const contextText = relevant.map((c, i) => 
+      const contextText = relevant.slice(0, 5).map((c, i) => 
         `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`
       ).join('\n\n');
 
@@ -768,12 +781,7 @@ ${contextText}`;
       }
 
       // Handbuch-Direktsuche (Selection Fallback falls alle KI-Modelle fehlschlagen)
-      const topMatches = relevant.slice(0, 3);
-      let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
-      topMatches.forEach((c) => {
-        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
-      });
-      return { text: cleanBoilerplateText(selectionHtml), mode: 'selection' };
+      return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
     }
 
     // Load Markdown files automatically from repository
@@ -1065,6 +1073,23 @@ ${contextText}`;
 
       if (container) {
         container.addEventListener('click', (e) => {
+          // Handle "Load More" click
+          const loadMoreBtn = e.target.closest('#loadMoreTopicsBtn');
+          if (loadMoreBtn) {
+            const nextCount = parseInt(loadMoreBtn.getAttribute('data-display-count'), 10);
+            const query = decodeURIComponent(loadMoreBtn.getAttribute('data-query'));
+            const relevant = findRelevantChunks(query, 10);
+            const newHtml = generateSelectionHtml(relevant, nextCount, query);
+            
+            // Replace inner HTML of parent message box content box
+            const contentBox = loadMoreBtn.closest('.editorial-prose').querySelector('div');
+            if (contentBox) {
+              contentBox.innerHTML = marked.parse(newHtml);
+              scrollToBottom();
+            }
+            return;
+          }
+
           // Handle topic selection from manual search result cards
           const selectBtn = e.target.closest('.select-topic-btn');
           if (selectBtn) {
