@@ -49,12 +49,10 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
-    /* Strict Font Enforcement */
     *, html, body, input, button, textarea, select {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     }
     
-    /* Custom Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -70,13 +68,6 @@
       background: #8c2230;
     }
 
-    /* Drag Zone Active State */
-    .drop-zone.active {
-      border-color: #8c2230;
-      background-color: #fdf2f4;
-    }
-
-    /* Editorial Prose Styling */
     .editorial-prose p {
       margin-bottom: 0.75rem;
       line-height: 1.625;
@@ -120,12 +111,10 @@
 
 <body class="h-full flex flex-col bg-slate-100 text-slate-800 antialiased font-sans select-none overflow-hidden">
 
-  <!-- ================= TOP HEADER (VALUCON BRAND IDENTITY) ================= -->
+  <!-- ================= TOP HEADER ================= -->
   <header class="bg-white border-b border-slate-200 h-16 px-6 flex items-center justify-between shrink-0 z-20 shadow-sm">
-    <!-- Left: Official valucon Logo & Title -->
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-3 cursor-pointer">
-        <!-- Logo Image (logo.avif) with Fallback -->
         <img id="appLogo" src="./logo.avif" alt="valucon apps Logo" class="h-8 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('appLogoFallback').classList.remove('hidden');">
         <div id="appLogoFallback" class="hidden flex items-center gap-1 font-black text-xl text-slate-900 tracking-tight">
           <span>valucon</span><span class="text-bordeaux font-bold text-sm">apps</span>
@@ -136,43 +125,43 @@
 
       <div class="flex items-center gap-2">
         <span class="font-extrabold text-sm text-slate-900">APTE-NG</span>
-        <span class="text-xs text-slate-500 font-medium hidden sm:inline">| Dokumentations Assistent</span>
+        <span class="text-xs text-slate-500 font-medium hidden sm:inline">| Support-Assistent</span>
       </div>
     </div>
 
-    <!-- Right: Admin Access Button (Subtle Ghost Style) -->
+    <!-- Admin Button -->
     <div class="flex items-center gap-3">
-      <button id="adminAccessBtn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
-        <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        <span id="adminBtnLabel">Admin Bereich</span>
+      <button id="adminAccessBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-bordeaux hover:bg-slate-100 border border-slate-200 transition">
+        <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <span id="adminBtnLabel">Admin</span>
       </button>
     </div>
   </header>
 
 
-  <!-- ================= MAIN APPLICATION LAYOUT ================= -->
+  <!-- ================= MAIN LAYOUT ================= -->
   <div class="flex-1 flex overflow-hidden relative bg-white">
 
-    <!-- MAIN CHAT PANEL (End-User View) -->
+    <!-- MAIN CHAT PANEL -->
     <main class="flex-1 flex flex-col bg-white min-w-0 h-full relative">
 
       <!-- Messages Stream -->
-      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8">
+      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
         
-        <!-- Welcome Banner -->
-        <div class="max-w-3xl mx-auto border-l-2 border-bordeaux pl-5 py-1">
-          <div class="flex items-center gap-2 mb-1.5">
-            <span class="font-bold text-lg text-slate-900">APTE-NG Dokumentations Assistent</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Pre-Indexed v13</span>
+        <!-- User-friendly Welcome Card -->
+        <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="font-bold text-lg text-slate-900">Willkommen beim APTE-NG Assistenten</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Hilfe & Anleitungen</span>
           </div>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Willkommen. Der Assistent beantwortet Ihre Fragen zur Bedienung, Konfiguration und Rechtevergabe in <strong>APTE-NG</strong> auf Basis des vollständig indizierten Systemhandbuchs (16 Kapitel, 52 Abschnitte).
+          <p class="text-sm text-slate-700 leading-relaxed mb-3">
+            Ich helfe Ihnen gerne bei allen Fragen rund um APTE-NG weiter. Stellen Sie mir einfach eine Frage zur Bedienung, zu Formularen oder Einstellungen, oder wählen Sie eines der häufigen Themen aus:
           </p>
-          <div class="mt-3 flex flex-wrap gap-2 text-xs">
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wo stelle ich die Abgabeperiode ein?</button>
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie erstelle ich eine Datenansicht?</button>
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie erstelle ich eine Statistikmeldung?</button>
-            <button class="quick-prompt-btn px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200 font-medium">Wie nutze ich die Nachreichefunktion?</button>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wo stelle ich die Abgabeperiode ein?</button>
+            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie erstelle ich eine Datenansicht?</button>
+            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie erstelle ich eine Statistikmeldung?</button>
+            <button class="quick-prompt-btn px-3 py-1.5 rounded-lg bg-white hover:bg-bordeaux-soft hover:text-bordeaux text-slate-700 transition border border-slate-300 font-medium shadow-sm">Wie nutze ich die Nachreichefunktion?</button>
           </div>
         </div>
 
@@ -180,1034 +169,428 @@
 
       <!-- Typing Indicator -->
       <div id="typingIndicator" class="hidden px-6 py-3 max-w-3xl mx-auto w-full">
-        <div class="flex items-center gap-3 text-slate-600 text-xs border-l-2 border-slate-300 pl-4 py-1">
+        <div class="flex items-center gap-3 text-slate-600 text-xs border-l-2 border-bordeaux pl-4 py-1">
           <span class="w-2.5 h-2.5 rounded-full bg-bordeaux animate-ping"></span>
-          <span class="font-semibold text-slate-800">✨ Gemini 3 Flash analysiert Handbuch-Kontext...</span>
+          <span class="font-semibold text-slate-800">Assistent sucht im Handbuch und antwortet...</span>
         </div>
       </div>
 
       <!-- Input Form Bar -->
       <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 shrink-0">
         <form id="chatForm" class="max-w-3xl mx-auto relative flex items-end gap-3 bg-white border border-slate-300 rounded-xl p-2 focus-within:border-bordeaux focus-within:ring-1 focus-within:ring-bordeaux transition shadow-md">
-          <textarea id="chatInput" rows="1" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[42px] leading-relaxed" placeholder="Ihre Frage zum Handbuch... (z. B. 'Wo stelle ich die Abgabeperiode ein?')"></textarea>
+          <textarea id="chatInput" rows="1" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[42px] leading-relaxed" placeholder="Ihre Frage stellen... (z. B. 'Wie erstelle ich ein neues Formular?')"></textarea>
           
           <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-lg bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold transition shadow flex items-center gap-2 shrink-0 disabled:opacity-40">
-            <span>Frage stellen</span>
+            <span>Senden</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
           </button>
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Dokumentationsdienst</span>
-          <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf zurücksetzen</button>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe</span>
+          <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
 
     </main>
 
 
-    <!-- PROTECTED ADMIN DRAWER (Slide-over Sidebar) -->
+    <!-- ADMIN SIDEBAR -->
     <aside id="kbSidebar" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-slate-50 border-l border-slate-200 flex flex-col z-40 transition-transform duration-300 transform translate-x-full shadow-2xl">
       
       <!-- Drawer Header -->
       <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
         <div class="flex items-center gap-2">
           <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
-          <h2 class="font-bold text-base text-slate-900">Admin-Konsole</h2>
+          <h2 class="font-bold text-base text-slate-900">Admin-Verwaltung</h2>
         </div>
-        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1">
+        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <!-- Markdown File Status Display -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-2">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">HANDBUCH-DATEI STATUS</label>
+      <!-- File Status -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Handbuch-Dateien</label>
         
         <div id="mdFileStatusBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
           <div class="flex items-center gap-2.5 min-w-0">
             <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
             <div class="min-w-0">
-              <p id="mdStatusTitle" class="font-bold text-slate-800 truncate">Prüfe Ordnerstruktur...</p>
-              <p id="mdStatusSubtitle" class="text-[11px] text-slate-500 font-mono truncate">Teil1.md / Teil2.md / v13.md</p>
+              <p id="mdStatusTitle" class="font-bold text-slate-800 truncate">Prüfe Dateistatus...</p>
+              <p id="mdStatusSubtitle" class="text-[11px] text-slate-500 font-mono truncate">apte_ng_anleitung_teil_1.md & teil_2.md</p>
             </div>
           </div>
-          <button id="reloadMdBtn" title="Dateien neu aus Ordner laden" class="p-1.5 text-slate-400 hover:text-bordeaux rounded-lg hover:bg-slate-100 transition shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
+            Neu laden
           </button>
         </div>
+        <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
       </div>
 
-      <!-- Active Index Statistics Card -->
-      <div class="p-4 border-b border-slate-200 bg-slate-50 space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">INDEX-ÜBERSICHT</span>
-          <button id="resetKbBtn" class="text-[11px] text-bordeaux hover:underline font-bold">Standard-Handbuch laden</button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-white border border-slate-200 rounded-lg p-2.5 overflow-hidden">
-            <span class="block text-[10px] font-semibold text-slate-400 uppercase">DOKUMENT</span>
-            <span id="docNameDisplay" class="font-bold text-slate-800 text-[11px] break-all block mt-0.5">APTE-NG-Handbuch-v13.md</span>
-          </div>
-          <div class="bg-white border border-slate-200 rounded-lg p-2.5">
-            <span class="block text-[10px] font-semibold text-slate-400 uppercase">UMFANG</span>
-            <span id="docStatsDisplay" class="font-bold text-slate-800 block mt-0.5">52 Abschnitte · ~26.400 Wörter</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- GEMINI API KEY CONFIGURATION (SAFE FOR GITHUB PAGES) -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">GEMINI API KEY (LOKAL GESPEICHERT)</label>
-        <div class="space-y-2">
-          <div class="flex gap-2">
-            <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="flex-1 text-xs bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-bordeaux">
-            <button id="saveApiKeyBtn" class="px-3 py-1.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow shrink-0">
-              Speichern
-            </button>
-          </div>
-          <div id="apiKeyStatusDisplay" class="text-[11px] flex items-center justify-between">
-            <span class="text-slate-500">Status:</span>
-            <span id="apiKeyStatusText" class="font-bold text-amber-600">⚡ Offline-Modus (Lokales BM25)</span>
-          </div>
-          <p class="text-[10px] text-slate-400 leading-normal">
-            Der API-Key wird nur lokal in Ihrem Browser (localStorage) gesichert und nicht im GitHub-Repository gespeichert.
-          </p>
-        </div>
-      </div>
-
-      <!-- Strict Grounding & Sensitivity Controls -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <div class="p-3 bg-bordeaux-soft border border-bordeaux-border rounded-lg flex items-start gap-2.5">
-          <input type="checkbox" id="strictModeCheckbox" checked class="mt-0.5 accent-bordeaux w-4 h-4 rounded cursor-pointer">
-          <div class="text-xs">
-            <label for="strictModeCheckbox" class="font-bold text-slate-900 cursor-pointer block">Strict Grounding Garantie</label>
-            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">Gibt bei unzureichenden Treffern exakt die Fallback-Meldung aus.</p>
-          </div>
-        </div>
-
-        <div class="space-y-1">
-          <div class="flex justify-between text-xs text-slate-700">
-            <label class="font-semibold text-slate-700">BM25 Relevanz-Schwellenwert</label>
-            <span id="thresholdValueDisplay" class="font-mono text-bordeaux font-bold">4.5</span>
-          </div>
-          <input type="range" id="thresholdSlider" min="0.5" max="8.0" step="0.1" value="4.5" class="w-full accent-bordeaux cursor-pointer">
-        </div>
-      </div>
-
-      <!-- Raw Chunks & BM25 Debug Inspector (Admin only) -->
-      <div class="flex-1 p-4 flex flex-col min-h-0 bg-slate-50">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">CHUNK-INSPEKTOR</span>
-          <input type="text" id="chunkSearchInput" placeholder="Filter..." class="text-xs bg-white border border-slate-200 rounded px-2 py-0.5 w-28 focus:outline-none focus:border-bordeaux">
-        </div>
-        <div id="chunkPreviewList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-
-      <!-- Drawer Footer -->
-      <div class="p-4 bg-white border-t border-slate-200 flex justify-between items-center">
-        <span class="text-xs font-bold text-emerald-700">✓ Admin angemeldet</span>
-        <button id="logoutAdminBtn" class="text-xs font-bold text-slate-500 hover:text-bordeaux underline">Abmelden</button>
+      <!-- Manual Content Input -->
+      <div class="flex-1 p-4 flex flex-col min-h-0 bg-slate-50 space-y-3">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Markdown-Text direkt einfügen</label>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Falls Sie zusätzliche Kapitel oder Korrekturen manuell ergänzen möchten, fügen Sie den Markdown-Text hier ein:
+        </p>
+        <textarea id="mdManualInput" class="flex-1 w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-bordeaux focus:ring-1 focus:ring-bordeaux resize-none" placeholder="Markdown-Inhalt hier einfügen..."></textarea>
+        
+        <button id="indexManualBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow">
+          Eingefügten Text indizieren
+        </button>
       </div>
 
     </aside>
 
   </div>
 
-
-  <!-- ================= ADMIN LOGIN MODAL ================= -->
-  <div id="adminLoginModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
-      
-      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-full bg-bordeaux"></div>
-          <h3 class="font-bold text-base text-slate-900">Admin-Anmeldung</h3>
-        </div>
-        <button id="closeAdminLoginBtn" class="text-slate-400 hover:text-slate-700 p-1">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <p class="text-xs text-slate-600">Geben Sie das Admin-Passwort ein, um das Handbuch hochzuladen oder RAG-Parameter einzustellen.</p>
-
-      <form id="adminLoginForm" class="space-y-3">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Passwort</label>
-          <input type="password" id="adminPasswordInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-bordeaux" placeholder="Passwort eingeben..." required>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white font-bold text-xs rounded-lg transition shadow">
-          Anmelden
-        </button>
-      </form>
-
-    </div>
-  </div>
-
-
-  <!-- FLOATING TOAST NOTIFICATION -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 z-50 text-xs font-medium">
-    <div class="w-2 h-2 rounded-full bg-bordeaux-light"></div>
-    <span id="toastMsg">Benachrichtigung</span>
-  </div>
-
-
-  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
   <script>
-    // GERMAN STOPWORDS SET
-    const GERMAN_STOPWORDS = new Set([
-      'aber', 'alle', 'allem', 'allen', 'aller', 'alles', 'als', 'also', 'am', 'an', 'ander', 'andere', 'anderem', 'anderen', 'anderer', 'anderes', 'anderm', 'andern', 'anders', 'auch', 'auf', 'aus', 'bei', 'bin', 'bis', 'bist', 'da', 'damit', 'dann', 'das', 'dass', 'daß', 'dasselbe', 'dazu', 'dein', 'deine', 'deinem', 'deinen', 'deiner', 'deines', 'dem', 'demselben', 'den', 'denn', 'denselben', 'der', 'derer', 'derselbe', 'derselben', 'des', 'desselben', 'dessen', 'dich', 'die', 'dies', 'diese', 'dieselbe', 'dieselben', 'diesem', 'diesen', 'dieser', 'dieses', 'dir', 'doch', 'dort', 'durch', 'ein', 'eine', 'einem', 'einen', 'einer', 'eines', 'einig', 'einige', 'einigem', 'einigen', 'einiger', 'einiges', 'einmal', 'er', 'ihn', 'ihm', 'es', 'etwas', 'euer', 'eure', 'eurem', 'euren', 'eurer', 'eures', 'für', 'gegen', 'gewesen', 'hab', 'habe', 'haben', 'hat', 'hatte', 'hatten', 'hier', 'hin', 'hinter', 'ich', 'ihm', 'ihn', 'ihnen', 'ihr', 'ihre', 'ihrem', 'ihren', 'ihrer', 'ihres', 'im', 'in', 'indem', 'ins', 'ist', 'jede', 'jedem', 'jeden', 'jeder', 'jedes', 'jene', 'jenem', 'jenen', 'jener', 'jenes', 'jetzt', 'kann', 'kein', 'keine', 'keinem', 'keinen', 'keiner', 'keines', 'können', 'könnte', 'machen', 'man', 'manche', 'manchem', 'manchen', 'mancher', 'manches', 'mein', 'meine', 'meinem', 'meinen', 'meiner', 'meines', 'mit', 'muss', 'musste', 'nach', 'nicht', 'nichts', 'noch', 'nun', 'nur', 'oder', 'sehr', 'sein', 'seine', 'seinem', 'seinen', 'seiner', 'seines', 'selbst', 'sich', 'sie', 'sind', 'so', 'solche', 'solchem', 'solchen', 'solcher', 'solches', 'soll', 'sollte', 'sondern', 'sonst', 'über', 'um', 'und', 'uns', 'unser', 'unsere', 'unserem', 'unseren', 'unserer', 'unseres', 'unter', 'viel', 'vom', 'von', 'vor', 'was', 'weg', 'weil', 'weiter', 'welche', 'welchem', 'welchen', 'welcher', 'welches', 'wenn', 'werde', 'werden', 'wie', 'wieder', 'will', 'wir', 'wird', 'wirst', 'wo', 'wolle', 'wollte', 'würde', 'würden', 'zu', 'zum', 'zur', 'zwar', 'zwischen'
-    ]);
+    // State management
+    let indexedChunks = [];
+    let isProcessing = false;
 
-    // BM25 ENGINE IMPLEMENTATION
-    class BM25Engine {
-      constructor(chunks, k1 = 1.5, b = 0.75) {
-        this.k1 = k1;
-        this.b = b;
-        this.chunks = chunks || [];
-        this.docCount = this.chunks.length;
-        this.docLengths = [];
-        this.avgDocLength = 0;
-        this.docTermFreqs = [];
-        this.docFreqs = {};
-
-        this.index();
-      }
-
-      tokenize(text) {
-        if (!text) return [];
-        const rawTokens = text
-          .toLowerCase()
-          .replace(/[^\w\u00C0-\u024F\u1E00-\u1EFF]+/g, ' ')
-          .split(/\s+/);
-
-        return rawTokens.filter(t => t.length > 1 && !GERMAN_STOPWORDS.has(t));
-      }
-
-      index() {
-        let totalLength = 0;
-        this.docTermFreqs = [];
-        this.docLengths = [];
-        this.docFreqs = {};
-
-        this.chunks.forEach((chunk) => {
-          const fullContent = `${chunk.title || ''} ${chunk.title || ''} ${chunk.chapter || ''} ${chunk.text || ''}`;
-          const tokens = this.tokenize(fullContent);
-          
-          const termFreq = {};
-          tokens.forEach(t => {
-            termFreq[t] = (termFreq[t] || 0) + 1;
-          });
-
-          this.docTermFreqs.push(termFreq);
-          this.docLengths.push(tokens.length);
-          totalLength += tokens.length;
-
-          const uniqueTerms = new Set(tokens);
-          uniqueTerms.forEach(t => {
-            this.docFreqs[t] = (this.docFreqs[t] || 0) + 1;
-          });
-        });
-
-        this.avgDocLength = this.docCount > 0 ? totalLength / this.docCount : 0;
-      }
-
-      search(query, topN = 4) {
-        const queryTokens = this.tokenize(query);
-        if (queryTokens.length === 0) {
-          return { matches: [], maxScore: 0 };
-        }
-
-        const scores = this.chunks.map((chunk, docIdx) => {
-          let score = 0;
-          const tfMap = this.docTermFreqs[docIdx] || {};
-          const docLen = this.docLengths[docIdx] || 0;
-
-          queryTokens.forEach(term => {
-            if (!tfMap[term]) return;
-
-            const tf = tfMap[term];
-            const df = this.docFreqs[term] || 0;
-            
-            const idf = Math.log((this.docCount - df + 0.5) / (df + 0.5) + 1);
-            const num = tf * (this.k1 + 1);
-            const den = tf + this.k1 * (1 - this.b + this.b * (docLen / (this.avgDocLength || 1)));
-            
-            score += idf * (num / den);
-          });
-
-          const titleLower = (chunk.title || '').toLowerCase();
-          queryTokens.forEach(term => {
-            if (titleLower.includes(term)) {
-              score += 1.5;
-            }
-          });
-
-          return { chunk, score };
-        });
-
-        const filtered = scores.filter(s => s.score > 0).sort((a, b) => b.score - a.score);
-        const topMatches = filtered.slice(0, topN);
-
-        return {
-          matches: topMatches,
-          maxScore: topMatches.length > 0 ? topMatches[0].score : 0
-        };
-      }
-    }
-
-    // QUERY CLASSIFICATION HELPER
-    function isProceduralQuery(query) {
-      if (!query) return false;
-      const q = query.toLowerCase();
-      const proceduralKeywords = ['wie', 'erstelle', 'anleitung', 'schritt', 'konfigurier', 'einstell', 'pfad', 'wo', 'ablauf', 'vorgehen'];
-      return proceduralKeywords.some(kw => q.includes(kw));
-    }
-
-    const DEFAULT_MD_FILENAME = "APTE-NG-Anleitung-v13-Teil1.md";
-
-    // NOISE STRIPPER FUNCTION
-    function cleanPDFText(text) {
-      if (!text) return '';
-      return text
-        .replace(/Vervielfältigung\s+und\s+Weitergabe\s+nur\s+mit\s+schriftlicher\s+Zustimmung\.?/gi, '')
-        .replace(/valucon\s+apps\s+GmbH.*?(?:München|\d{5})/gi, '')
-        .replace(/Kapuzinerstr\.\s*\d+.*?München/gi, '')
-        .replace(/Seite\s+\d+/gi, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
-    }
-
-    // ================= OFFICIAL INDEXED CHUNKS FROM APTE-NG-ANLEITUNG SOURCE =================
-    const DEFAULT_DOC_CHUNKS = [
+    // Default Fallback Chunks (Active if local HTTP fetch fails or before loading)
+    const fallbackChunks = [
       {
-        id: "chunk-01",
-        title: "Schneller ans Ziel: Struktur & Klickpfade",
-        page: 3,
-        chapter: "Einleitung: Aufbau & Navigation",
-        source: "APTE-NG-Anleitung-v13-Teil1.md",
-        text: "### Schneller ans Ziel: So ist die Anleitung aufgebaut\n\nDie Struktur dieser Anleitung spiegelt die Menüführung von APTE-NG wider. Wenn Sie Fragen zu einer bestimmten Funktion haben, orientieren Sie sich einfach an Ihrem aktuellen Klickpfad in der Anwendung.\n\n*Beispiel:* Arbeiten Sie in APTE-NG im Bereich **Formulare** und nehmen dort Anpassungen eines **Feldes** im **Layout** vor, finden Sie die passenden Hilfetexte unter dem Pfad: *Formulare → Layout → Felder*."
+        title: "Anmeldung (SSO & Passwort)",
+        path: "Anmelden > SSO / Kennwort",
+        content: "Die Anmeldung an APTE-NG erfolgt für Hochschulangehörige über das zentrale Hochschul-Login (Single Sign-On / Shibboleth). Externe Bewerber, Förderer und Gutachter melden sich mit E-Mail-Adresse und Passwort an."
       },
       {
-        id: "chunk-02",
-        title: "Anmelden über Hochschul-Login (SSO / Shibboleth)",
-        page: 7,
-        chapter: "Anmelden: Hochschul-Login",
-        source: "APTE-NG-Anleitung-v13-Teil1.md",
-        text: "### Anmelden über Hochschul-Login (SSO)\n\n1. Rufen Sie die Startseite der APTE-NG Instanz Ihrer Hochschule auf.\n2. Klicken Sie auf **Anmelden über Hochschul-Login**.\n3. Sie werden zur zentralen Authentifizierungsseite (Identity Provider / Shibboleth) weitergeleitet.\n4. Nach erfolgreicher Passworteingabe erfolgt die automatische Weiterleitung zurück in das APTE-NG Portal."
+        title: "Abgabeperiode konfigurieren",
+        path: "Formulare > Übersicht > Abgabeperiode",
+        content: "Die Abgabeperiode legt den Zeitraum fest, in dem Anträge eingereicht werden können. Öffnen Sie 'Formulare', wählen Sie das Formular aus und navigieren Sie zu 'Übersicht'. Im Feld 'Abgabeperiode' tragen Sie Start- und Enddatum mit Uhrzeit ein und speichern."
       },
       {
-        id: "chunk-03",
-        title: "Anmelden über E-Mail & Passwort / Registrierung",
-        page: 8,
-        chapter: "Anmelden: E-Mail & Registrierung",
-        source: "APTE-NG-Anleitung-v13-Teil1.md",
-        text: "### Anmelden über E-Mail und Passwort & Registrieren\n\n- **Anmeldung:** Geben Sie Ihre registrierte E-Mail-Adresse und Ihr Passwort ein und klicken Sie auf **Anmelden**.\n- **Passwort vergessen:** Klicken Sie auf 'Passwort vergessen?', tragen Sie Ihre E-Mail-Adresse ein und nutzen Sie den zugesandten Wiederherstellungslink.\n- **Registrierung:** Externe Bewerber wählen 'Registrieren', füllen die Pflichtfelder aus und bestätigen den Link per E-Mail."
+        title: "Datenansichten & Filter",
+        path: "Daten > Datenansichten",
+        content: "Unter 'Daten > Datenansichten' können Sie Tabellenansichten mit wählbaren Spalten erstellen. Mehrstufige Filter verknüpfen Bedingungen mit UND/ODER und unterstützen dynamische Datumsangaben wie @HEUTE."
       },
       {
-        id: "chunk-04",
-        title: "Startseite, Rollenwechsel & Kontoeinstellungen",
-        page: 10,
-        chapter: "Startseite & Hauptnavigation",
-        source: "APTE-NG-Anleitung-v13-Teil1.md",
-        text: "### Startseite, Hauptmenü & Rolle wechseln\n\n- **Hauptmenü:** Beinhaltet alle freigeschalteten Module (Formulare, Daten, Aufgaben, Berichte, Akten, Einstellungen).\n- **Rollenwechsel:** Über die Rollenauswahl oben rechts in der Kopfzeile wechseln Sie zwischen verschiedenen Rollen (z. B. Sachbearbeiter, Gutachter, Antragsteller).\n- **Kontoeinstellungen:** Unter *Mein Konto* verwalten Sie Ihre Kontaktdaten, Spracheinstellungen (Deutsch/Englisch) und Zweifaktor-Authentifizierung (2FA)."
+        title: "Nachreichen von Unterlagen",
+        path: "Daten > Nachreichen",
+        content: "Wenn Unterlagen fehlen, klicken Sie beim Antrag auf 'Nachreichen anforderung'. Wählen Sie die benötigten Dokumente, setzen Sie eine Nachreichfrist und senden Sie die Anforderung. Der Antragsteller erhält einen gesicherten Link."
       },
       {
-        id: "chunk-05",
-        title: "Formulare: Neues Formular erstellen & Layout",
-        page: 28,
-        chapter: "Formulare: Erstellung & Layout",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Formularerstellung & Layout-Grid\n\n1. Navigieren Sie im Hauptmenü zu **Formulare → Neues Formular erstellen**.\n2. Vergeben Sie Name, interne Kennung und Zuordnung.\n3. **Layout & Grid:** Einteilung von Formularteilen und Feldzeilen in 1- bis 4-spaltige Grids.\n4. **Feldkonfiguration:** Einbinden von Eingabefeldern (Text, Zahl, Noten, IBAN, Dateiupload, Dropdowns) sowie Konfiguration bedingter Sichtbarkeitsregeln."
+        title: "Statistikmeldung erstellen",
+        path: "Akten > Statistikmeldung",
+        content: "Im Modul 'Akten' finden Sie den Bereich 'Statistikmeldung'. Hier werden geforderte Daten für die amtliche Hochschulstatistik aufbereitet, validiert und als fertige Exportdatei generiert."
       },
       {
-        id: "chunk-06",
-        title: "Datenansichten, Filterreihen & Zugriffssteuerung",
-        page: 220,
-        chapter: "Daten: Datenansichten & Filter",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Datenansichten & Erweiterte Filterreihen\n\n- **Datenansicht erstellen:** Unter *Daten → Datenansichten* wählen Sie die Formularfelder als Spalten für die Tabellenansicht aus.\n- **Mehrstufige Filter:** Verknüpfung von Filterbedingungen mit UND/ODER sowie relativen Begriffen wie `@HEUTE`.\n- **Dynamische Zugriffssteuerung:** Einschränkung von Lese-/Schreibrechten über das Steuerungsfeld *Benutzerliste*."
-      },
-      {
-        id: "chunk-07",
-        title: "Nachreichen & Nachrichtenfunktion",
-        page: 313,
-        chapter: "Daten: Nachreichen & Kommunikation",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Nachreich-Funktion & Nachrichten\n\n1. Öffnen Sie die Vorgangsansicht und wählen Sie **Nachreichen anfordern**.\n2. Wählen Sie die nachzufordernden Unterlagen und setzen Sie eine Nachreichfrist.\n3. Der Antragsteller erhält automatisch eine E-Mail mit einem gesicherten Link zum Hochladen der Dokumente."
-      },
-      {
-        id: "chunk-08",
-        title: "Gutachtermodul & Referenzmodul (Externe Gutachten)",
-        page: 392,
-        chapter: "Daten: Gutachter & Referenzen",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Begutachtungsverfahren & Referenzgeber\n\n- **Double-Blind-Anonymisierung:** Namen und Kontaktdaten von Bewerbern werden für Gutachter ausgeblendet.\n- **Bewertungsschemata:** Definition von Punkteskalen, Noten und Pflicht-Freitextfeldern.\n- **Referenzmodul:** Externe Professoren können vertrauliche Gutachten über Einladungslinks ohne eigenen System-Account einreichen."
-      },
-      {
-        id: "chunk-09",
-        title: "Aktenverwaltung, CRM & Matching-Engine",
-        page: 448,
-        chapter: "Akten (DSTIP) & Matching",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Akten, Beziehungsmanagement & Matching-Engine\n\n- **Akteure verwalten:** Stammdaten von Personen, Förderern und Lehrstühlen.\n- **Matching-Engine:** Konfiguration von Gewichtungen (Noten, Engagement, Sozialpunkte) und automatische Generierung optimierter Zuteilungsvorschläge.\n- **Statistikmeldung:** Erstellung und Export von Daten für die amtliche Hochschulstatistik."
-      },
-      {
-        id: "chunk-10",
-        title: "Datenschutz, Anonymisierung & Löschkonzepte",
-        page: 675,
-        chapter: "Datenschutz & DSGVO-Löschregeln",
-        source: "APTE-NG-Anleitung-v13-Teil2.md",
-        text: "### Anonymisierung & DSGVO-Löschregeln\n\n- **Anonymisierung:** Ersetzen von Personendaten durch Hashes für statistische Zwecke nach Verfahrensabschluss.\n- **Löschregeln:** Konfiguration automatischer Löschfristen (z. B. automatisches Löschen abgelehnter Anträge nach 6 Monaten)."
+        title: "Matching-Engine",
+        path: "Akten > Matching-Funktion",
+        content: "Die Matching-Engine berechnet einen Score für Bewerber und Förderer anhand gewichteter Kriterien (Noten, Engagement, Sozialpunkte) und schlägt eine optimale Zuteilung vor."
       }
     ];
 
-    // AUTO-LOAD EXTERNAL MARKDOWN FILE (GITHUB REPO AUTO-SYNC)
-    async function loadExternalMarkdownAndIndex() {
-      if (mdStatusTitle) mdStatusTitle.textContent = "Lade aus Ordnerstruktur...";
-      if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
-
-      try {
-        let response = await fetch('./APTE-NG-Anleitung-v13-Teil1.md');
-        if (!response.ok) {
-          response = await fetch('./APTE-NG-Anleitung-v13.md');
-        }
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const content = await response.text();
-        if (!content || !content.trim()) throw new Error("Datei ist leer");
-
-        const rawSections = content.split(/(?=\n#{1,3}\s+)/);
-        const newChunks = [];
-        let chunkIdx = 1;
-
-        for (let sec of rawSections) {
-          const trimmed = sec.trim();
-          if (!trimmed) continue;
-          
-          const lines = trimmed.split('\n');
-          let title = `Abschnitt ${chunkIdx}`;
-          if (lines[0].startsWith('#')) {
-            title = lines[0].replace(/^#{1,3}\s+/, '').trim();
-          }
-
-          newChunks.push({
-            id: `auto-chunk-${chunkIdx}`,
-            title: title,
-            page: Math.ceil(chunkIdx * 1.5),
-            chapter: "APTE-NG Anleitung (Ordner-Sync)",
-            source: "APTE-NG-Anleitung-v13-Teil1.md",
-            text: trimmed
-          });
-          chunkIdx++;
-        }
-
-        if (newChunks.length > 0) {
-          state.chunks = newChunks;
-          state.documentName = "APTE-NG-Anleitung-v13-Teil1.md";
-          
-          if (mdStatusTitle) mdStatusTitle.textContent = "Korrekt geladen (Ordnerstruktur)";
-          if (mdStatusSubtitle) mdStatusSubtitle.textContent = `APTE-NG-Anleitung-v13-Teil1.md · ${newChunks.length} Abschnitte`;
-          if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
-        }
-      } catch (err) {
-        console.warn("Automatisches Nachladen nicht möglich (verwende Quelldatei-Chunks):", err.message);
-        if (mdStatusTitle) mdStatusTitle.textContent = "Offizielle Anleitungs-Daten";
-        if (mdStatusSubtitle) mdStatusSubtitle.textContent = "APTE-NG-Anleitung-v13-Teil1.md (Pre-Indexed)";
-        if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
-      } finally {
-        initEngine();
-      }
-    }
-
-    // APPLICATION STATE
-    const state = {
-      chunks: [...DEFAULT_DOC_CHUNKS],
-      documentName: DEFAULT_MD_FILENAME,
-      strictMode: true,
-      matchThreshold: 2.5,
-      isLoading: false,
-      isAdmin: false,
-      adminPassword: 'admin',
-      bm25Engine: null,
-      geminiApiKey: localStorage.getItem('apte_gemini_api_key') || ''
-    };
-
-    // DOM ELEMENTS
-    const messagesContainer = document.getElementById('messagesContainer');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    
-    const adminAccessBtn = document.getElementById('adminAccessBtn');
-    const adminBtnLabel = document.getElementById('adminBtnLabel');
-    const kbSidebar = document.getElementById('kbSidebar');
-    const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
-    
-    const resetKbBtn = document.getElementById('resetKbBtn');
-    
-    const docNameDisplay = document.getElementById('docNameDisplay');
-    const docStatsDisplay = document.getElementById('docStatsDisplay');
-    const strictModeCheckbox = document.getElementById('strictModeCheckbox');
-    const thresholdSlider = document.getElementById('thresholdSlider');
-    const thresholdValueDisplay = document.getElementById('thresholdValueDisplay');
-    const chunkSearchInput = document.getElementById('chunkSearchInput');
-    const chunkPreviewList = document.getElementById('chunkPreviewList');
-
-    const mdStatusBadge = document.getElementById('mdStatusBadge');
-    const mdStatusTitle = document.getElementById('mdStatusTitle');
-    const mdStatusSubtitle = document.getElementById('mdStatusSubtitle');
-    const reloadMdBtn = document.getElementById('reloadMdBtn');
-
-    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-    const apiKeyStatusText = document.getElementById('apiKeyStatusText');
-    
-    const adminLoginModal = document.getElementById('adminLoginModal');
-    const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
-    const adminLoginForm = document.getElementById('adminLoginForm');
-    const adminPasswordInput = document.getElementById('adminPasswordInput');
-    const logoutAdminBtn = document.getElementById('logoutAdminBtn');
-    
-    const toast = document.getElementById('toast');
-    const toastMsg = document.getElementById('toastMsg');
-
-    // INITIALIZATION & HELPER FUNCTIONS
-    function initEngine() {
-      state.bm25Engine = new BM25Engine(state.chunks);
-      const totalWords = state.chunks.reduce((acc, c) => acc + (c.text ? c.text.split(/\s+/).length : 0), 0);
-      if (docNameDisplay) docNameDisplay.textContent = state.documentName;
-      if (docStatsDisplay) docStatsDisplay.textContent = `${state.chunks.length} Abschnitte · ~${totalWords.toLocaleString('de-DE')} Wörter`;
+    // Markdown Parser / Chunk Splitter
+    function parseMarkdownToChunks(text, sourceName) {
+      if (!text || typeof text !== 'string') return [];
       
-      updateApiKeyUI();
-      renderChunkInspector();
-    }
+      const lines = text.split('\n');
+      const chunks = [];
+      let currentSection = sourceName || 'Handbuch';
+      let currentSubsection = '';
+      let currentBuffer = [];
 
-    let toastTimeout = null;
-    function showToast(msg) {
-      if (!toast || !toastMsg) return;
-      toastMsg.textContent = msg;
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-      
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.remove('translate-y-0', 'opacity-100');
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 3000);
-    }
-
-    function renderChunkInspector(filterText = '') {
-      if (!chunkPreviewList) return;
-      const filter = filterText.toLowerCase().trim();
-      chunkPreviewList.innerHTML = '';
-
-      const filtered = state.chunks.filter(c => {
-        if (!filter) return true;
-        return (c.title && c.title.toLowerCase().includes(filter)) ||
-               (c.chapter && c.chapter.toLowerCase().includes(filter)) ||
-               (c.text && c.text.toLowerCase().includes(filter));
-      });
-
-      if (filtered.length === 0) {
-        chunkPreviewList.innerHTML = `<div class="text-xs text-slate-400 p-2 italic">Keine Abschnitte gefunden.</div>`;
-        return;
-      }
-
-      filtered.forEach((chunk) => {
-        const item = document.createElement('div');
-        item.className = 'bg-white border border-slate-200 rounded p-2 text-xs space-y-1 shadow-sm';
-        item.innerHTML = `
-          <div class="flex items-center justify-between font-bold text-slate-800">
-            <span class="truncate max-w-[200px]" title="${escapeHtml(chunk.title)}">${escapeHtml(chunk.title)}</span>
-            <span class="text-[10px] text-bordeaux font-mono font-semibold">S. ${chunk.page || '?'}</span>
-          </div>
-          <div class="text-[10px] text-slate-500 font-medium">${escapeHtml(chunk.chapter || '')}</div>
-          <p class="text-[11px] text-slate-600 line-clamp-2 leading-tight">${escapeHtml(chunk.text || '')}</p>
-        `;
-        chunkPreviewList.appendChild(item);
-      });
-    }
-
-    function updateApiKeyUI() {
-      if (geminiApiKeyInput) {
-        geminiApiKeyInput.value = state.geminiApiKey ? '••••••••••••••••' : '';
-      }
-      if (apiKeyStatusText) {
-        if (state.geminiApiKey) {
-          apiKeyStatusText.textContent = "✨ Gemini 3 Flash RAG Aktiv";
-          apiKeyStatusText.className = "font-bold text-emerald-600";
-        } else {
-          apiKeyStatusText.textContent = "⚡ Offline-Modus (Lokales BM25)";
-          apiKeyStatusText.className = "font-bold text-amber-600";
-        }
-      }
-    }
-
-    if (saveApiKeyBtn) {
-      saveApiKeyBtn.addEventListener('click', () => {
-        const inputVal = geminiApiKeyInput.value.trim();
-        if (inputVal && !inputVal.startsWith('•••')) {
-          state.geminiApiKey = inputVal;
-          localStorage.setItem('apte_gemini_api_key', inputVal);
-          showToast("API-Schlüssel lokal gespeichert!");
-        } else if (!inputVal) {
-          state.geminiApiKey = '';
-          localStorage.removeItem('apte_gemini_api_key');
-          showToast("API-Schlüssel entfernt (Offline-Modus).");
-        }
-        updateApiKeyUI();
-      });
-    }
-
-    function processUploadedFile(file) {
-      if (!file) return;
-      
-      if (pdfProgress) {
-        pdfProgress.classList.remove('hidden');
-        if (pdfProgressText) pdfProgressText.textContent = "Lese Datei...";
-        if (pdfProgressBar) pdfProgressBar.style.width = "30%";
-        if (pdfProgressPercent) pdfProgressPercent.textContent = "30%";
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const content = e.target.result;
-          const rawSections = content.split(/(?=\n#{1,3}\s+)/);
-          const newChunks = [];
-
-          let chunkIdx = 1;
-          for (let sec of rawSections) {
-            const trimmed = sec.trim();
-            if (!trimmed) continue;
-            
-            const lines = trimmed.split('\n');
-            let title = `Abschnitt ${chunkIdx}`;
-            if (lines[0].startsWith('#')) {
-              title = lines[0].replace(/^#{1,3}\s+/, '').trim();
-            }
-
-            newChunks.push({
-              id: `custom-chunk-${chunkIdx}`,
-              title: title,
-              page: Math.ceil(chunkIdx * 1.5),
-              chapter: "Benutzerdefiniertes Dokument",
-              source: file.name,
-              text: trimmed
+      function saveChunk() {
+        if (currentBuffer.length > 0) {
+          const contentStr = currentBuffer.join('\n').trim();
+          if (contentStr.length > 30) {
+            chunks.push({
+              title: currentSubsection || currentSection,
+              path: `${currentSection}${currentSubsection ? ' > ' + currentSubsection : ''}`,
+              content: contentStr
             });
-            chunkIdx++;
           }
-
-          if (newChunks.length === 0) {
-            throw new Error("Keine Abschnitte in der Datei gefunden.");
-          }
-
-          state.chunks = newChunks;
-          state.documentName = file.name;
-          initEngine();
-
-          if (pdfProgressBar) pdfProgressBar.style.width = "100%";
-          if (pdfProgressPercent) pdfProgressPercent.textContent = "100%";
-          if (pdfProgressText) pdfProgressText.textContent = "Fertig!";
-
-          setTimeout(() => {
-            if (pdfProgress) pdfProgress.classList.add('hidden');
-            showToast(`Datei "${file.name}" mit ${newChunks.length} Abschnitten indiziert.`);
-          }, 500);
-
-        } catch (err) {
-          console.error("File processing error:", err);
-          if (pdfProgress) pdfProgress.classList.add('hidden');
-          showToast("Fehler beim Lesen der Datei: " + err.message);
-        }
-      };
-
-      reader.onerror = () => {
-        if (pdfProgress) pdfProgress.classList.add('hidden');
-        showToast("Fehler beim Lesen der Datei.");
-      };
-
-      reader.readAsText(file, 'UTF-8');
-    }
-
-    // GEMINI RAG SYNTHESIS VIA API
-    async function askGeminiRAG(query, topMatches) {
-      const apiKey = state.geminiApiKey;
-      if (!apiKey) {
-        throw new Error("Kein API-Key vorhanden");
-      }
-
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-      const contextText = topMatches.map((m, idx) => 
-        `--- ABSCHNITT ${idx + 1}: ${m.chunk.title} (Seite ${m.chunk.page}, ${m.chunk.chapter}, Datei: ${m.chunk.source}) ---\n${m.chunk.text}`
-      ).join('\n\n');
-
-      const systemPrompt = `Du bist der offizielle APTE-NG KI-Dokumentations-Assistent der valucon apps GmbH.
-Deine Aufgabe ist es, Fragen zur Bedienung und Konfiguration von APTE-NG präzise, professionell und Schritt für Schritt zu beantworten – streng auf Basis des gelieferten Handbuch-Kontexts.
-
-REGELN FÜR DIE KI-ANTWORT:
-1. Beantworte Handlungsfragen ("Wie erstelle ich...", "Wo stelle ich... ein?") mit einer übersichtlichen, nummerierten Klickanleitung (1., 2., 3.).
-2. Nutze eine verständliche, flüssige Sprache. Fasse relevante Abschnitte prägnant zusammen und filtere unpassende Tabellenzeilen heraus.
-3. Wenn der gelieferte Kontext die Frage nicht beantwortet, antworte EXAKT mit:
-"In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden."
-4. Schließe deine Antwort IMMER mit der exakten Quellenangabe ab im Format:
-*📌 **Quelle:** [Kapitel/Titel] (Seite [X] · Datei: \`[Name]\`)*
-5. Halte dich strikt an die Fakten des Handbuchs (keine erfundenen Menüpfade oder Funktionen).`;
-
-      const userPrompt = `HANDBUCH-KONTEXT:\n${contextText}\n\nFRAGE DES NUTZERS:\n${query}`;
-
-      const payload = {
-        contents: [{ parts: [{ text: userPrompt }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] }
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error(`Gemini API Error Status: ${response.status}`);
-      const data = await response.json();
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
-    }
-
-    // RESPONSE SYNTHESIZER - HYBRID RETRIEVAL & AI GENERATION
-    async function synthesizeResponse(query, searchResult) {
-      const matches = searchResult.matches;
-      const topScore = searchResult.maxScore;
-
-      if (!matches || matches.length === 0 || (state.strictMode && topScore < state.matchThreshold)) {
-        return {
-          text: "In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden.",
-          isFallback: true,
-          matches: [],
-          isAI: false
-        };
-      }
-
-      // Try Gemini AI RAG synthesis if API Key is available
-      if (state.geminiApiKey) {
-        try {
-          const aiAnswer = await askGeminiRAG(query, matches);
-          if (aiAnswer && aiAnswer.trim()) {
-            const isFallback = aiAnswer.includes("In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden");
-            return { text: aiAnswer, isFallback: isFallback, matches: matches, isAI: !isFallback };
-          }
-        } catch (e) {
-          console.warn("Direct Gemini RAG synthesis failed, using local extraction fallback:", e);
+          currentBuffer = [];
         }
       }
 
-      // Local extraction fallback (Works offline & without API key!)
-      const topMatch = matches[0].chunk;
-      const procedural = isProceduralQuery(query);
-      const rawText = cleanPDFText(topMatch.text).trim();
-      const chapterLabel = topMatch.chapter || topMatch.title || 'Handbuch';
-
-      let responseBody = procedural
-        ? `### 📋 Anleitung aus dem Handbuch (Lokale Extraktion)\n\n**${topMatch.title}**\n\n${rawText}`
-        : `### 📖 Auszug aus dem Handbuch (Lokale Extraktion)\n\n**${topMatch.title}**\n\n${rawText}`;
-
-      responseBody += `\n\n---\n*📌 **Quelle:** ${chapterLabel} (Seite ${topMatch.page} · Datei: \`${topMatch.source}\`)*`;
-
-      return {
-        text: responseBody,
-        isFallback: false,
-        matches: matches,
-        isAI: false
-      };
-    }
-
-    // RENDER ENDUSER UI
-    function appendMessageUI(role, text, matchesInfo = null, isFallback = false, isAI = false) {
-      const isUser = role === 'user';
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `max-w-3xl mx-auto ${isUser ? 'pl-8' : ''}`;
-
-      if (isUser) {
-        msgDiv.innerHTML = `
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Frage des Anwenders</span>
-            </div>
-            <p class="text-sm font-semibold text-slate-900 leading-relaxed">${escapeHtml(text)}</p>
-          </div>
-        `;
-      } else {
-        const parsedText = marked.parse(text);
-
-        const aiBadge = isAI ? `
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-bordeaux-soft text-bordeaux border border-bordeaux-border mb-2">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-            <span>Gemini 3 Flash RAG-Synthese</span>
-          </div>
-        ` : '';
-
-        let adminDebugHtml = '';
-        if (state.isAdmin && matchesInfo && matchesInfo.length > 0 && !isFallback) {
-          adminDebugHtml = `
-            <details class="mt-3 text-xs bg-slate-50 border border-slate-200 rounded-lg p-2.5">
-              <summary class="font-bold text-slate-700 cursor-pointer hover:text-bordeaux flex items-center justify-between">
-                <span>🔧 Admin-Debug: BM25 Scores (${matchesInfo.length} Chunks)</span>
-                <span class="text-[10px] text-bordeaux font-mono font-bold">Top Score: ${matchesInfo[0].score.toFixed(2)}</span>
-              </summary>
-              <div class="mt-2 space-y-2 pt-2 border-t border-slate-200">
-                ${matchesInfo.map(m => `
-                  <div class="bg-white p-2 rounded border border-slate-200">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-1">
-                      <span>${escapeHtml(m.chunk.source)} : ${escapeHtml(m.chunk.title)}</span>
-                      <span class="text-bordeaux font-mono">Score: ${m.score.toFixed(2)}</span>
-                    </div>
-                    <p class="text-[11px] text-slate-600 italic">"${escapeHtml(m.chunk.text.substring(0, 160))}..."</p>
-                  </div>
-                `).join('')}
-              </div>
-            </details>
-          `;
+      for (let line of lines) {
+        if (line.startsWith('# ')) {
+          saveChunk();
+          currentSection = line.replace(/^#\s+/, '').trim();
+          currentSubsection = '';
+        } else if (line.startsWith('## ') || line.startsWith('### ')) {
+          saveChunk();
+          currentSubsection = line.replace(/^#{2,3}\s+/, '').trim();
+        } else {
+          currentBuffer.push(line);
         }
-
-        msgDiv.innerHTML = `
-          <div class="border-l-2 ${isFallback ? 'border-amber-500' : 'border-bordeaux'} pl-5 space-y-2 py-1">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-base text-slate-900">Antwort aus dem Handbuch</span>
-            </div>
-            ${aiBadge}
-            <div class="text-sm text-slate-800 leading-relaxed editorial-prose">
-              ${parsedText}
-            </div>
-            ${adminDebugHtml}
-          </div>
-        `;
       }
+      saveChunk();
 
-      messagesContainer.appendChild(msgDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      return chunks;
     }
 
-    function escapeHtml(str) {
-      return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
+    // Load Markdown Files (apte_ng_anleitung_teil_1.md and apte_ng_anleitung_teil_2.md)
+    async function loadMarkdownFiles() {
+      const badge = document.getElementById('mdStatusBadge');
+      const title = document.getElementById('mdStatusTitle');
+      const subtitle = document.getElementById('mdStatusSubtitle');
+      const countInfo = document.getElementById('chunkCountInfo');
 
-    function setupQuickPrompts() {
-      document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          chatInput.value = btn.textContent.trim();
-          chatForm.dispatchEvent(new Event('submit'));
-        });
-      });
-    }
-
-    // CHAT FORM SUBMIT
-    chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = chatInput.value.trim();
-      if (!query || state.isLoading) return;
-
-      appendMessageUI('user', query);
-      chatInput.value = '';
-      chatInput.style.height = 'auto';
-
-      state.isLoading = true;
-      sendBtn.disabled = true;
-      typingIndicator.classList.remove('hidden');
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-      const searchResult = state.bm25Engine ? state.bm25Engine.search(query, 4) : { matches: [], maxScore: 0 };
-
-      try {
-        const responseObj = await synthesizeResponse(query, searchResult);
-        appendMessageUI('model', responseObj.text, responseObj.matches, responseObj.isFallback, responseObj.isAI);
-      } catch (err) {
-        console.error("Search Synthesis Error:", err);
-        appendMessageUI('model', "In den vorliegenden Unterlagen wurden keine passenden Informationen gefunden.", null, true, false);
-      } finally {
-        state.isLoading = false;
-        sendBtn.disabled = false;
-        typingIndicator.classList.add('hidden');
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      }
-    });
-
-    // CLEAR HISTORY
-    clearChatBtn.addEventListener('click', () => {
-      messagesContainer.innerHTML = `
-        <div class="max-w-3xl mx-auto border-l-2 border-bordeaux pl-5 py-1">
-          <div class="flex items-center gap-2 mb-1.5">
-            <span class="font-bold text-lg text-slate-900">APTE-NG Dokumentations Assistent</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-bordeaux-soft text-bordeaux border border-bordeaux-border">Pre-Indexed v13</span>
-          </div>
-          <p class="text-sm text-slate-600 leading-relaxed">
-            Gesprächsverlauf zurückgesetzt. Stellen Sie eine neue Frage zur APTE-NG Dokumentation.
-          </p>
-        </div>
-      `;
-      setupQuickPrompts();
-      showToast("Gesprächsverlauf zurückgesetzt.");
-    });
-
-    // AUTO-RESIZE TEXTAREA
-    chatInput.addEventListener('input', () => {
-      chatInput.style.height = 'auto';
-      chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
-    });
-
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        chatForm.dispatchEvent(new Event('submit'));
-      }
-    });
-
-    // ADMIN SIDEBAR & MODAL EVENT LISTENERS
-    adminAccessBtn.addEventListener('click', () => {
-      if (state.isAdmin) {
-        kbSidebar.classList.remove('translate-x-full');
-      } else {
-        adminLoginModal.classList.remove('hidden');
-      }
-    });
-
-    closeAdminSidebarBtn.addEventListener('click', () => {
-      kbSidebar.classList.add('translate-x-full');
-    });
-
-    closeAdminLoginBtn.addEventListener('click', () => {
-      adminLoginModal.classList.add('hidden');
-    });
-
-    adminLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (adminPasswordInput.value === state.adminPassword) {
-        state.isAdmin = true;
-        adminLoginModal.classList.add('hidden');
-        adminPasswordInput.value = '';
-        adminBtnLabel.textContent = "Admin Konsole";
-        kbSidebar.classList.remove('translate-x-full');
-        showToast("Erfolgreich als Admin angemeldet.");
-      } else {
-        showToast("Falsches Passwort! (Standard: admin)");
-      }
-    });
-
-    logoutAdminBtn.addEventListener('click', () => {
-      state.isAdmin = false;
-      adminBtnLabel.textContent = "Admin Bereich";
-      kbSidebar.classList.add('translate-x-full');
-      showToast("Admin abgemeldet.");
-    });
-
-    strictModeCheckbox.addEventListener('change', (e) => {
-      state.strictMode = e.target.checked;
-      showToast(`Strict Grounding ${state.strictMode ? 'aktiviert' : 'deaktiviert'}`);
-    });
-
-    thresholdSlider.addEventListener('input', (e) => {
-      state.matchThreshold = parseFloat(e.target.value);
-      thresholdValueDisplay.textContent = state.matchThreshold.toFixed(1);
-    });
-
-    resetKbBtn.addEventListener('click', () => {
-      state.chunks = [...DEFAULT_DOC_CHUNKS];
-      state.documentName = DEFAULT_MD_FILENAME;
-      initEngine();
-      showToast("Standard-Handbuch v13 wiederhergestellt.");
-    });
-
-    if (chunkSearchInput) {
-      chunkSearchInput.addEventListener('input', (e) => {
-        renderChunkInspector(e.target.value);
-      });
-    }
-
-    if (reloadMdBtn) {
-      reloadMdBtn.addEventListener('click', () => {
-        loadExternalMarkdownAndIndex();
-        showToast("Lade Datei neu aus der Ordnerstruktur...");
-      });
-    }
-
-    // AUTO-LOAD EXTERNAL MARKDOWN FILE (GITHUB REPO AUTO-SYNC)
-    async function loadExternalMarkdownAndIndex() {
-      if (mdStatusTitle) mdStatusTitle.textContent = "Lade aus Ordnerstruktur...";
-      if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
-
-      // Dynamically search for split files or single file
-      const filesToTry = [
-        'APTE-NG-Handbuch-v13-Teil1.md',
-        'APTE-NG-Handbuch-v13-Teil2.md',
-        'APTE-NG-Handbuch-v13-Teil3.md',
-        'APTE-NG-Handbuch-v13.md'
+      const filesToFetch = [
+        'apte_ng_anleitung_teil_1.md',
+        'apte_ng_anleitung_teil_2.md'
       ];
 
-      const newChunks = [];
-      const loadedFiles = [];
-      let chunkIdx = 1;
+      let combinedChunks = [];
+      let loadedCount = 0;
 
-      for (let filename of filesToTry) {
+      for (const file of filesToFetch) {
         try {
-          const response = await fetch(`./${filename}`);
-          if (!response.ok) continue;
-          const content = await response.text();
-          if (!content || !content.trim()) continue;
-
-          const rawSections = content.split(/(?=\n#{1,3}\s+)/);
-          for (let sec of rawSections) {
-            const trimmed = sec.trim();
-            if (!trimmed) continue;
-            
-            const lines = trimmed.split('\n');
-            let title = `Abschnitt ${chunkIdx}`;
-            if (lines[0].startsWith('#')) {
-              title = lines[0].replace(/^#{1,3}\s+/, '').trim();
-            }
-
-            newChunks.push({
-              id: `auto-chunk-${chunkIdx}`,
-              title: title,
-              page: Math.ceil(chunkIdx * 1.5),
-              chapter: `APTE-NG Handbuch (${filename})`,
-              source: filename,
-              text: trimmed
-            });
-            chunkIdx++;
+          const resp = await fetch(file);
+          if (resp.ok) {
+            const text = await resp.text();
+            const chunks = parseMarkdownToChunks(text, file);
+            combinedChunks = combinedChunks.concat(chunks);
+            loadedCount++;
           }
-          loadedFiles.push(filename);
-        } catch (err) {
-          console.warn(`Konnte ${filename} nicht laden:`, err);
+        } catch (e) {
+          console.warn(`Datei ${file} konnte nicht direkt geladen werden.`, e);
         }
       }
 
-      if (newChunks.length > 0) {
-        state.chunks = newChunks;
-        state.documentName = loadedFiles.join(', ');
-        
-        if (mdStatusTitle) mdStatusTitle.textContent = "Korrekt geladen (Ordnerstruktur)";
-        if (mdStatusSubtitle) mdStatusSubtitle.textContent = `${loadedFiles.length} Datei(en) · ${newChunks.length} Abschnitte`;
-        if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
-        
-        console.log(`Auto-Sync: ${newChunks.length} Abschnitte aus [${loadedFiles.join(', ')}] indiziert.`);
+      if (loadedCount > 0 && combinedChunks.length > 0) {
+        indexedChunks = combinedChunks;
+        if (badge) badge.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0';
+        if (title) title.textContent = `${loadedCount} Handbuch-Dateien geladen`;
+        if (subtitle) subtitle.textContent = `Vollständig indiziert (${loadedCount}/2 Dateien)`;
       } else {
-        console.warn("Automatisches Nachladen der Dateien nicht möglich (verwende statischen Fallback)");
-        if (mdStatusTitle) mdStatusTitle.textContent = "Statische Fallback-Daten";
-        if (mdStatusSubtitle) mdStatusSubtitle.textContent = "APTE-NG-Handbuch-v13.md (Pre-Indexed)";
-        if (mdStatusBadge) mdStatusBadge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0";
+        // Fallback if local server / file fetch is blocked
+        indexedChunks = fallbackChunks;
+        if (badge) badge.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0';
+        if (title) title.textContent = 'Eingebettete Wissensbasis aktiv';
+        if (subtitle) subtitle.textContent = 'Standard-Handbuch-Index geladen';
       }
-      initEngine();
+
+      if (countInfo) {
+        countInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+      }
     }
 
-    // INIT ON STARTUP
-    window.addEventListener('DOMContentLoaded', () => {
-      loadExternalMarkdownAndIndex();
-      setupQuickPrompts();
+    // Context Relevance Search (Local RAG)
+    function findRelevantChunks(query, topK = 4) {
+      if (!indexedChunks || indexedChunks.length === 0) return fallbackChunks.slice(0, topK);
+
+      const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+      if (terms.length === 0) return indexedChunks.slice(0, topK);
+
+      const scored = indexedChunks.map(chunk => {
+        let score = 0;
+        const text = (chunk.title + ' ' + chunk.path + ' ' + chunk.content).toLowerCase();
+        
+        terms.forEach(term => {
+          if (text.includes(term)) score += 2;
+          if (chunk.title.toLowerCase().includes(term)) score += 5;
+          if (chunk.path.toLowerCase().includes(term)) score += 3;
+        });
+
+        return { chunk, score };
+      });
+
+      scored.sort((a, b) => b.score - a.score);
+
+      const matches = scored.filter(s => s.score > 0).map(s => s.chunk);
+      return matches.length > 0 ? matches.slice(0, topK) : indexedChunks.slice(0, topK);
+    }
+
+    // Call Gemini API or Local RAG Fallback
+    async function getAIResponse(userQuery) {
+      const relevant = findRelevantChunks(userQuery);
+      
+      const contextText = relevant.map((c, i) => 
+        `[Auszug ${i+1}: ${c.path}]\n${c.content}`
+      ).join('\n\n');
+
+      const systemPrompt = `Du bist der hilfsbereite, präzise Support-Assistent für das Hochschul-System APTE-NG (valucon apps GmbH).
+Beantworte die Anfragen der Nutzer auf Deutsch in einer freundlichen, klaren und verständlichen Sprache.
+Nutze dafür den folgenden Kontext aus dem offiziellen Handbuch:
+
+${contextText}
+
+Formatiere deine Antwort übersichtlich mit Fettgedrucktem und Aufzählungspunkten (1., 2., 3. oder Stichpunkte), wenn es um Klickpfade oder Anleitungen geht.`;
+
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userQuery }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) return reply;
+        }
+      } catch (err) {
+        console.warn("Gemini API Aufruf nicht verfügbar, nutze lokalen RAG-Fallback:", err);
+      }
+
+      // Local Fallback generation if Gemini API is unreachable
+      let fallbackText = `**Informationen aus dem APTE-NG Handbuch:**\n\n`;
+      relevant.slice(0, 2).forEach(c => {
+        fallbackText += `### ${c.title}\n*Pfad: ${c.path}*\n\n${c.content}\n\n`;
+      });
+      return fallbackText;
+    }
+
+    // UI Message Rendering
+    function appendMessage(role, text) {
+      const container = document.getElementById('messagesContainer');
+      const msgDiv = document.createElement('div');
+      
+      const isUser = role === 'user';
+      msgDiv.className = `max-w-3xl mx-auto flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+      const innerBox = document.createElement('div');
+      innerBox.className = isUser 
+        ? 'bg-bordeaux text-white px-4 py-3 rounded-2xl rounded-tr-none text-sm max-w-[85%] shadow-sm'
+        : 'bg-slate-50 border border-slate-200 text-slate-800 px-5 py-4 rounded-2xl rounded-tl-none text-sm max-w-[90%] shadow-sm editorial-prose';
+
+      if (isUser) {
+        innerBox.textContent = text;
+      } else {
+        if (window.marked) {
+          innerBox.innerHTML = marked.parse(text);
+        } else {
+          innerBox.textContent = text;
+        }
+      }
+
+      msgDiv.appendChild(innerBox);
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // User Message Handler
+    async function handleSendMessage(text) {
+      const query = text || document.getElementById('chatInput').value.trim();
+      if (!query || isProcessing) return;
+
+      const inputEl = document.getElementById('chatInput');
+      inputEl.value = '';
+      inputEl.style.height = 'auto';
+
+      appendMessage('user', query);
+
+      isProcessing = true;
+      document.getElementById('typingIndicator').classList.remove('hidden');
+      document.getElementById('sendBtn').disabled = true;
+
+      try {
+        const aiAnswer = await getAIResponse(query);
+        appendMessage('assistant', aiAnswer);
+      } catch (e) {
+        appendMessage('assistant', "Entschuldigung, es gab ein Problem bei der Verarbeitung Ihrer Frage. Bitte versuchen Sie es erneut.");
+      } finally {
+        isProcessing = false;
+        document.getElementById('typingIndicator').classList.add('hidden');
+        document.getElementById('sendBtn').disabled = false;
+      }
+    }
+
+    // Event Listeners Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // Load Handbooks
+      loadMarkdownFiles();
+
+      // Admin Sidebar Toggle
+      const adminBtn = document.getElementById('adminAccessBtn');
+      const closeAdminBtn = document.getElementById('closeAdminSidebarBtn');
+      const sidebar = document.getElementById('kbSidebar');
+
+      if (adminBtn && sidebar) {
+        adminBtn.addEventListener('click', () => {
+          sidebar.classList.remove('translate-x-full');
+        });
+      }
+
+      if (closeAdminBtn && sidebar) {
+        closeAdminBtn.addEventListener('click', () => {
+          sidebar.classList.add('translate-x-full');
+        });
+      }
+
+      // Reload Files Button
+      const reloadBtn = document.getElementById('reloadMdBtn');
+      if (reloadBtn) {
+        reloadBtn.addEventListener('click', () => {
+          loadMarkdownFiles();
+        });
+      }
+
+      // Manual Markdown Index Button
+      const indexManualBtn = document.getElementById('indexManualBtn');
+      if (indexManualBtn) {
+        indexManualBtn.addEventListener('click', () => {
+          const manualText = document.getElementById('mdManualInput').value;
+          if (manualText.trim()) {
+            const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
+            if (chunks.length > 0) {
+              indexedChunks = chunks.concat(indexedChunks);
+              document.getElementById('chunkCountInfo').textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+              alert(`${chunks.length} neue Abschnitte erfolgreich indiziert!`);
+            }
+          }
+        });
+      }
+
+      // Chat Form Submit
+      const chatForm = document.getElementById('chatForm');
+      if (chatForm) {
+        chatForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          handleSendMessage();
+        });
+      }
+
+      // Chat Input Textarea Auto-Resize & Enter key
+      const chatInput = document.getElementById('chatInput');
+      if (chatInput) {
+        chatInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+          }
+        });
+      }
+
+      // Quick Prompt Buttons
+      document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('quick-prompt-btn')) {
+          const promptText = e.target.textContent.trim();
+          handleSendMessage(promptText);
+        }
+      });
+
+      // Clear Chat Button
+      const clearBtn = document.getElementById('clearChatBtn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          const container = document.getElementById('messagesContainer');
+          const welcomeCard = document.getElementById('welcomeCard');
+          container.innerHTML = '';
+          if (welcomeCard) container.appendChild(welcomeCard);
+        });
+      }
+
     });
   </script>
 </body>
