@@ -153,8 +153,8 @@
           <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
             <div class="flex items-center gap-2">
               <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Anleitung v13 indiziert
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>Anleitung v13 indiziert
               </span>
             </div>
           </div>
@@ -175,7 +175,7 @@
       <div id="typingIndicator" class="hidden px-6 py-3 max-w-3xl mx-auto w-full">
         <div class="flex items-center gap-3 text-slate-600 text-xs border-l-2 border-bordeaux pl-4 py-1">
           <span class="w-2.5 h-2.5 rounded-full bg-bordeaux animate-ping"></span>
-          <span class="font-semibold text-slate-800">Assistent sucht im Handbuch und antwortet...</span>
+          <span class="font-semibold text-slate-800">Assistent sucht in der Anleitung und antwortet...</span>
         </div>
       </div>
 
@@ -223,7 +223,7 @@
           <input type="password" id="geminiApiKeyInput" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono" placeholder="AIzaSy..." />
           <button id="saveApiKeyBtn" class="px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
         </div>
-        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ Gemini KI ist aktiv</p>
+        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ Gemini KI ist aktiv (Fallback auf Direktsuche bei Fehler)</p>
       </div>
 
       <!-- File Status -->
@@ -500,7 +500,7 @@
       return formattedOutput.trim();
     }
 
-    // AI Response Generator with Strict Anti-Hallucination Guardrails
+    // AI Response Generator with Strict Anti-Hallucination Guardrails & Robust Fetch Error Handling
     async function getAIResponse(userQuery) {
       const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
 
@@ -541,53 +541,66 @@ ${contextText}`;
       const userSavedApiKey = localStorage.getItem('APTE_GEMINI_KEY') || "";
       const apiKey = userSavedApiKey.trim();
 
-      // Ausschließliche Verwendung des aktuellen Standardmodells gemini-3.8-flash
-      const modelName = 'gemini-3.8-flash';
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      if (apiKey) {
+        const modelName = 'gemini-3.8-flash';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-      // Retry-Logik für temporäre 503-Überlastungen von Google
-      let retries = 2;
-      while (retries >= 0) {
-        try {
+        let attempts = 0;
+        const maxAttempts = 2;
+
+        while (attempts < maxAttempts) {
+          attempts++;
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s Timeout
+          const timeoutId = setTimeout(() => controller.abort(), 12000); // Eigenständiger 12s Timeout pro Versuch
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: userQuery }] }],
-              systemInstruction: { parts: [{ text: systemPrompt }] }
-            })
-          });
+          try {
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+              })
+            });
 
-          clearTimeout(timeoutId);
+            clearTimeout(timeoutId);
 
-          if (response.ok) {
-            const data = await response.json();
-            let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (reply && reply.trim().length > 0) {
-              reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
-              reply = postProcessResponse(reply, relevant);
-              return { text: reply, mode: 'ai' };
+            if (response.ok) {
+              const data = await response.json();
+              let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (reply && reply.trim().length > 0) {
+                reply = reply.replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In der Software APTE-NG|Basierend auf den bereitgestellten)[^.\n]+[.\n]+/i, '').trim();
+                reply = postProcessResponse(reply, relevant);
+                return { text: reply, mode: 'ai' };
+              }
             }
-          } else {
-            const errorText = await response.text();
-            console.warn(`Gemini API Versuch mit Modell '${modelName}' (Status ${response.status}):`, errorText);
 
-            // Bei temporärer Server-Überlastung (503) kurz warten und erneut versuchen
-            if (response.status === 503 && retries > 0) {
-              console.info("Gemini API ist kurzzeitig überlastet (503). Automatischer Wiederholungsversuch in 1.2s...");
-              await new Promise(resolve => setTimeout(resolve, 1200));
+            if (response.status === 503 && attempts < maxAttempts) {
+              console.warn(`Gemini API 503 (High Demand) bei '${modelName}'. Automatischer Wiederholungsversuch (${attempts}/${maxAttempts}) in 1.5s...`);
+              await new Promise(resolve => setTimeout(resolve, 1500));
+              continue;
+            }
+
+            const errData = await response.json().catch(() => ({}));
+            console.warn(`Gemini API Versuch mit Modell '${modelName}' (Status ${response.status}):`, errData);
+            break;
+
+          } catch (err) {
+            clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+              console.warn(`Gemini API Timeout für '${modelName}' nach 12 Sekunden (Versuch ${attempts}).`);
             } else {
-              break; // Bei dauerhaften Fehlern (z. B. 400 oder 403) direkt abbrechen
+              console.warn(`Netzwerkfehler bei Gemini API Aufruf ('${modelName}'):`, err);
             }
+
+            if (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              continue;
+            }
+            break;
           }
-        } catch (err) {
-          console.warn(`Gemini API Aufruf für '${modelName}' fehlgeschlagen oder Timeout.`, err);
         }
-        retries--;
       }
 
       // Handbuch-Direktsuche (rein auf Basis der geladenen MD-Dateien)
