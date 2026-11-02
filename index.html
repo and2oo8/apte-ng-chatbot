@@ -107,13 +107,10 @@
       font-size: 1rem;
     }
 
-    /* Inline doc icons & buttons inside text, lists, and headings */
-    .editorial-prose p img,
-    .editorial-prose li img,
-    .editorial-prose span img,
-    .editorial-prose td img,
-    .editorial-prose .inline-doc-icon {
+    /* Inline doc icons & buttons directly inside text lines */
+    .editorial-prose img.inline-doc-icon {
       display: inline-block !important;
+      height: 1.35em !important;
       max-height: 1.35em !important;
       width: auto !important;
       vertical-align: -0.22em !important;
@@ -124,15 +121,17 @@
       background: transparent !important;
     }
 
-    /* Standalone screenshots */
+    /* Standalone screenshots (full width / height) */
     .editorial-prose img.standalone-screenshot {
       display: block !important;
-      max-height: 16rem !important;
+      max-width: 100% !important;
+      max-height: 36rem !important;
       width: auto !important;
+      height: auto !important;
       margin: 0.75rem 0 !important;
       border-radius: 0.5rem !important;
       border: 1px solid #e2e8f0 !important;
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
       background-color: #ffffff !important;
       padding: 0.25rem !important;
     }
@@ -261,7 +260,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:35 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:45 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -478,18 +477,40 @@
 
         if (!href || typeof href !== 'string' || href.includes('[object')) return '';
 
-        // Unterscheidung: Handelt es sich um ein kleines Inline-Icon / Button oder einen großen Screenshot?
-        const isIcon = /icon|btn|button|symbol|pfeil|arrow|small|inline/i.test(href) || 
-                       /icon|btn|button|symbol/i.test(imgText || '') ||
-                       (!imgText || imgText.length < 15);
-
-        const imgClass = isIcon 
-          ? "inline-doc-icon zoomable-img cursor-zoom-in hover:opacity-80 transition" 
-          : "standalone-screenshot zoomable-img cursor-zoom-in hover:opacity-95 transition object-contain";
-
-        return `<img src="${href}" alt="${imgText || 'APTE-NG Handbuch Abbildung'}" title="${imgTitle || imgText || ''}" class="${imgClass}" onerror="this.onerror=null; this.style.display='none';" />`;
+        return `<img src="${href}" alt="${imgText || 'APTE-NG Handbuch Abbildung'}" title="${imgTitle || imgText || ''}" class="zoomable-img cursor-zoom-in" onerror="this.onerror=null; this.style.display='none';" />`;
       };
       marked.setOptions({ renderer });
+    }
+
+    // Process rendered HTML to cleanly distinguish between inline icons and standalone screenshots
+    function processDocImages(htmlString) {
+      if (!htmlString || typeof htmlString !== 'string') return htmlString;
+      const temp = document.createElement('div');
+      temp.innerHTML = htmlString;
+
+      const images = temp.querySelectorAll('img');
+      images.forEach(img => {
+        const parent = img.parentElement;
+        if (!parent) return;
+
+        // Clone parent and remove images to check if there is remaining text in the same container
+        const parentClone = parent.cloneNode(true);
+        const imgsInClone = parentClone.querySelectorAll('img');
+        imgsInClone.forEach(i => i.remove());
+        const remainingText = parentClone.textContent.trim();
+
+        if (remainingText.length > 0) {
+          // Image is embedded inside text (e.g. in list item or paragraph) -> INLINE ICON
+          img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
+          img.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
+        } else {
+          // Image is standalone -> FULL SCREENSHOT
+          img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
+          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 36rem !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #e2e8f0 !important; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
+        }
+      });
+
+      return temp.innerHTML;
     }
 
     function parseMarkdownToChunks(text, sourceName) {
@@ -842,9 +863,11 @@
         container.appendChild(msgDiv);
 
         if (mode === 'selection' || mode === 'fallback') {
-          const rawHtml = (mode === 'selection') 
+          let rawHtml = (mode === 'selection') 
             ? cleanedContent 
             : (typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent);
+
+          rawHtml = processDocImages(rawHtml);
 
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = rawHtml;
@@ -871,7 +894,8 @@
             }
           }, 60);
         } else {
-          contentBox.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          let parsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+          contentBox.innerHTML = processDocImages(parsed);
           scrollToBottom();
         }
       }
