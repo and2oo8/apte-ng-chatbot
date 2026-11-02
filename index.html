@@ -125,12 +125,11 @@
     <!-- Left: Official valucon Logo & Title -->
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-3 cursor-pointer">
-        <!-- SVG Vector Logo valucon (Clean Wordmark) -->
-        <svg class="h-8 w-auto" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="valucon apps Logo">
-          <!-- Logo Wordmark (valucon apps) -->
-          <text x="0" y="28" font-family="Inter, sans-serif" font-size="26" font-weight="900" letter-spacing="-0.04em" fill="#0F172A">valucon</text>
-          <text x="108" y="28" font-family="Inter, sans-serif" font-size="14" font-weight="600" letter-spacing="-0.01em" fill="#8C2230">apps</text>
-        </svg>
+        <!-- Logo Image (logo.avif) with Fallback -->
+        <img id="appLogo" src="./logo.avif" alt="valucon apps Logo" class="h-8 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('appLogoFallback').classList.remove('hidden');">
+        <div id="appLogoFallback" class="hidden flex items-center gap-1 font-black text-xl text-slate-900 tracking-tight">
+          <span>valucon</span><span class="text-bordeaux font-bold text-sm">apps</span>
+        </div>
       </div>
       
       <div class="h-5 w-px bg-slate-200"></div>
@@ -1508,9 +1507,54 @@ REGELN FÜR DIE KI-ANTWORT:
       });
     }
 
+    // AUTO-LOAD EXTERNAL MARKDOWN FILE (GITHUB REPO AUTO-SYNC)
+    async function loadExternalMarkdownAndIndex() {
+      try {
+        const response = await fetch('./APTE-NG-Handbuch-v13.md');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const content = await response.text();
+        if (!content || !content.trim()) throw new Error("Datei ist leer");
+
+        const rawSections = content.split(/(?=\n#{1,3}\s+)/);
+        const newChunks = [];
+        let chunkIdx = 1;
+
+        for (let sec of rawSections) {
+          const trimmed = sec.trim();
+          if (!trimmed) continue;
+          
+          const lines = trimmed.split('\n');
+          let title = `Abschnitt ${chunkIdx}`;
+          if (lines[0].startsWith('#')) {
+            title = lines[0].replace(/^#{1,3}\s+/, '').trim();
+          }
+
+          newChunks.push({
+            id: `auto-chunk-${chunkIdx}`,
+            title: title,
+            page: Math.ceil(chunkIdx * 1.5),
+            chapter: "APTE-NG Handbuch (GitHub Auto-Sync)",
+            source: "APTE-NG-Handbuch-v13.md",
+            text: trimmed
+          });
+          chunkIdx++;
+        }
+
+        if (newChunks.length > 0) {
+          state.chunks = newChunks;
+          state.documentName = "APTE-NG-Handbuch-v13.md";
+          console.log(`Auto-Sync: ${newChunks.length} Abschnitte direkt aus APTE-NG-Handbuch-v13.md indiziert.`);
+        }
+      } catch (err) {
+        console.warn("Automatisches Nachladen von APTE-NG-Handbuch-v13.md nicht möglich (verwende statischen Fallback):", err.message);
+      } finally {
+        initEngine();
+      }
+    }
+
     // INIT ON STARTUP
     window.addEventListener('DOMContentLoaded', () => {
-      initEngine();
+      loadExternalMarkdownAndIndex();
       setupQuickPrompts();
     });
   </script>
