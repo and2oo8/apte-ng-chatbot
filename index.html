@@ -673,7 +673,7 @@
       let selectionHtml = `**Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:**\n\n`;
       
       shownChunks.forEach((c) => {
-        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
+        selectionHtml += `- <button class="select-topic-btn text-bordeaux hover:underline font-bold cursor-pointer text-left inline-block my-1 bg-bordeaux-soft px-3 py-1.5 rounded-lg border border-bordeaux-border w-full shadow-sm transition" data-chunk-index="${indexedChunks.indexOf(c)}" data-query="${encodeURIComponent(query)}">📌 ${c.title} <span class="text-xs font-normal text-slate-500 block">(${c.path})</span></button>\n`;
       });
 
       if (hasMore) {
@@ -835,7 +835,7 @@ ${contextText}`;
     }
 
     // UI Helper: Append message to chat UI with Mode Badge and Typewriter Effect for local/fallback responses
-    function appendMessage(role, content, mode = 'fallback') {
+    function appendMessage(role, content, mode = 'fallback', originalQuery = '') {
       const container = document.getElementById('messagesContainer');
       if (!container) return;
 
@@ -871,7 +871,17 @@ ${contextText}`;
           </div>`;
         }
 
-        const cleanedContent = cleanBoilerplateText(content);
+        let cleanedContent = cleanBoilerplateText(content);
+        
+        // If this is a manual answer (fallback), append the "Not satisfied? Show 3 new alternatives" button at the bottom
+        if (mode === 'fallback' && originalQuery) {
+          cleanedContent += `\n\n---
+<div class="mt-4 pt-3 border-t border-slate-200 text-center">
+  <button class="retry-alternatives-btn px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer w-full" data-query="${encodeURIComponent(originalQuery)}">
+    🔄 Passt nicht? Hier 3 weitere Themenvorschläge aus dem Handbuch anzeigen...
+  </button>
+</div>`;
+        }
         
         const contentBox = document.createElement('div');
         contentBox.className = 'w-full overflow-hidden break-words';
@@ -949,9 +959,9 @@ ${contextText}`;
 
       try {
         const responseObj = await getAIResponse(text);
-        appendMessage('assistant', responseObj.text, responseObj.mode);
+        appendMessage('assistant', responseObj.text, responseObj.mode, text);
       } catch (err) {
-        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.', 'fallback');
+        appendMessage('assistant', 'Entschuldigung, es ist ein Fehler bei der Verarbeitung Ihrer Anfrage aufgetreten.', 'fallback', text);
         console.error("Fehler bei der Nachrichtenverarbeitung:", err);
       } finally {
         if (indicator) indicator.classList.add('hidden');
@@ -1073,6 +1083,16 @@ ${contextText}`;
 
       if (container) {
         container.addEventListener('click', (e) => {
+          // Handle "Retry / Show new alternatives" click at the bottom of an answer
+          const retryBtn = e.target.closest('.retry-alternatives-btn');
+          if (retryBtn) {
+            const query = decodeURIComponent(retryBtn.getAttribute('data-query'));
+            const relevant = findRelevantChunks(query, 10);
+            const selectionHtml = generateSelectionHtml(relevant, 3, query);
+            appendMessage('assistant', selectionHtml, 'selection', query);
+            return;
+          }
+
           // Handle "Load More" click
           const loadMoreBtn = e.target.closest('#loadMoreTopicsBtn');
           if (loadMoreBtn) {
@@ -1094,10 +1114,11 @@ ${contextText}`;
           const selectBtn = e.target.closest('.select-topic-btn');
           if (selectBtn) {
             const chunkIdx = parseInt(selectBtn.getAttribute('data-chunk-index'), 10);
+            const query = decodeURIComponent(selectBtn.getAttribute('data-query') || '');
             if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
               const selectedChunk = indexedChunks[chunkIdx];
               const formattedContent = formatProceduralFallback(selectedChunk, selectedChunk.title);
-              appendMessage('assistant', `### ${selectedChunk.title}\n\n${formattedContent}`, 'fallback');
+              appendMessage('assistant', `### ${selectedChunk.title}\n\n${formattedContent}`, 'fallback', query);
             }
             return;
           }
