@@ -231,7 +231,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 17:15 CET)</span></span>
+        <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 19:15 CET)</span></span>
         <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
       </div>
     </div>
@@ -801,13 +801,13 @@
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        if (mode === 'selection') {
-          contentBox.innerHTML = cleanedContent; // Already raw HTML for interactive buttons
-          scrollToBottom();
-        } else if (mode === 'fallback') {
-          const fullParsed = typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent;
+        if (mode === 'selection' || mode === 'fallback') {
+          const rawHtml = (mode === 'selection') 
+            ? cleanedContent 
+            : (typeof marked !== 'undefined' ? marked.parse(cleanedContent) : cleanedContent);
+
           const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = fullParsed;
+          tempDiv.innerHTML = rawHtml;
           const childNodes = Array.from(tempDiv.childNodes);
           contentBox.innerHTML = '';
 
