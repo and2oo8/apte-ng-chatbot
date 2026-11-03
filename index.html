@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:10 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:30 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -581,7 +581,8 @@
           s.includes('screen') || s.includes('formular') || s.includes('maske') || 
           s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
           s.includes('bereich') || s.includes('view') || s.includes('img_ref') ||
-          s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt')) {
+          s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt') ||
+          s.includes('tabelle') || s.includes('liste') || s.includes('auswahl') || s.includes('einstellung')) {
         return true;
       }
       if (src.startsWith('data:image') && src.length >= 2500) {
@@ -969,8 +970,9 @@
       const contextText = relevant.slice(0, 5).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
           const cleanAlt = alt.trim() || 'Handbuch Screenshot';
-          if (isExplicitIcon(cleanAlt, src)) {
-            // Wandelt Inline-Button-Icons für die KI in Text um
+          const isIcon = isExplicitIcon(cleanAlt, src) && !isExplicitScreenshot(cleanAlt, src);
+          if (isIcon) {
+            // Wandelt kleine Inline-Button-Icons für die KI in Text um
             return `**"${cleanAlt}"**`;
           } else {
             // Screenshots als Bild-Referenzen erhalten
@@ -986,22 +988,26 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Strikte Zuordnung von Screenshots zu den Schritten
+      // Optimierter Prompt: Strikte Vollständigkeit & punktgenaue Screenshots
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
-Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
+Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System präzise und vollständig zu helfen.
 
-WICHTIGE VERHALTENSREGELN:
+WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
 2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet.
-3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig im professionellen Sie-Ton.
-4. SCREENSHOTS & GRAFIKEN (STRIKTE REGEL):
-   - Im bereitgestellten Handbuch-Kontext findest du Bild-Referenzen im Format ![Beschriftung](img_ref_X).
-   - Platziere NUR diejenigen Screenshots in deiner Antwort, die DIREKT zu dem von dir beschriebenen Handlungsschritt gehören (genau an der Stelle, wo der Screenshot im Quelltext des Handbuchs steht).
-   - Verwende KEINE Screenshots aus anderen Handbuch-Abschnitten oder Kapiteln, die nicht zum beantworteten Thema passen!
+3. STRIKTE VOLLSTÄNDIGKEIT & WAHRHEITSGETREUE (SEHR WICHTIG):
+   - Gib bei Anleitungen JEDEN einzelnen Handlungsschritt (1., 2., 3., ...) VOLLSTÄNDIG und lückenlos an.
+   - Es dürfen NIEMALS Schritte, Voraussetzungen, Optionen, Ausnahmeregeln oder Detailhinweise aus dem Handbuch weggelassen werden!
+   - Stütze dich zu 100 % auf den bereitgestellten Handbuch-Kontext. Erfinde absolut nichts dazu und verfälsche keine Fakten.
+   - Du darfst die Formulierung gerne an das Anliegen des Nutzers anpassen, aber es dürfen KEINERLEI sachliche Informationen herunterfallen.
+4. SCREENSHOTS & GRAFIKEN (MANDATORISCH & PUNKTGENAU):
+   - Im Handbuch-Kontext befinden sich Bild-Referenzen im Format ![Beschriftung](img_ref_X).
+   - Jeder im Handbuch enthaltene Screenshot MUSST du AUSNAHMSLOS an genau demjenigen Handlungsschritt in deine Antwort einbauen, zu dem er im Handbuchtext gehört.
+   - Vergiss oder unterschlage KEINEN vorhandenen Screenshot aus dem behandelten Kapitel!
+   - Platziere den Screenshot direkt unter dem zugehörigen Handlungsschritt als ![Beschriftung](img_ref_X).
 5. BUTTONS & SCHALTFLÄCHEN:
    - Schaltflächen und Buttons im Text schreibst du fett in Anführungszeichen (z.B. **"Speichern"**).
-6. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
-7. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
+6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
