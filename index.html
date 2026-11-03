@@ -128,15 +128,16 @@
     /* Inline doc icons & buttons directly inside text lines */
     .editorial-prose img.inline-doc-icon {
       display: inline-block !important;
-      height: 1.35em !important;
-      max-height: 1.35em !important;
+      height: 1.55em !important;
+      max-height: 1.6em !important;
       width: auto !important;
-      vertical-align: -0.22em !important;
-      margin: 0 0.25rem !important;
-      padding: 0 !important;
-      border: none !important;
-      box-shadow: none !important;
-      background: transparent !important;
+      vertical-align: middle !important;
+      margin: 0.15rem 0.35rem !important;
+      padding: 0.15rem 0.35rem !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 0.375rem !important;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+      background: #ffffff !important;
     }
 
     /* Standalone screenshots (full width / height) */
@@ -564,11 +565,13 @@
     function isExplicitIcon(alt = '', src = '') {
       const s = (alt + ' ' + src).toLowerCase();
       if (s.includes('icon') || s.includes('symbol') || s.includes('schalter') || 
-          s.includes('verwendbar') || s.includes('plus') || s.includes('stift') || 
-          s.includes('löschen') || s.includes('pfeil')) {
+          s.includes('verwendbar') || s.includes('sichtbar') || s.includes('plus') || 
+          s.includes('stift') || s.includes('löschen') || s.includes('pfeil') ||
+          s.includes('btn') || s.includes('button') || s.includes('toggle') || 
+          s.includes('status')) {
         return true;
       }
-      if (src.startsWith('data:image') && src.length < 2500) {
+      if (src.startsWith('data:image') && src.length < 3500) {
         return true;
       }
       return false;
@@ -576,6 +579,11 @@
 
     function isExplicitScreenshot(alt = '', src = '') {
       const s = (alt + ' ' + src).toLowerCase();
+      // Explicit icon keywords MUST override screenshot detection
+      if (isExplicitIcon(alt, src)) {
+        return false;
+      }
+
       if (s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
           s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
           s.includes('screen') || s.includes('formular') || s.includes('maske') || 
@@ -585,7 +593,7 @@
           s.includes('tabelle') || s.includes('liste') || s.includes('auswahl') || s.includes('einstellung')) {
         return true;
       }
-      if (src.startsWith('data:image') && src.length >= 2500) {
+      if (src.startsWith('data:image') && src.length >= 3500) {
         return true;
       }
       if (!src.startsWith('data:image') && src.length > 3) {
@@ -683,12 +691,18 @@
         const screenshotFlag = isExplicitScreenshot(alt, src);
 
         // Standalone screenshot logic
-        if (screenshotFlag || !iconFlag) {
+        if (screenshotFlag && !iconFlag) {
           img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 28rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
         } else {
+          // Compact inline badge for buttons and switches
           img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
-          img.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
+          img.setAttribute('style', 'display: inline-block !important; height: 1.55em !important; max-height: 1.6em !important; width: auto !important; vertical-align: middle !important; margin: 0.15rem 0.35rem !important; padding: 0.15rem 0.35rem !important; border: 1px solid #cbd5e1 !important; border-radius: 0.375rem !important; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; background: #ffffff !important;');
+          
+          // Remove huge margin on paragraph if it only contains this inline button
+          if (parent.tagName === 'P' && parent.children.length === 1 && parent.textContent.trim() === '') {
+            parent.setAttribute('style', 'margin-top: 0.25rem !important; margin-bottom: 0.35rem !important; display: block !important;');
+          }
         }
       });
 
