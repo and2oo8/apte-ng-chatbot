@@ -690,7 +690,8 @@
         const iconFlag = isExplicitIcon(alt, src);
         const screenshotFlag = isExplicitScreenshot(alt, src);
 
-        // Standalone screenshot logic
+        // PRIORITY CHECK: Große Screenshots IMMER als Standalone-Screenshot rendern,
+        // selbst wenn sie innerhalb von <li> oder <p> mit Text stehen!
         if (screenshotFlag && !iconFlag) {
           img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 28rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
