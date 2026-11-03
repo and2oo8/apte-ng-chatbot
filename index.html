@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:35 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:45 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -457,9 +457,7 @@
 
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
-      // Strip huge base64 data URIs from raw text to prevent token explosion
-      const sanitizedText = text.replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '[Bild-Daten]');
-      const lines = sanitizedText.split('\n');
+      const lines = text.split('\n');
       const filtered = lines.filter(line => {
         const trimmed = line.trim();
         if (!trimmed) return true;
@@ -781,7 +779,7 @@
               ...topChunk,
               content: topChunk.content + '\n\n### ' + nextChunk.title + '\n\n' + nextChunk.content
             };
-            return [mergedChunk, ...filtered.slice(1).map(s => s.chunk)].slice(0, topN);
+            filtered[0].chunk = mergedChunk;
           }
         }
       }
@@ -789,13 +787,22 @@
       return filtered.map(s => s.chunk).slice(0, topN);
     }
 
-    function postProcessResponse(replyText) {
+    function postProcessResponse(replyText, imageMap = {}) {
       if (!replyText) return '';
       let cleaned = cleanBoilerplateText(replyText)
         .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
         .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
         .trim();
-      return cleanBoilerplateText(cleaned);
+
+      // Originale Bildpfade/Base64-Daten aus dem ImageMap wiederherstellen
+      if (imageMap && Object.keys(imageMap).length > 0) {
+        Object.keys(imageMap).forEach(refId => {
+          const regex = new RegExp(refId, 'g');
+          cleaned = cleaned.replace(regex, imageMap[refId]);
+        });
+      }
+
+      return cleaned;
     }
 
     function formatProceduralFallback(chunk, query = '') {
@@ -848,19 +855,38 @@
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      // Clean images and cap max size to ensure lean context (~1,500 tokens instead of 1.1 million)
+      // Schlanker Kontext mit Bild-Referenzen für die KI (verhindert Token-Explosion & erhält Grafiken)
+      const imageMap = {};
+      let imageCounter = 1;
+
       const contextText = relevant.slice(0, 5).map((c, i) => {
-        const cleanContent = c.content
-          .replace(/!\[(.*?)\]\([^)]+\)/g, '[Abbildung: $1]')
-          .replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '')
-          .slice(0, 3000); // Safety limit per chunk
-        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${cleanContent}`;
+        let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
+          if (src.length > 100 || src.startsWith('data:image')) {
+            const refId = `img_ref_${imageCounter++}`;
+            imageMap[refId] = src;
+            return `![${alt}](${refId})`;
+          }
+          return match;
+        });
+
+        if (contentForAi.length > 4000) {
+          contentForAi = contentForAi.slice(0, 4000);
+        }
+        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      const systemPrompt = `Du bist das APTE-NG Online-Hilfesystem. Beantworte die Frage EXKLUSIV auf Basis des Kontextes. Wenn nicht auffindbar, antworte genau mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
+      const systemPrompt = `Du bist der hochpräzise Support-Assistent für das APTE-NG Systemhandbuch.
+Beantworte die Frage des Nutzers vollständig, übersichtlich und Schritt-für-Schritt auf Basis des bereitgestellten Kontextes.
+
+WICHTIGE ANWEISUNGEN:
+1. Gib eine VOLLSTÄNDIGE, detaillierte Anleitung. Kürze KEINE wichtigen Schritte, Voraussetzungen, Optionen oder Feldbezeichnungen weg!
+2. Strukturiere die Antwort klar mit nummerierten Schritten (1., 2., 3.), Aufzählungspunkten und Fettdruck für Menüpunkte/Schaltflächen.
+3. Binde ALLE im Kontext enthaltenen Grafiken und Buttons (im Format ![Alt-Text](src)) an den exakt passenden Stellen in deinen Schritten ein!
+4. Stütze dich EXKLUSIV auf die bereitgestellten Handbuch-Abschnitte.
+5. Wenn die Frage nicht auf Basis des Kontextes beantwortet werden kann, antworte exakt mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
-      apiKey = apiKey.replace(/^["']|["']$/g, ''); // Trim quotes if accidentally pasted
+      apiKey = apiKey.replace(/^["']|["']$/g, '');
       const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
       const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.gemini;
 
@@ -882,7 +908,6 @@
 
             const endpointUrl = endpoints[provider];
             
-            // Kaskadierende Modellliste für OpenAI (aktive & unterstützte Modelle)
             let modelsToTry = [config.model];
             if (provider === 'openai') {
               modelsToTry = ['gpt-6-luna', 'gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
@@ -915,14 +940,14 @@
                     errDetail = errData.error?.message || errData.message || '';
                   } catch(e) {}
                   errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit / Guthaben erschöpft (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
-                  break; // Rate-Limit gilt für den ganzen Key, kein Kaskadieren nötig
+                  break;
                 } else if (response.ok) {
                   const contentType = response.headers.get('content-type') || '';
                   if (contentType.includes('application/json')) {
                     const data = await response.json();
                     replyText = data.choices?.[0]?.message?.content || '';
                     if (replyText) {
-                      errorMessage = ''; // Erfolg! Kaskade beenden
+                      errorMessage = '';
                       break;
                     }
                   }
@@ -953,7 +978,7 @@
               },
               body: JSON.stringify({
                 model: config.model,
-                max_tokens: 1024,
+                max_tokens: 1536,
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userQuery }]
               })
@@ -1007,7 +1032,7 @@
           }
 
           if (replyText && replyText.trim().length > 0) {
-            return { text: postProcessResponse(replyText), mode: 'ai' };
+            return { text: postProcessResponse(replyText, imageMap), mode: 'ai' };
           }
 
           if (errorMessage) {
