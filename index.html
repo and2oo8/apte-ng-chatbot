@@ -79,18 +79,36 @@
     .editorial-prose ul, .editorial-prose ol {
       margin-top: 0.5rem;
       margin-bottom: 0.85rem;
-      padding-left: 1.25rem;
+      padding-left: 1.85rem;
     }
     .editorial-prose li {
       margin-bottom: 0.35rem;
       line-height: 1.55;
       color: #1e293b;
     }
+    .editorial-prose li > p {
+      margin-bottom: 0.25rem;
+    }
     .editorial-prose ul {
       list-style-type: disc;
     }
     .editorial-prose ol {
       list-style-type: decimal;
+    }
+    .editorial-prose ul ul {
+      list-style-type: circle;
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+      padding-left: 1.25rem;
+    }
+    .editorial-prose ol ol, .editorial-prose ul ol, .editorial-prose ol ul {
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
+      padding-left: 1.25rem;
+    }
+    .editorial-prose li::marker {
+      font-weight: 600;
+      color: #475569;
     }
     .editorial-prose strong {
       color: #0f172a;
@@ -260,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 02.11.2026 - 22:45 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 10:35 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
