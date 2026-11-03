@@ -774,6 +774,11 @@
       return cleaned;
     }
 
+    function sanitizeMarkdownImages(mdText) {
+      if (!mdText || typeof mdText !== 'string') return '';
+      return mdText;
+    }
+
     function formatProceduralFallback(chunk, query = '') {
       if (!chunk || !chunk.content) return '';
       return cleanBoilerplateText(chunk.content);
