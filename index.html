@@ -250,12 +250,12 @@
         
         <!-- Search Mode Toggle Control -->
         <div class="max-w-3xl mx-auto mb-2.5 flex items-center justify-between flex-wrap gap-2">
-          <div class="inline-flex p-1 bg-slate-200/80 rounded-xl text-xs font-semibold">
-            <button type="button" id="modeManualBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60">
+          <div class="inline-flex p-1 bg-slate-200/90 rounded-xl text-xs font-semibold shadow-inner">
+            <button type="button" id="modeManualBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
               <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
               <span>Handbuch-Direktsuche</span>
             </button>
-            <button type="button" id="modeAiBtn" class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+            <button type="button" id="modeAiBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
               <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>KI-Antworten</span>
             </button>
@@ -485,8 +485,8 @@
       const hasKey = savedApiKey.length > 3;
 
       if (selectedSearchMode === 'ai') {
-        if (modeAiBtn) modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
-        if (modeManualBtn) modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+        if (modeAiBtn) modeAiBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-emerald-600 text-white font-extrabold shadow border border-emerald-700 cursor-pointer select-none";
+        if (modeManualBtn) modeManualBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-300/50 cursor-pointer select-none font-medium";
 
         if (!hasKey) {
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
@@ -504,8 +504,8 @@
           if (sendBtn) sendBtn.disabled = false;
         }
       } else {
-        if (modeManualBtn) modeManualBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm bg-white text-slate-900 font-bold border border-slate-200/60";
-        if (modeAiBtn) modeAiBtn.className = "px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 text-slate-600 hover:text-slate-900";
+        if (modeManualBtn) modeManualBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-white text-bordeaux font-extrabold shadow border border-slate-300 cursor-pointer select-none ring-1 ring-slate-200";
+        if (modeAiBtn) modeAiBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-300/50 cursor-pointer select-none font-medium";
 
         if (noApiKeyNotice) noApiKeyNotice.classList.add('hidden');
         if (chatInput) {
@@ -669,6 +669,7 @@
       const allImages = temp.querySelectorAll('img');
       allImages.forEach(img => {
         img.classList.add('zoomable-img', 'cursor-zoom-in');
+        img.setAttribute('onerror', "this.style.display='none';");
 
         const parent = img.parentElement;
         if (!parent) return;
@@ -819,12 +820,15 @@
       if (!replyText) return '';
       let cleaned = cleanBoilerplateText(replyText)
         .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
-        .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG|Hier ist die Anleitung)[^.\n]+[.\n]+/i, '')
+        .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG)[^.\n]+[.\n]+/i, '')
         .trim();
 
       if (imageMap && Object.keys(imageMap).length > 0) {
-        Object.keys(imageMap).forEach(refId => {
-          const regex = new RegExp(refId, 'g');
+        // Sort keys descending by length so img_ref_10 is replaced before img_ref_1
+        const sortedRefs = Object.keys(imageMap).sort((a, b) => b.length - a.length);
+        sortedRefs.forEach(refId => {
+          // Use word boundary \b to prevent matching img_ref_1 inside img_ref_10
+          const regex = new RegExp('\\b' + refId + '\\b', 'g');
           cleaned = cleaned.replace(regex, imageMap[refId]);
         });
       }
@@ -875,10 +879,15 @@
       const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
       if (!indexedChunks || indexedChunks.length === 0) return { text: "Das Systemhandbuch ist aktuell nicht geladen.", mode: 'fallback' };
 
-      const relevant = findRelevantChunks(userQuery, 15);
-      if (!relevant || relevant.length === 0) return { text: NO_MATCH_TEXT, mode: 'fallback' };
+      // Erkennung von Begrüßung / Smalltalk
+      const isGreeting = /^(hallo|hi|guten\s+tag|servus|moin|hey|guten\s+morgen|guten\s+abend|wer\s+bist\s+du|hilfe)\b/i.test(userQuery.trim());
 
-      if (selectedSearchMode === 'manual') {
+      const relevant = findRelevantChunks(userQuery, 15);
+      if (!relevant || relevant.length === 0) {
+        if (!isGreeting) return { text: NO_MATCH_TEXT, mode: 'fallback' };
+      }
+
+      if (selectedSearchMode === 'manual' && !isGreeting) {
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
@@ -902,17 +911,17 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Kompakt, schrittbasiert & fokussiert
-      const systemPrompt = `Du bist der präzise Support-Assistent für das APTE-NG Systemhandbuch.
-Beantworte die Frage des Nutzers praxisnah, fokussiert und auf den Punkt.
+      // Optimierter Prompt: Kompakt, schrittbasiert, mit Einleitungssatz & Begrüßungs-Fähigkeit
+      const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
+Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
 
-WICHTIGE ANWEISUNGEN:
-1. PRIMÄR HANDLUNGSSCHRITTE: Gib bei "Wie"-Fragen und Anleitungen sofort und primär die konkreten Handlungsschritte (1., 2., 3.) aus.
-2. KEINE LANGEN HINTERGRUNDTEXTE: Verzichte auf lange theoretische Funktionsbeschreibungen, Einleitungen oder Aufsätze. Der Anwender möchte direkt wissen, was er tun muss.
-3. SCHALTFLÄCHEN & BILDER EINBINDEN: Binde ALLE relevanten Button-Icons und Screenshots (im Format ![Alt-Text](src)) an den exakt passenden Stellen in deinen Schritten ein.
-4. STRUKTUR: Nutze nummerierte Listen, Fettdruck für Menüpunkte und Schaltflächen sowie kurze, prägnante Sätze.
-5. EXKLUSIVITÄT: Stütze dich exklusiv auf den bereitgestellten Handbuch-Kontext.
-6. Falls die Frage nicht beantwortet werden kann, antworte exakt mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
+WICHTIGE VERHALTENSREGELN:
+1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit (z.B. "Hallo! Wie kann ich Ihnen heute bei APTE-NG helfen?").
+2. EINLEITUNGSSATZ: Beginne JEDE fachliche Antwort stets mit einem kurzen, freundlichen Einleitungssatz (z.B. "Gerne zeige ich Ihnen, wie Sie eine Datenansicht erstellen:" oder "Hier sind die nötigen Schritte:").
+3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig und natürlich im professionellen Sie-Ton.
+4. SCHALTFLÄCHEN & BILDER EINBINDEN: Binde ALLE im Kontext enthaltenen Button-Icons und Screenshots (im Format ![Alt-Text](img_ref_X)) an den exakt passenden Stellen in deinen Schritten ein.
+5. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
+6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
