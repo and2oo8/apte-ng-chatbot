@@ -339,16 +339,10 @@
         <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
       </div>
 
-      <!-- Manual Content Input -->
-      <div class="flex-1 p-4 flex flex-col min-h-0 bg-slate-50 space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Markdown-Text direkt einfügen</label>
-        <p class="text-xs text-slate-600 leading-relaxed">
-          Falls Sie zusätzliche Kapitel oder Korrekturen manuell ergänzen möchten, fügen Sie den Markdown-Text hier ein:
-        </p>
-        <textarea id="mdManualInput" class="flex-1 w-full bg-white border border-slate-300 rounded-xl p-3 text-xs font-mono text-slate-800 focus:outline-none focus:border-bordeaux focus:ring-1 focus:ring-bordeaux resize-none" placeholder="Markdown-Inhalt hier einfügen..."></textarea>
-        
-        <button id="indexManualBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow">
-          Eingefügten Text indizieren
+      <!-- Footer Action -->
+      <div class="p-4 bg-white border-t border-slate-200 mt-auto">
+        <button id="finishAdminBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow-sm">
+          Fertig
         </button>
       </div>
 
@@ -869,7 +863,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
    - Jeder im Handbuch enthaltene Screenshot MUSST du AUSNAHMSLOS an genau demjenigen Handlungsschritt in deine Antwort einbauen, zu dem er im Handbuchtext gehört.
    - Vergiss oder unterschlage KEINEN vorhandenen Screenshot aus dem behandelten Kapitel!
    - Platziere den Screenshot direkt unter dem zugehörigen Handlungsschritt als ![Beschriftung](img_ref_X).
-- Gib Grafiken, die kleiner als 50px Höhe sind nicht als Bilddatei aus, sondern lies, was in ihnen steht. Meist sind es Buttons mit Text. Füge also den Text der Grafik in die Antwort in die Anführungszeichen ein. 
 5. BUTTONS & SCHALTFLÄCHEN:
    - Schaltflächen und Buttons im Text schreibst du fett in Anführungszeichen (z.B. **"Speichern"**).
 6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
@@ -1229,19 +1222,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
       });
 
       document.getElementById('closeAdminSidebarBtn')?.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
+      document.getElementById('finishAdminBtn')?.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
       document.getElementById('reloadMdBtn')?.addEventListener('click', () => loadMarkdownFiles());
-
-      document.getElementById('indexManualBtn')?.addEventListener('click', () => {
-        const manualText = document.getElementById('mdManualInput').value;
-        if (manualText.trim()) {
-          const chunks = parseMarkdownToChunks(manualText, 'Manuelle Eingabe');
-          if (chunks.length > 0) {
-            indexedChunks = chunks.concat(indexedChunks);
-            const chunkInfo = document.getElementById('chunkCountInfo');
-            if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (inkl. ${chunks.length} manuell)`;
-          }
-        }
-      });
 
       const container = document.getElementById('messagesContainer');
       const zoomModal = document.getElementById('imageZoomModal');
