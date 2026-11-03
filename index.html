@@ -125,23 +125,8 @@
       font-size: 1rem;
     }
 
-    /* Inline doc icons & buttons directly inside text lines */
-    .editorial-prose img.inline-doc-icon {
-      display: inline-block !important;
-      height: 1.55em !important;
-      max-height: 1.6em !important;
-      width: auto !important;
-      vertical-align: middle !important;
-      margin: 0.15rem 0.35rem !important;
-      padding: 0.15rem 0.35rem !important;
-      border: 1px solid #e2e8f0 !important;
-      border-radius: 0.375rem !important;
-      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-      background: #ffffff !important;
-    }
-
-    /* Standalone screenshots (full width / height) */
-    .editorial-prose img.standalone-screenshot {
+    /* Uniform standalone screenshot rendering for all images */
+    .editorial-prose img {
       display: block !important;
       max-width: 100% !important;
       max-height: 36rem !important;
@@ -561,116 +546,7 @@
       marked.setOptions({ renderer });
     }
 
-    // Helper functions in global scope for both processDocImages and getAIResponse
-    function isExplicitIcon(alt = '', src = '') {
-      const s = (alt + ' ' + src).toLowerCase();
-      if (s.includes('icon') || s.includes('symbol') || s.includes('schalter') || 
-          s.includes('verwendbar') || s.includes('sichtbar') || s.includes('plus') || 
-          s.includes('stift') || s.includes('löschen') || s.includes('pfeil') ||
-          s.includes('btn') || s.includes('button') || s.includes('toggle') || 
-          s.includes('status')) {
-        return true;
-      }
-      if (src.startsWith('data:image') && src.length < 3500) {
-        return true;
-      }
-      return false;
-    }
-
-    function isExplicitScreenshot(alt = '', src = '') {
-      const s = (alt + ' ' + src).toLowerCase();
-      // Explicit icon keywords MUST override screenshot detection
-      if (isExplicitIcon(alt, src)) {
-        return false;
-      }
-
-      if (s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
-          s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
-          s.includes('screen') || s.includes('formular') || s.includes('maske') || 
-          s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
-          s.includes('bereich') || s.includes('view') || s.includes('img_ref') ||
-          s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt') ||
-          s.includes('tabelle') || s.includes('liste') || s.includes('auswahl') || s.includes('einstellung')) {
-        return true;
-      }
-      if (src.startsWith('data:image') && src.length >= 3500) {
-        return true;
-      }
-      if (!src.startsWith('data:image') && src.length > 3) {
-        return true;
-      }
-      return false;
-    }
-
-    // 1. Pre-Processing: Safe inline icon placement inside Markdown
-    function sanitizeMarkdownImages(mdText) {
-      if (!mdText || typeof mdText !== 'string') return '';
-
-      let text = mdText;
-
-      const isScreenshotImage = (alt = '', src = '') => {
-        const s = (alt + ' ' + src).toLowerCase();
-        
-        // Explicit button/icon keywords always override screenshot
-        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
-            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-            s.includes('sichtbar') || s.includes('plus') || s.includes('stift')) {
-          return false;
-        }
-
-        return s.includes('screenshot') || 
-               s.includes('übersicht') || 
-               s.includes('ansicht') || 
-               s.includes('dialog') || 
-               s.includes('fenster') || 
-               s.includes('abbildung') || 
-               s.includes('screen') || 
-               s.includes('formular') || 
-               s.includes('maske') || 
-               s.includes('seite') || 
-               s.includes('modal') || 
-               s.includes('standardlabel') ||
-               s.includes('bereich') ||
-               s.includes('view');
-      };
-
-      // 1. FIRST: Check for Icon/Button ABOVE empty quotes on previous line
-      text = text.replace(
-        /!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)\s*[\r\n]+\s*([^\r\n"„“«]*?)(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?/g,
-        (match, alt, src, prefixText, b1, q1, q2, b2) => {
-          if (isScreenshotImage(alt, src)) return match;
-          const openB = b1 || '';
-          const closeB = b2 || '';
-          return `${prefixText}${openB}${q1}![${alt}](${src})${q2}${closeB}`;
-        }
-      );
-
-      // 2. SECOND: Check for Icon/Button on SAME LINE right next to empty quotes
-      text = text.replace(
-        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
-        (match, b1, q1, q2, b2, alt, src) => {
-          if (isScreenshotImage(alt, src)) return match;
-          const openB = b1 || '';
-          const closeB = b2 || '';
-          return `${openB}${q1}![${alt}](${src})${q2}${closeB}`;
-        }
-      );
-
-      // 3. THIRD: Check for Icon/Button BELOW empty quotes on next line
-      text = text.replace(
-        /(\*\*|\*|)?(["„“«])\s*(["”»"])(\*\*|\*|)?([^\n\r]*?)[\r\n]+\s*!\[([^\]\r\n]*)\]\(([^)\r\n]+)\)/g,
-        (match, b1, q1, q2, b2, trailingText, alt, src) => {
-          if (isScreenshotImage(alt, src)) return match;
-          const openB = b1 || '';
-          const closeB = b2 || '';
-          return `${openB}${q1}![${alt}](${src})${q2}${closeB}${trailingText}`;
-        }
-      );
-
-      return text;
-    }
-
-    // 2. DOM-Processing: Distinguish between inline icons and standalone screenshots
+    // Simplified image processing without inline icon restrictions
     function processDocImages(htmlString) {
       if (!htmlString || typeof htmlString !== 'string') return htmlString;
       const temp = document.createElement('div');
@@ -680,30 +556,6 @@
       allImages.forEach(img => {
         img.classList.add('zoomable-img', 'cursor-zoom-in');
         img.setAttribute('onerror', "this.style.display='none';");
-
-        const parent = img.parentElement;
-        if (!parent) return;
-
-        const alt = img.getAttribute('alt') || '';
-        const src = img.getAttribute('src') || '';
-
-        const iconFlag = isExplicitIcon(alt, src);
-        const screenshotFlag = isExplicitScreenshot(alt, src);
-
-        // Standalone screenshot logic
-        if (screenshotFlag && !iconFlag) {
-          img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
-          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 28rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
-        } else {
-          // Compact inline badge for buttons and switches
-          img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
-          img.setAttribute('style', 'display: inline-block !important; height: 1.55em !important; max-height: 1.6em !important; width: auto !important; vertical-align: middle !important; margin: 0.15rem 0.35rem !important; padding: 0.15rem 0.35rem !important; border: 1px solid #cbd5e1 !important; border-radius: 0.375rem !important; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; background: #ffffff !important;');
-          
-          // Remove huge margin on paragraph if it only contains this inline button
-          if (parent.tagName === 'P' && parent.children.length === 1 && parent.textContent.trim() === '') {
-            parent.setAttribute('style', 'margin-top: 0.25rem !important; margin-bottom: 0.35rem !important; display: block !important;');
-          }
-        }
       });
 
       return temp.innerHTML;
@@ -984,16 +836,9 @@
       const contextText = relevant.slice(0, 5).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
           const cleanAlt = alt.trim() || 'Handbuch Screenshot';
-          const isIcon = isExplicitIcon(cleanAlt, src) && !isExplicitScreenshot(cleanAlt, src);
-          if (isIcon) {
-            // Wandelt kleine Inline-Button-Icons für die KI in Text um
-            return `**"${cleanAlt}"**`;
-          } else {
-            // Screenshots als Bild-Referenzen erhalten
-            const refId = `img_ref_${imageCounter++}`;
-            imageMap[refId] = { src: src, alt: cleanAlt };
-            return `![${cleanAlt}](${refId})`;
-          }
+          const refId = `img_ref_${imageCounter++}`;
+          imageMap[refId] = { src: src, alt: cleanAlt };
+          return `![${cleanAlt}](${refId})`;
         });
 
         if (contentForAi.length > 4000) {
@@ -1050,7 +895,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
             
             let modelsToTry = [config.model];
             if (provider === 'openai') {
-              modelsToTry = ['gpt-6-sol', 'gpt-6.1-luna', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
+              modelsToTry = ['gpt-6-luna', 'gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
               modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
             }
 
