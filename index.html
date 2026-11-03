@@ -869,7 +869,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
    - Jeder im Handbuch enthaltene Screenshot MUSST du AUSNAHMSLOS an genau demjenigen Handlungsschritt in deine Antwort einbauen, zu dem er im Handbuchtext gehört.
    - Vergiss oder unterschlage KEINEN vorhandenen Screenshot aus dem behandelten Kapitel!
    - Platziere den Screenshot direkt unter dem zugehörigen Handlungsschritt als ![Beschriftung](img_ref_X).
-- Wenn du Inline-Grafiken siehst, die in Anführungszeichen stehen, dann gib sie nicht als Bilddatei aus, sondern lies, was in ihnen steht. Meist sind es Buttons mit Text. Füge also den Text der Grafik in die Antwort ein. 
+- Gib Grafiken, die kleiner als 50px Höhe sind nicht als Bilddatei aus, sondern lies, was in ihnen steht. Meist sind es Buttons mit Text. Füge also den Text der Grafik in die Antwort in die Anführungszeichen ein. 
 5. BUTTONS & SCHALTFLÄCHEN:
    - Schaltflächen und Buttons im Text schreibst du fett in Anführungszeichen (z.B. **"Speichern"**).
 6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
@@ -901,7 +901,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
             
             let modelsToTry = [config.model];
             if (provider === 'openai') {
-              modelsToTry = ['gpt-6-luna', 'gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
+              modelsToTry = ['gpt-6.1-sol', 'gpt-6-luna', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
               modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
             }
 
