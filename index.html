@@ -563,12 +563,12 @@
     // Helper functions in global scope for both processDocImages and getAIResponse
     function isExplicitIcon(alt = '', src = '') {
       const s = (alt + ' ' + src).toLowerCase();
-      if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
-          s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-          s.includes('plus') || s.includes('stift') || s.includes('löschen') || s.includes('pfeil')) {
+      if (s.includes('icon') || s.includes('symbol') || s.includes('schalter') || 
+          s.includes('verwendbar') || s.includes('plus') || s.includes('stift') || 
+          s.includes('löschen') || s.includes('pfeil')) {
         return true;
       }
-      if (src.startsWith('data:image') && src.length < 5000) {
+      if (src.startsWith('data:image') && src.length < 2500) {
         return true;
       }
       return false;
@@ -584,7 +584,7 @@
           s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt')) {
         return true;
       }
-      if (src.startsWith('data:image') && src.length >= 5000) {
+      if (src.startsWith('data:image') && src.length >= 2500) {
         return true;
       }
       if (!src.startsWith('data:image') && src.length > 3) {
@@ -827,11 +827,30 @@
       if (imageMap && Object.keys(imageMap).length > 0) {
         // Sort keys descending by length so img_ref_10 is replaced before img_ref_1
         const sortedRefs = Object.keys(imageMap).sort((a, b) => b.length - a.length);
+        const missingRefs = [];
+
         sortedRefs.forEach(refId => {
-          // Use word boundary \b to prevent matching img_ref_1 inside img_ref_10
           const regex = new RegExp('\\b' + refId + '\\b', 'g');
-          cleaned = cleaned.replace(regex, imageMap[refId]);
+          if (regex.test(cleaned)) {
+            const imgObj = imageMap[refId];
+            const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
+            cleaned = cleaned.replace(regex, realSrc);
+          } else {
+            missingRefs.push(refId);
+          }
         });
+
+        // Safety Net: Append any screenshots omitted by the AI
+        if (missingRefs.length > 0) {
+          missingRefs.forEach(refId => {
+            const imgObj = imageMap[refId];
+            const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
+            const realAlt = (typeof imgObj === 'object' && imgObj !== null) ? (imgObj.alt || 'Handbuch Screenshot') : 'Handbuch Screenshot';
+            if (realSrc) {
+              cleaned += `\n\n![${realAlt}](${realSrc})`;
+            }
+          });
+        }
       }
 
       return cleaned;
@@ -898,14 +917,14 @@
 
       const contextText = relevant.slice(0, 5).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-          const cleanAlt = alt.trim() || 'Abbildung';
+          const cleanAlt = alt.trim() || 'Handbuch Screenshot';
           if (isExplicitIcon(cleanAlt, src)) {
             // Wandelt Inline-Button-Icons für die KI in Text um
             return `**"${cleanAlt}"**`;
           } else {
             // Screenshots als Bild-Referenzen erhalten
             const refId = `img_ref_${imageCounter++}`;
-            imageMap[refId] = src;
+            imageMap[refId] = { src: src, alt: cleanAlt };
             return `![${cleanAlt}](${refId})`;
           }
         });
@@ -916,7 +935,7 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Dynamischer Einleitungssatz, reine Text-Buttons & erhaltener Screenshot-Einbau
+      // Optimierter Prompt: Strikte Vorgabe zur Verwendung JEDES Screenshots
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
 
@@ -924,11 +943,14 @@ WICHTIGE VERHALTENSREGELN:
 1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
 2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet (z.B. "Um eine Datenansicht in APTE-NG zu erstellen, führen Sie folgende Schritte aus:", "Die Konfiguration der Abgabeperiode nehmen Sie wie folgt vor:"). Vermeide sture Standardfloskeln.
 3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig und natürlich im professionellen Sie-Ton.
-4. BUTTONS & SCREENSHOTS:
-   - Button-Icons und Schaltflächen schreibst du ausschließlich als fettgedruckten Text in Anführungszeichen (z.B. **"Speichern"** oder **"Neuer Eintrag"**).
-   - WICHTIG FÜR SCREENSHOTS: Wenn im bereitgestellten Handbuch-Kontext UI-Screenshots (im Format ![Beschriftung](img_ref_X)) enthalten sind, MUSST du diese Screenshots an den jeweils passenden Stellen in deiner Schritt-für-Schritt-Anleitung genau so einbinden (z.B. ![Beschriftung](img_ref_X)). Unterschlage keine Screenshots aus dem Kontext!
-5. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
-6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
+4. SCREENSHOTS & GRAFIKEN (STRIKTE PFLICHT):
+   - Im bereitgestellten Handbuch-Kontext findest du Bild-Referenzen im Format ![Beschriftung](img_ref_X).
+   - Du MUSST JEDEN einzelnen Screenshot (img_ref_1, img_ref_2, etc.), der im Kontext vorkommt, an der exakt passenden Stelle in deiner Schritt-für-Schritt-Anleitung einbinden.
+   - Unterschlage KEINE Screenshots aus dem Kontext!
+5. BUTTONS & SCHALTFLÄCHEN:
+   - Schaltflächen und Buttons im Text schreibst du fett in Anführungszeichen (z.B. **"Speichern"**).
+6. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
+7. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
