@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 10:45 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:15 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -419,9 +419,9 @@
       },
       openai: {
         name: 'OpenAI',
-        model: 'gpt-4o-mini',
+        model: 'gpt-6.1-sol',
         placeholder: 'sk-proj-...',
-        hint: 'Modell: GPT-4o-mini (hohe Antwortqualität)'
+        hint: 'Modell: GPT-6.1 Sol (Kaskade: gpt-6.1-sol → gpt-4o-mini → gpt-4o → gpt-4-turbo → gpt-3.5-turbo)'
       },
       anthropic: {
         name: 'Anthropic Claude',
@@ -849,7 +849,8 @@
       const contextText = relevant.slice(0, 5).map((c, i) => `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`).join('\n\n');
       const systemPrompt = `Du bist das APTE-NG Online-Hilfesystem. Beantworte die Frage EXKLUSIV auf Basis des Kontextes. Wenn nicht auffindbar, antworte genau mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
-      const apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
+      let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
+      apiKey = apiKey.replace(/^["']|["']$/g, ''); // Trim quotes if accidentally pasted
       const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
       const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.gemini;
 
@@ -870,30 +871,58 @@
             };
 
             const endpointUrl = endpoints[provider];
-            response = await fetch(endpointUrl, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-              },
-              body: JSON.stringify({ 
-                model: config.model,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: userQuery }
-                ]
-              })
-            });
+            
+            // Kaskadierende Modellliste für OpenAI (gpt-6.1-sol als primäres Modell)
+            let modelsToTry = [config.model];
+            if (provider === 'openai') {
+              modelsToTry = ['gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
+              modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
+            }
 
-            if (response) {
-              if (response.status === 429) {
-                errorMessage = `Anbieter ${config.name} meldet Rate-Limit / Guthaben erschöpft (HTTP 429).`;
-              } else if (response.ok) {
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                  const data = await response.json();
-                  replyText = data.choices?.[0]?.message?.content || '';
+            let lastErrorDetail = '';
+
+            for (const currentModel of modelsToTry) {
+              try {
+                response = await fetch(endpointUrl, {
+                  method: 'POST',
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                  },
+                  body: JSON.stringify({ 
+                    model: currentModel,
+                    messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user', content: userQuery }
+                    ]
+                  })
+                });
+
+                if (response.status === 429) {
+                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit / Guthaben erschöpft (HTTP 429).`;
+                  break; // Rate-Limit gilt für den ganzen Key, kein Kaskadieren nötig
+                } else if (response.ok) {
+                  const contentType = response.headers.get('content-type') || '';
+                  if (contentType.includes('application/json')) {
+                    const data = await response.json();
+                    replyText = data.choices?.[0]?.message?.content || '';
+                    if (replyText) {
+                      errorMessage = ''; // Erfolg! Kaskade beenden
+                      break;
+                    }
+                  }
+                } else {
+                  let errDetail = '';
+                  try {
+                    const errData = await response.json();
+                    errDetail = errData.error?.message || errData.message || '';
+                  } catch(e) {}
+                  lastErrorDetail = `${currentModel} (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
+                  errorMessage = `Anbieter ${config.name} Modell-Kaskade fehlgeschlagen. Letzter Versuch: ${lastErrorDetail}`;
                 }
+              } catch (fetchErr) {
+                lastErrorDetail = `${currentModel} (${fetchErr.message || fetchErr})`;
+                errorMessage = `Anbieter ${config.name} Fehler: ${lastErrorDetail}`;
               }
             }
           } 
@@ -923,6 +952,13 @@
                   const data = await response.json();
                   replyText = data.content?.[0]?.text || '';
                 }
+              } else {
+                let errDetail = '';
+                try {
+                  const errData = await response.json();
+                  errDetail = errData.error?.message || errData.message || '';
+                } catch(e) {}
+                errorMessage = `Anbieter Anthropic meldet Fehler (HTTP ${response.status})${errDetail ? ': ' + errDetail : ''}`;
               }
             }
           } 
@@ -943,6 +979,13 @@
                   const data = await response.json();
                   replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 }
+              } else {
+                let errDetail = '';
+                try {
+                  const errData = await response.json();
+                  errDetail = errData.error?.message || errData.message || '';
+                } catch(e) {}
+                errorMessage = `Google Gemini API meldet Fehler (HTTP ${response.status})${errDetail ? ': ' + errDetail : ''}`;
               }
             }
           }
@@ -955,7 +998,7 @@
             console.warn(errorMessage);
             const selectionHtml = generateSelectionHtml(relevant, 3, userQuery);
             return { 
-              text: `<div class="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-medium">⚠️ <strong>${config.name}-API Hinweis:</strong> Guthaben erschöpft oder Limit erreicht (HTTP 429). Automatisch auf Handbuch-Direktsuche umgeschaltet.</div>` + selectionHtml, 
+              text: `<div class="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-medium">⚠️ <strong>${config.name}-API Hinweis:</strong> ${errorMessage} Automatisch auf Handbuch-Direktsuche umgeschaltet.</div>` + selectionHtml, 
               mode: 'selection' 
             };
           }
