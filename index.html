@@ -857,6 +857,7 @@
         try {
           let response;
           let replyText = '';
+          let errorMessage = '';
 
           // 1. OpenAI / DeepSeek / Groq / Mistral / Melious (OpenAI-Kompatibel)
           if (['openai', 'deepseek', 'groq', 'mistral', 'melious'].includes(provider)) {
@@ -884,11 +885,15 @@
               })
             });
 
-            if (response && response.ok) {
-              const contentType = response.headers.get('content-type') || '';
-              if (contentType.includes('application/json')) {
-                const data = await response.json();
-                replyText = data.choices?.[0]?.message?.content || '';
+            if (response) {
+              if (response.status === 429) {
+                errorMessage = `Anbieter ${config.name} meldet Rate-Limit / Guthaben erschöpft (HTTP 429).`;
+              } else if (response.ok) {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                  const data = await response.json();
+                  replyText = data.choices?.[0]?.message?.content || '';
+                }
               }
             }
           } 
@@ -909,11 +914,15 @@
               })
             });
 
-            if (response && response.ok) {
-              const contentType = response.headers.get('content-type') || '';
-              if (contentType.includes('application/json')) {
-                const data = await response.json();
-                replyText = data.content?.[0]?.text || '';
+            if (response) {
+              if (response.status === 429) {
+                errorMessage = `Anbieter Anthropic meldet Rate-Limit (HTTP 429).`;
+              } else if (response.ok) {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                  const data = await response.json();
+                  replyText = data.content?.[0]?.text || '';
+                }
               }
             }
           } 
@@ -925,17 +934,30 @@
               body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
             });
 
-            if (response && response.ok) {
-              const contentType = response.headers.get('content-type') || '';
-              if (contentType.includes('application/json')) {
-                const data = await response.json();
-                replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (response) {
+              if (response.status === 429) {
+                errorMessage = `Google Gemini API meldet Rate-Limit (HTTP 429).`;
+              } else if (response.ok) {
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                  const data = await response.json();
+                  replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                }
               }
             }
           }
 
           if (replyText && replyText.trim().length > 0) {
             return { text: postProcessResponse(replyText), mode: 'ai' };
+          }
+
+          if (errorMessage) {
+            console.warn(errorMessage);
+            const selectionHtml = generateSelectionHtml(relevant, 3, userQuery);
+            return { 
+              text: `<div class="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-medium">⚠️ <strong>${config.name}-API Hinweis:</strong> Guthaben erschöpft oder Limit erreicht (HTTP 429). Automatisch auf Handbuch-Direktsuche umgeschaltet.</div>` + selectionHtml, 
+              mode: 'selection' 
+            };
           }
         } catch (e) {
           console.warn(`API-Anfrage an ${config.name} fehlgeschlagen. Umschalten auf Handbuch-Suche:`, e);
