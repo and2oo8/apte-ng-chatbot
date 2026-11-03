@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:05 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:10 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -827,30 +827,20 @@
       if (imageMap && Object.keys(imageMap).length > 0) {
         // Sort keys descending by length so img_ref_10 is replaced before img_ref_1
         const sortedRefs = Object.keys(imageMap).sort((a, b) => b.length - a.length);
-        const missingRefs = [];
 
         sortedRefs.forEach(refId => {
-          const regex = new RegExp('\\b' + refId + '\\b', 'g');
-          if (regex.test(cleaned)) {
-            const imgObj = imageMap[refId];
-            const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
-            cleaned = cleaned.replace(regex, realSrc);
-          } else {
-            missingRefs.push(refId);
-          }
-        });
+          const imgObj = imageMap[refId];
+          const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
+          const realAlt = (typeof imgObj === 'object' && imgObj !== null) ? (imgObj.alt || 'Handbuch Screenshot') : 'Handbuch Screenshot';
 
-        // Safety Net: Append any screenshots omitted by the AI
-        if (missingRefs.length > 0) {
-          missingRefs.forEach(refId => {
-            const imgObj = imageMap[refId];
-            const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
-            const realAlt = (typeof imgObj === 'object' && imgObj !== null) ? (imgObj.alt || 'Handbuch Screenshot') : 'Handbuch Screenshot';
-            if (realSrc) {
-              cleaned += `\n\n![${realAlt}](${realSrc})`;
-            }
-          });
-        }
+          // 1. Erst Markdown-Bild-Syntax ersetzen: ![Alt](img_ref_X)
+          const mdImgRegex = new RegExp('!\\[([^\\]]*)\\]\\(' + refId + '\\)', 'g');
+          cleaned = cleaned.replace(mdImgRegex, (m, alt) => `![${alt || realAlt}](${realSrc})`);
+
+          // 2. Freistehende Ref-Tags ersetzen
+          const bareRegex = new RegExp('\\b' + refId + '\\b', 'g');
+          cleaned = cleaned.replace(bareRegex, `![${realAlt}](${realSrc})`);
+        });
       }
 
       return cleaned;
@@ -935,18 +925,18 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Strikte Vorgabe zur Verwendung JEDES Screenshots
+      // Optimierter Prompt: Strikte Zuordnung von Screenshots zu den Schritten
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
 
 WICHTIGE VERHALTENSREGELN:
 1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
-2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet (z.B. "Um eine Datenansicht in APTE-NG zu erstellen, führen Sie folgende Schritte aus:", "Die Konfiguration der Abgabeperiode nehmen Sie wie folgt vor:"). Vermeide sture Standardfloskeln.
-3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig und natürlich im professionellen Sie-Ton.
-4. SCREENSHOTS & GRAFIKEN (STRIKTE PFLICHT):
+2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet.
+3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig im professionellen Sie-Ton.
+4. SCREENSHOTS & GRAFIKEN (STRIKTE REGEL):
    - Im bereitgestellten Handbuch-Kontext findest du Bild-Referenzen im Format ![Beschriftung](img_ref_X).
-   - Du MUSST JEDEN einzelnen Screenshot (img_ref_1, img_ref_2, etc.), der im Kontext vorkommt, an der exakt passenden Stelle in deiner Schritt-für-Schritt-Anleitung einbinden.
-   - Unterschlage KEINE Screenshots aus dem Kontext!
+   - Platziere NUR diejenigen Screenshots in deiner Antwort, die DIREKT zu dem von dir beschriebenen Handlungsschritt gehören (genau an der Stelle, wo der Screenshot im Quelltext des Handbuchs steht).
+   - Verwende KEINE Screenshots aus anderen Handbuch-Abschnitten oder Kapiteln, die nicht zum beantworteten Thema passen!
 5. BUTTONS & SCHALTFLÄCHEN:
    - Schaltflächen und Buttons im Text schreibst du fett in Anführungszeichen (z.B. **"Speichern"**).
 6. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
