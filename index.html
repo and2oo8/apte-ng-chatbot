@@ -237,13 +237,13 @@
         <!-- Search Mode Toggle Control -->
         <div class="max-w-3xl mx-auto mb-2.5 flex items-center justify-between flex-wrap gap-2">
           <div class="inline-flex p-1 bg-slate-200/90 rounded-xl text-xs font-semibold shadow-inner">
-            <button type="button" id="modeManualBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
-              <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-              <span>Handbuch-Direktsuche</span>
-            </button>
             <button type="button" id="modeAiBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
               <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               <span>KI-Antworten</span>
+            </button>
+            <button type="button" id="modeManualBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
+              <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              <span>Handbuch-Direktsuche</span>
             </button>
           </div>
 
@@ -264,7 +264,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:30 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 14:30 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -388,7 +388,7 @@
     let indexedChunks = [];
     let isProcessing = false;
     let isAdminAuthenticated = false;
-    let selectedSearchMode = 'manual';
+    let selectedSearchMode = 'ai'; // Default auf KI-Antworten gesetzt
 
     const PROVIDER_CONFIGS = {
       gemini: {
@@ -472,7 +472,7 @@
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
           if (chatInput) {
             chatInput.disabled = true;
-            chatInput.placeholder = "Kein API-Schlüssel hinterlegt";
+            chatInput.placeholder = "Bitte hinterlegen Sie im Admin-Menü einen API-Schlüssel, um KI-Antworten zu nutzen (oder wechseln Sie auf Handbuch-Direktsuche).";
           }
           if (sendBtn) sendBtn.disabled = true;
         } else {
