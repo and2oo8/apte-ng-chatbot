@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:55 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 12:05 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -639,7 +639,7 @@
         // Explicit button/icon keywords
         if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
             s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-            s.includes('plus') || s.includes('stift')) {
+            s.includes('plus') || s.includes('stift') || s.includes('löschen') || s.includes('pfeil')) {
           return true;
         }
         // Small base64 length check (under 5000 chars is a small icon asset)
@@ -661,6 +661,10 @@
         }
         // Base64 length >= 5000 chars indicates a full UI screenshot
         if (src.startsWith('data:image') && src.length >= 5000) {
+          return true;
+        }
+        // Relative file paths
+        if (!src.startsWith('data:image') && src.length > 3) {
           return true;
         }
         return false;
@@ -880,7 +884,7 @@
       if (!indexedChunks || indexedChunks.length === 0) return { text: "Das Systemhandbuch ist aktuell nicht geladen.", mode: 'fallback' };
 
       // Erkennung von Begrüßung / Smalltalk
-      const isGreeting = /^(hallo|hi|guten\s+tag|servus|moin|hey|guten\s+morgen|guten\s+abend|wer\s+bist\s+du|hilfe)\b/i.test(userQuery.trim());
+      const isGreeting = /^(hallo|hi|guten\s+tag|servus|moin|hey|guten\s+morgen|guten\s+abend|wer\s+bist\s+du|hilfe|wie\s+geht)\b/i.test(userQuery.trim());
 
       const relevant = findRelevantChunks(userQuery, 15);
       if (!relevant || relevant.length === 0) {
@@ -895,40 +899,27 @@
       const imageMap = {};
       let imageCounter = 1;
 
-      const isExplicitIcon = (alt = '', src = '') => {
-        const s = (alt + ' ' + src).toLowerCase();
-        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
-            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-            s.includes('plus') || s.includes('stift')) {
-          return true;
-        }
-        if (src.startsWith('data:image') && src.length < 5000) {
-          return true;
-        }
-        return false;
-      };
-
       const contextText = relevant.slice(0, 5).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-          const cleanAlt = alt.trim() || 'Schaltfläche';
-          if (isExplicitIcon(alt, src)) {
+          const cleanAlt = alt.trim() || 'Abbildung';
+          if (isExplicitIcon(cleanAlt, src)) {
             // Wandelt Inline-Button-Icons für die KI in Text um
-            return `"${cleanAlt}"`;
-          } else if (src.length > 100 || src.startsWith('data:image')) {
+            return `**"${cleanAlt}"**`;
+          } else {
+            // Screenshots als Bild-Referenzen erhalten
             const refId = `img_ref_${imageCounter++}`;
             imageMap[refId] = src;
             return `![${cleanAlt}](${refId})`;
           }
-          return `"${cleanAlt}"`;
         });
 
-        if (contentForAi.length > 3500) {
-          contentForAi = contentForAi.slice(0, 3500);
+        if (contentForAi.length > 4000) {
+          contentForAi = contentForAi.slice(0, 4000);
         }
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Dynamischer Einleitungssatz, reine Text-Buttons & klare Anleitungen
+      // Optimierter Prompt: Dynamischer Einleitungssatz, reine Text-Buttons & erhaltener Screenshot-Einbau
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
 
@@ -937,8 +928,8 @@ WICHTIGE VERHALTENSREGELN:
 2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet (z.B. "Um eine Datenansicht in APTE-NG zu erstellen, führen Sie folgende Schritte aus:", "Die Konfiguration der Abgabeperiode nehmen Sie wie folgt vor:"). Vermeide sture Standardfloskeln.
 3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig und natürlich im professionellen Sie-Ton.
 4. BUTTONS & SCREENSHOTS:
-   - Schaltflächen und Buttons schreibst du ausschließlich als fettgedruckten Text in Anführungszeichen (z.B. Klicken Sie auf **"Speichern"** oder wählen Sie **"Neuer Eintrag"**). Binde FÜR BUTTONS ODER ICONS KEINE BILDER EIN.
-   - Binde NUR wesentliche UI-Screenshots (im Format ![Alt-Text](img_ref_X)) ein, wenn diese im Kontext vorliegen.
+   - Button-Icons und Schaltflächen schreibst du ausschließlich als fettgedruckten Text in Anführungszeichen (z.B. **"Speichern"** oder **"Neuer Eintrag"**).
+   - WICHTIG FÜR SCREENSHOTS: Wenn im bereitgestellten Handbuch-Kontext UI-Screenshots (im Format ![Beschriftung](img_ref_X)) enthalten sind, MUSST du diese Screenshots an den jeweils passenden Stellen in deiner Schritt-für-Schritt-Anleitung genau so einbinden (z.B. ![Beschriftung](img_ref_X)). Unterschlage keine Screenshots aus dem Kontext!
 5. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
 6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
@@ -1095,11 +1086,11 @@ WICHTIGE VERHALTENSREGELN:
           if (replyText && replyText.trim().length > 0) {
             let processedText = postProcessResponse(replyText, imageMap);
             
-            // 3 Themenverwandte Kapitel am Ende der KI-Antwort anfügen
+            // 3 Themenverwandte Kapitel am Ende der KI-Antwort anfügen (nur bei fachlichen Anfragen)
             const related = relevant.slice(1, 4);
-            if (related.length > 0) {
+            if (related.length > 0 && !isGreeting) {
               let relatedHtml = `\n\n---\n<div class="mt-4 pt-3 border-t border-slate-200">
-                <p class="text-xs font-bold text-slate-700 mb-2">💡 Verwandte Themen / Kapitel im Handbuch:</p>
+                <p class="text-xs font-bold text-slate-700 mb-2">💡 Verwandte Themen im Handbuch:</p>
                 <div class="space-y-1.5">`;
               related.forEach(relChunk => {
                 const idx = indexedChunks.indexOf(relChunk);
@@ -1449,7 +1440,7 @@ WICHTIGE VERHALTENSREGELN:
               let relatedHtml = '';
               if (related.length > 0) {
                 relatedHtml = `\n\n---\n<div class="mt-4 pt-3 border-t border-slate-200">
-                  <p class="text-xs font-bold text-slate-700 mb-2">💡 Verwandte Themen / Alternative Kapitel:</p>
+                  <p class="text-xs font-bold text-slate-700 mb-2">💡 Verwandte Themen im Handbuch:</p>
                   <div class="space-y-1.5">`;
                 related.forEach(relChunk => {
                   const idx = indexedChunks.indexOf(relChunk);
