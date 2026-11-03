@@ -636,18 +636,34 @@
 
       const isExplicitIcon = (alt = '', src = '') => {
         const s = (alt + ' ' + src).toLowerCase();
-        return s.includes('btn') || s.includes('button') || s.includes('icon') || 
-               s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-               s.includes('plus') || s.includes('stift');
+        // Explicit button/icon keywords
+        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
+            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
+            s.includes('plus') || s.includes('stift')) {
+          return true;
+        }
+        // Small base64 length check (under 5000 chars is a small icon asset)
+        if (src.startsWith('data:image') && src.length < 5000) {
+          return true;
+        }
+        return false;
       };
 
       const isExplicitScreenshot = (alt = '', src = '') => {
         const s = (alt + ' ' + src).toLowerCase();
-        return s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
-               s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
-               s.includes('screen') || s.includes('formular') || s.includes('maske') || 
-               s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
-               s.includes('bereich') || s.includes('view') || s.includes('img_ref');
+        if (s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
+            s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
+            s.includes('screen') || s.includes('formular') || s.includes('maske') || 
+            s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
+            s.includes('bereich') || s.includes('view') || s.includes('img_ref') ||
+            s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt')) {
+          return true;
+        }
+        // Base64 length >= 5000 chars indicates a full UI screenshot
+        if (src.startsWith('data:image') && src.length >= 5000) {
+          return true;
+        }
+        return false;
       };
 
       const allImages = temp.querySelectorAll('img');
@@ -663,16 +679,10 @@
         const iconFlag = isExplicitIcon(alt, src);
         const screenshotFlag = isExplicitScreenshot(alt, src);
 
-        // Check if there is text in the SAME immediate block element (e.g. text in same <p> or <span>)
-        const parentClone = parent.cloneNode(true);
-        parentClone.querySelectorAll('img').forEach(i => i.remove());
-        const textInSameBlock = parentClone.textContent.trim();
-
-        // Standalone screenshot logic:
-        // If explicitly screenshot, OR if parent block has no text next to the image (e.g. <p><img/></p>) and it's not explicitly an icon
-        if (screenshotFlag || (!iconFlag && textInSameBlock.length === 0 && parent.tagName !== 'SPAN')) {
+        // Standalone screenshot logic: If identified as screenshot or not explicitly an icon
+        if (screenshotFlag || !iconFlag) {
           img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
-          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 32rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
+          img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 28rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
         } else {
           img.className = 'inline-doc-icon zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: inline-block !important; height: 1.35em !important; max-height: 1.35em !important; width: auto !important; vertical-align: -0.22em !important; margin: 0 0.25rem !important; border: none !important; box-shadow: none !important; background: transparent !important;');
