@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:20 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:35 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -419,9 +419,9 @@
       },
       openai: {
         name: 'OpenAI',
-        model: 'gpt-6.1-sol',
+        model: 'gpt-6-luna',
         placeholder: 'sk-proj-...',
-        hint: 'Modell: GPT-6.1 Sol (Kaskade: gpt-6.1-sol → gpt-4o-mini → gpt-4o → o3-mini)'
+        hint: 'Modell: GPT-6 Luna (Kaskade: gpt-6-luna → gpt-6.1-sol → gpt-4o-mini → gpt-4o)'
       },
       anthropic: {
         name: 'Anthropic Claude',
@@ -457,7 +457,9 @@
 
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
-      const lines = text.split('\n');
+      // Strip huge base64 data URIs from raw text to prevent token explosion
+      const sanitizedText = text.replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '[Bild-Daten]');
+      const lines = sanitizedText.split('\n');
       const filtered = lines.filter(line => {
         const trimmed = line.trim();
         if (!trimmed) return true;
@@ -846,7 +848,15 @@
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      const contextText = relevant.slice(0, 5).map((c, i) => `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${c.content}`).join('\n\n');
+      // Clean images and cap max size to ensure lean context (~1,500 tokens instead of 1.1 million)
+      const contextText = relevant.slice(0, 5).map((c, i) => {
+        const cleanContent = c.content
+          .replace(/!\[(.*?)\]\([^)]+\)/g, '[Abbildung: $1]')
+          .replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g, '')
+          .slice(0, 3000); // Safety limit per chunk
+        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${cleanContent}`;
+      }).join('\n\n');
+
       const systemPrompt = `Du bist das APTE-NG Online-Hilfesystem. Beantworte die Frage EXKLUSIV auf Basis des Kontextes. Wenn nicht auffindbar, antworte genau mit: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
@@ -872,10 +882,10 @@
 
             const endpointUrl = endpoints[provider];
             
-            // Kaskadierende Modellliste für OpenAI (aktive Modelle)
+            // Kaskadierende Modellliste für OpenAI (aktive & unterstützte Modelle)
             let modelsToTry = [config.model];
             if (provider === 'openai') {
-              modelsToTry = ['gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'o3-mini'];
+              modelsToTry = ['gpt-6-luna', 'gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
               modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
             }
 
