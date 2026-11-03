@@ -485,7 +485,7 @@
       const hasKey = savedApiKey.length > 3;
 
       if (selectedSearchMode === 'ai') {
-        if (modeAiBtn) modeAiBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-emerald-600 text-white font-extrabold shadow border border-emerald-700 cursor-pointer select-none";
+        if (modeAiBtn) modeAiBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-white text-emerald-700 font-extrabold shadow-sm border border-emerald-300 cursor-pointer select-none ring-1 ring-emerald-200/50";
         if (modeManualBtn) modeManualBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-300/50 cursor-pointer select-none font-medium";
 
         if (!hasKey) {
@@ -504,7 +504,7 @@
           if (sendBtn) sendBtn.disabled = false;
         }
       } else {
-        if (modeManualBtn) modeManualBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-white text-bordeaux font-extrabold shadow border border-slate-300 cursor-pointer select-none ring-1 ring-slate-200";
+        if (modeManualBtn) modeManualBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 bg-white text-bordeaux font-extrabold shadow-sm border border-slate-300 cursor-pointer select-none ring-1 ring-slate-200";
         if (modeAiBtn) modeAiBtn.className = "px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-300/50 cursor-pointer select-none font-medium";
 
         if (noApiKeyNotice) noApiKeyNotice.classList.add('hidden');
@@ -891,18 +891,35 @@
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      // Schlanker Kontext mit Bild-Referenzen für die KI
+      // Schlanker Kontext mit Unterscheidung zwischen Buttons/Icons und Screenshots
       const imageMap = {};
       let imageCounter = 1;
 
+      const isExplicitIcon = (alt = '', src = '') => {
+        const s = (alt + ' ' + src).toLowerCase();
+        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
+            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
+            s.includes('plus') || s.includes('stift')) {
+          return true;
+        }
+        if (src.startsWith('data:image') && src.length < 5000) {
+          return true;
+        }
+        return false;
+      };
+
       const contextText = relevant.slice(0, 5).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-          if (src.length > 100 || src.startsWith('data:image')) {
+          const cleanAlt = alt.trim() || 'Schaltfläche';
+          if (isExplicitIcon(alt, src)) {
+            // Wandelt Inline-Button-Icons für die KI in Text um
+            return `"${cleanAlt}"`;
+          } else if (src.length > 100 || src.startsWith('data:image')) {
             const refId = `img_ref_${imageCounter++}`;
             imageMap[refId] = src;
-            return `![${alt}](${refId})`;
+            return `![${cleanAlt}](${refId})`;
           }
-          return match;
+          return `"${cleanAlt}"`;
         });
 
         if (contentForAi.length > 3500) {
@@ -911,15 +928,17 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Kompakt, schrittbasiert, mit Einleitungssatz & Begrüßungs-Fähigkeit
+      // Optimierter Prompt: Dynamischer Einleitungssatz, reine Text-Buttons & klare Anleitungen
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System zu helfen.
 
 WICHTIGE VERHALTENSREGELN:
-1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit (z.B. "Hallo! Wie kann ich Ihnen heute bei APTE-NG helfen?").
-2. EINLEITUNGSSATZ: Beginne JEDE fachliche Antwort stets mit einem kurzen, freundlichen Einleitungssatz (z.B. "Gerne zeige ich Ihnen, wie Sie eine Datenansicht erstellen:" oder "Hier sind die nötigen Schritte:").
+1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
+2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet (z.B. "Um eine Datenansicht in APTE-NG zu erstellen, führen Sie folgende Schritte aus:", "Die Konfiguration der Abgabeperiode nehmen Sie wie folgt vor:"). Vermeide sture Standardfloskeln.
 3. KLARE HANDLUNGSSCHRITTE: Gib bei Anleitungen die konkreten Handlungsschritte (1., 2., 3.) übersichtlich an. Formuliere flüssig und natürlich im professionellen Sie-Ton.
-4. SCHALTFLÄCHEN & BILDER EINBINDEN: Binde ALLE im Kontext enthaltenen Button-Icons und Screenshots (im Format ![Alt-Text](img_ref_X)) an den exakt passenden Stellen in deinen Schritten ein.
+4. BUTTONS & SCREENSHOTS:
+   - Schaltflächen und Buttons schreibst du ausschließlich als fettgedruckten Text in Anführungszeichen (z.B. Klicken Sie auf **"Speichern"** oder wählen Sie **"Neuer Eintrag"**). Binde FÜR BUTTONS ODER ICONS KEINE BILDER EIN.
+   - Binde NUR wesentliche UI-Screenshots (im Format ![Alt-Text](img_ref_X)) ein, wenn diese im Kontext vorliegen.
 5. EXKLUSIVITÄT & FAKTEN: Stütze dich bei fachlichen Fragen exklusiv auf den bereitgestellten Handbuch-Kontext.
 6. UNKLARHEITEN: Falls eine fachliche Frage nicht beantwortet werden kann, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
 
