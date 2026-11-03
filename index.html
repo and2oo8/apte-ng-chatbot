@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 10:35 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 10:45 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -310,9 +310,15 @@
         <div>
           <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
           <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
-            <option value="gemini">Google Gemini (Flash)</option>
+            <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
+            <option value="openai">OpenAI (GPT-4o-mini)</option>
+            <option value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</option>
+            <option value="deepseek">DeepSeek (DeepSeek-V3)</option>
+            <option value="groq">Groq (Llama 3.3 70B)</option>
+            <option value="mistral">Mistral AI (Mistral Small)</option>
             <option value="melious">melious.ai</option>
           </select>
+          <p id="providerInfoHint" class="text-[10px] text-slate-500 mt-1 italic"></p>
         </div>
 
         <div>
@@ -404,6 +410,51 @@
     let isAdminAuthenticated = false;
     let selectedSearchMode = 'manual';
 
+    const PROVIDER_CONFIGS = {
+      gemini: {
+        name: 'Google Gemini',
+        model: 'gemini-3.8-flash',
+        placeholder: 'AIzaSy...',
+        hint: 'Modell: gemini-3.8-flash (schnell & verlässlich)'
+      },
+      openai: {
+        name: 'OpenAI',
+        model: 'gpt-4o-mini',
+        placeholder: 'sk-proj-...',
+        hint: 'Modell: GPT-4o-mini (hohe Antwortqualität)'
+      },
+      anthropic: {
+        name: 'Anthropic Claude',
+        model: 'claude-3-5-sonnet-20241022',
+        placeholder: 'sk-ant-api...',
+        hint: 'Modell: Claude 3.5 Sonnet'
+      },
+      deepseek: {
+        name: 'DeepSeek',
+        model: 'deepseek-chat',
+        placeholder: 'sk-...',
+        hint: 'Modell: DeepSeek-V3'
+      },
+      groq: {
+        name: 'Groq',
+        model: 'llama-3.3-70b-versatile',
+        placeholder: 'gsk_...',
+        hint: 'Modell: Llama 3.3 70B (sehr schnelle Inferenz)'
+      },
+      mistral: {
+        name: 'Mistral AI',
+        model: 'mistral-small-latest',
+        placeholder: '...',
+        hint: 'Modell: Mistral Small'
+      },
+      melious: {
+        name: 'melious.ai',
+        model: 'melious-default',
+        placeholder: 'sk-melious-...',
+        hint: 'Modell: melious.ai Plattform'
+      }
+    };
+
     function cleanBoilerplateText(text) {
       if (!text || typeof text !== 'string') return '';
       const lines = text.split('\n');
@@ -414,7 +465,10 @@
         if (/^Seite\s+\d+/i.test(trimmed) || /Seite\s+\d+\b/i.test(trimmed)) return false;
         if (/valucon\s+apps\s+GmbH/i.test(trimmed)) return false;
         if (/^APTE-NG$/i.test(trimmed)) return false;
-        if (/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben)\s+(?:\([^)]+\)\s+)?(?:[A-ZÄÖÜa-zäöüß\s]+)$/i.test(trimmed) && trimmed.length < 60) return false;
+        
+        // Strip markdown formatting (*, _, #) before checking running headers
+        const stripped = trimmed.replace(/[*_#]/g, '').trim();
+        if (/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben|Stipendiaten|Verwaltung)\s+(?:\([^)]+\)\s+)?(?:[A-ZÄÖÜa-zäöüß\s]+)$/i.test(stripped) && stripped.length < 70) return false;
         return true;
       });
       return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
@@ -467,13 +521,19 @@
       const selectedProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
       const hasKey = savedApiKey.length > 3;
       const apiKeyStatus = document.getElementById('apiKeyStatus');
-
       const providerSelect = document.getElementById('apiProviderSelect');
+      const keyInput = document.getElementById('geminiApiKeyInput');
+      const hintEl = document.getElementById('providerInfoHint');
+
+      const config = PROVIDER_CONFIGS[selectedProvider] || PROVIDER_CONFIGS.gemini;
+
       if (providerSelect) providerSelect.value = selectedProvider;
+      if (keyInput && !keyInput.value) keyInput.placeholder = config.placeholder;
+      if (hintEl) hintEl.textContent = config.hint;
 
       if (hasKey && apiKeyStatus) {
         apiKeyStatus.classList.remove('hidden');
-        apiKeyStatus.textContent = `✓ KI-Anbindung aktiv (${selectedProvider === 'melious' ? 'melious.ai' : 'Google Gemini'})`;
+        apiKeyStatus.textContent = `✓ KI-Anbindung aktiv (${config.name})`;
       } else if (apiKeyStatus) {
         apiKeyStatus.classList.add('hidden');
       }
@@ -791,64 +851,94 @@
 
       const apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
+      const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.gemini;
 
       if (apiKey) {
         try {
-          if (provider === 'melious') {
-            let response;
-            try {
-              response = await fetch(`https://api.melious.ai/v1/chat/completions`, {
-                method: 'POST',
-                mode: 'cors',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({ 
-                  model: 'melious-default',
-                  messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userQuery }
-                  ]
-                })
-              });
-            } catch (corsErr) {
-              const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(`https://api.melious.ai/v1/chat/completions`);
-              response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({ 
-                  model: 'melious-default',
-                  messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userQuery }
-                  ]
-                })
-              });
-            }
+          let response;
+          let replyText = '';
+
+          // 1. OpenAI / DeepSeek / Groq / Mistral / Melious (OpenAI-Kompatibel)
+          if (['openai', 'deepseek', 'groq', 'mistral', 'melious'].includes(provider)) {
+            const endpoints = {
+              openai: 'https://api.openai.com/v1/chat/completions',
+              deepseek: 'https://api.deepseek.com/chat/completions',
+              groq: 'https://api.groq.com/openai/v1/chat/completions',
+              mistral: 'https://api.mistral.ai/v1/chat/completions',
+              melious: 'https://api.melious.ai/v1/chat/completions'
+            };
+
+            const endpointUrl = endpoints[provider];
+            response = await fetch(endpointUrl, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify({ 
+                model: config.model,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userQuery }
+                ]
+              })
+            });
 
             if (response && response.ok) {
-              const data = await response.json();
-              let reply = data.choices?.[0]?.message?.content;
-              if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
+              const contentType = response.headers.get('content-type') || '';
+              if (contentType.includes('application/json')) {
+                const data = await response.json();
+                replyText = data.choices?.[0]?.message?.content || '';
+              }
             }
-          } else {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+          } 
+          // 2. Anthropic Claude API
+          else if (provider === 'anthropic') {
+            response = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: config.model,
+                max_tokens: 1024,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userQuery }]
+              })
+            });
+
+            if (response && response.ok) {
+              const contentType = response.headers.get('content-type') || '';
+              if (contentType.includes('application/json')) {
+                const data = await response.json();
+                replyText = data.content?.[0]?.text || '';
+              }
+            }
+          } 
+          // 3. Google Gemini API (gemini-3.8-flash)
+          else {
+            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
             });
-            if (response.ok) {
-              const data = await response.json();
-              let reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (reply && reply.trim().length > 0) return { text: postProcessResponse(reply), mode: 'ai' };
+
+            if (response && response.ok) {
+              const contentType = response.headers.get('content-type') || '';
+              if (contentType.includes('application/json')) {
+                const data = await response.json();
+                replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              }
             }
           }
+
+          if (replyText && replyText.trim().length > 0) {
+            return { text: postProcessResponse(replyText), mode: 'ai' };
+          }
         } catch (e) {
-          console.warn("API request encountered CORS/Network restriction. Falling back to structured manual handbook search.");
+          console.warn(`API-Anfrage an ${config.name} fehlgeschlagen. Umschalten auf Handbuch-Suche:`, e);
         }
       }
 
@@ -921,8 +1011,8 @@
         let badgeHtml = '';
         if (mode === 'ai') {
           const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
-          const providerName = activeProvider === 'melious' ? 'melious.ai (OpenAI-kompatibel)' : 'Google Gemini';
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none"><span>Antwort via KI (${providerName})</span></div>`;
+          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.gemini;
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none"><span>Antwort via KI (${config.name})</span></div>`;
         } else if (mode === 'selection') {
           badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche: Themenauswahl</span></div>`;
         } else {
@@ -1025,6 +1115,16 @@
       const savedApiKey = localStorage.getItem('APTE_API_KEY') || localStorage.getItem('APTE_GEMINI_KEY');
       if (savedApiKey) document.getElementById('geminiApiKeyInput').value = savedApiKey;
       updateEngineStatusUI();
+
+      document.getElementById('apiProviderSelect')?.addEventListener('change', (e) => {
+        const selected = e.target.value;
+        const config = PROVIDER_CONFIGS[selected] || PROVIDER_CONFIGS.gemini;
+        const input = document.getElementById('geminiApiKeyInput');
+        const hint = document.getElementById('providerInfoHint');
+        
+        if (input) input.placeholder = config.placeholder;
+        if (hint) hint.textContent = config.hint;
+      });
 
       document.getElementById('modeAiBtn')?.addEventListener('click', () => { selectedSearchMode = 'ai'; updateSearchModeUI(); });
       document.getElementById('modeManualBtn')?.addEventListener('click', () => { selectedSearchMode = 'manual'; updateSearchModeUI(); });
