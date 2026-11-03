@@ -278,7 +278,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:15 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 03.11.2026 - 11:20 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -421,7 +421,7 @@
         name: 'OpenAI',
         model: 'gpt-6.1-sol',
         placeholder: 'sk-proj-...',
-        hint: 'Modell: GPT-6.1 Sol (Kaskade: gpt-6.1-sol → gpt-4o-mini → gpt-4o → gpt-4-turbo → gpt-3.5-turbo)'
+        hint: 'Modell: GPT-6.1 Sol (Kaskade: gpt-6.1-sol → gpt-4o-mini → gpt-4o → o3-mini)'
       },
       anthropic: {
         name: 'Anthropic Claude',
@@ -872,10 +872,10 @@
 
             const endpointUrl = endpoints[provider];
             
-            // Kaskadierende Modellliste für OpenAI (gpt-6.1-sol als primäres Modell)
+            // Kaskadierende Modellliste für OpenAI (aktive Modelle)
             let modelsToTry = [config.model];
             if (provider === 'openai') {
-              modelsToTry = ['gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
+              modelsToTry = ['gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'o3-mini'];
               modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
             }
 
@@ -899,7 +899,12 @@
                 });
 
                 if (response.status === 429) {
-                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit / Guthaben erschöpft (HTTP 429).`;
+                  let errDetail = '';
+                  try {
+                    const errData = await response.json();
+                    errDetail = errData.error?.message || errData.message || '';
+                  } catch(e) {}
+                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit / Guthaben erschöpft (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
                   break; // Rate-Limit gilt für den ganzen Key, kein Kaskadieren nötig
                 } else if (response.ok) {
                   const contentType = response.headers.get('content-type') || '';
@@ -917,6 +922,7 @@
                     const errData = await response.json();
                     errDetail = errData.error?.message || errData.message || '';
                   } catch(e) {}
+                  console.warn(`OpenAI Modell ${currentModel} nicht verfügbar (HTTP ${response.status}):`, errDetail);
                   lastErrorDetail = `${currentModel} (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
                   errorMessage = `Anbieter ${config.name} Modell-Kaskade fehlgeschlagen. Letzter Versuch: ${lastErrorDetail}`;
                 }
