@@ -560,6 +560,39 @@
       marked.setOptions({ renderer });
     }
 
+    // Helper functions in global scope for both processDocImages and getAIResponse
+    function isExplicitIcon(alt = '', src = '') {
+      const s = (alt + ' ' + src).toLowerCase();
+      if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
+          s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
+          s.includes('plus') || s.includes('stift') || s.includes('löschen') || s.includes('pfeil')) {
+        return true;
+      }
+      if (src.startsWith('data:image') && src.length < 5000) {
+        return true;
+      }
+      return false;
+    }
+
+    function isExplicitScreenshot(alt = '', src = '') {
+      const s = (alt + ' ' + src).toLowerCase();
+      if (s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
+          s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
+          s.includes('screen') || s.includes('formular') || s.includes('maske') || 
+          s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
+          s.includes('bereich') || s.includes('view') || s.includes('img_ref') ||
+          s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt')) {
+        return true;
+      }
+      if (src.startsWith('data:image') && src.length >= 5000) {
+        return true;
+      }
+      if (!src.startsWith('data:image') && src.length > 3) {
+        return true;
+      }
+      return false;
+    }
+
     // 1. Pre-Processing: Safe inline icon placement inside Markdown
     function sanitizeMarkdownImages(mdText) {
       if (!mdText || typeof mdText !== 'string') return '';
@@ -634,42 +667,6 @@
       const temp = document.createElement('div');
       temp.innerHTML = htmlString;
 
-      const isExplicitIcon = (alt = '', src = '') => {
-        const s = (alt + ' ' + src).toLowerCase();
-        // Explicit button/icon keywords
-        if (s.includes('btn') || s.includes('button') || s.includes('icon') || 
-            s.includes('schalter') || s.includes('symbol') || s.includes('verwendbar') || 
-            s.includes('plus') || s.includes('stift') || s.includes('löschen') || s.includes('pfeil')) {
-          return true;
-        }
-        // Small base64 length check (under 5000 chars is a small icon asset)
-        if (src.startsWith('data:image') && src.length < 5000) {
-          return true;
-        }
-        return false;
-      };
-
-      const isExplicitScreenshot = (alt = '', src = '') => {
-        const s = (alt + ' ' + src).toLowerCase();
-        if (s.includes('screenshot') || s.includes('übersicht') || s.includes('ansicht') || 
-            s.includes('dialog') || s.includes('fenster') || s.includes('abbildung') || 
-            s.includes('screen') || s.includes('formular') || s.includes('maske') || 
-            s.includes('seite') || s.includes('modal') || s.includes('standardlabel') ||
-            s.includes('bereich') || s.includes('view') || s.includes('img_ref') ||
-            s.includes('akten') || s.includes('stipendiat') || s.includes('details') || s.includes('kontakt')) {
-          return true;
-        }
-        // Base64 length >= 5000 chars indicates a full UI screenshot
-        if (src.startsWith('data:image') && src.length >= 5000) {
-          return true;
-        }
-        // Relative file paths
-        if (!src.startsWith('data:image') && src.length > 3) {
-          return true;
-        }
-        return false;
-      };
-
       const allImages = temp.querySelectorAll('img');
       allImages.forEach(img => {
         img.classList.add('zoomable-img', 'cursor-zoom-in');
@@ -684,7 +681,7 @@
         const iconFlag = isExplicitIcon(alt, src);
         const screenshotFlag = isExplicitScreenshot(alt, src);
 
-        // Standalone screenshot logic: If identified as screenshot or not explicitly an icon
+        // Standalone screenshot logic
         if (screenshotFlag || !iconFlag) {
           img.className = 'standalone-screenshot zoomable-img cursor-zoom-in';
           img.setAttribute('style', 'display: block !important; max-width: 100% !important; max-height: 28rem !important; width: auto !important; height: auto !important; margin: 0.75rem 0 !important; border-radius: 0.5rem !important; border: 1px solid #cbd5e1 !important; box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06) !important; background-color: #ffffff !important; padding: 0.25rem !important;');
@@ -944,6 +941,7 @@ WICHTIGE VERHALTENSREGELN:
           let replyText = '';
           let errorMessage = '';
           let usedModelName = '';
+          let usageInfo = '';
 
           // 1. OpenAI / DeepSeek / Groq / Mistral / Melious (OpenAI-Kompatibel)
           if (['openai', 'deepseek', 'groq', 'mistral', 'melious'].includes(provider)) {
@@ -995,6 +993,9 @@ WICHTIGE VERHALTENSREGELN:
                   if (contentType.includes('application/json')) {
                     const data = await response.json();
                     replyText = data.choices?.[0]?.message?.content || '';
+                    if (data.usage) {
+                      usageInfo = `${data.usage.total_tokens.toLocaleString('de-DE')} Tokens (In: ${data.usage.prompt_tokens.toLocaleString('de-DE')} | Out: ${data.usage.completion_tokens.toLocaleString('de-DE')})`;
+                    }
                     if (replyText) {
                       usedModelName = currentModel;
                       errorMessage = '';
@@ -1016,71 +1017,6 @@ WICHTIGE VERHALTENSREGELN:
                 errorMessage = `Anbieter ${config.name} Fehler: ${lastErrorDetail}`;
               }
             }
-          } 
-          // 2. Anthropic Claude API
-          else if (provider === 'anthropic') {
-            response = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01'
-              },
-              body: JSON.stringify({
-                model: config.model,
-                max_tokens: 1536,
-                system: systemPrompt,
-                messages: [{ role: 'user', content: userQuery }]
-              })
-            });
-
-            if (response) {
-              if (response.status === 429) {
-                errorMessage = `Anbieter Anthropic meldet Rate-Limit (HTTP 429).`;
-              } else if (response.ok) {
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                  const data = await response.json();
-                  replyText = data.content?.[0]?.text || '';
-                  usedModelName = config.model;
-                }
-              } else {
-                let errDetail = '';
-                try {
-                  const errData = await response.json();
-                  errDetail = errData.error?.message || errData.message || '';
-                } catch(e) {}
-                errorMessage = `Anbieter Anthropic meldet Fehler (HTTP ${response.status})${errDetail ? ': ' + errDetail : ''}`;
-              }
-            }
-          } 
-          // 3. Google Gemini API (gemini-3.8-flash)
-          else {
-            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } })
-            });
-
-            if (response) {
-              if (response.status === 429) {
-                errorMessage = `Google Gemini API meldet Rate-Limit (HTTP 429).`;
-              } else if (response.ok) {
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                  const data = await response.json();
-                  replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                  usedModelName = config.model;
-                }
-              } else {
-                let errDetail = '';
-                try {
-                  const errData = await response.json();
-                  errDetail = errData.error?.message || errData.message || '';
-                } catch(e) {}
-                errorMessage = `Google Gemini API meldet Fehler (HTTP ${response.status})${errDetail ? ': ' + errDetail : ''}`;
-              }
-            }
           }
 
           if (replyText && replyText.trim().length > 0) {
@@ -1100,7 +1036,7 @@ WICHTIGE VERHALTENSREGELN:
               processedText += relatedHtml;
             }
 
-            return { text: processedText, mode: 'ai', usedModel: usedModelName || config.model };
+            return { text: processedText, mode: 'ai', usedModel: usedModelName || config.model, tokenUsage: usageInfo };
           }
 
           if (errorMessage) {
@@ -1159,12 +1095,12 @@ WICHTIGE VERHALTENSREGELN:
         if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
       } else {
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
-        if (title) title.textContent = "Keine Handbuch-Dateien gefunden";
-        if (subtitle) subtitle.textContent = "Bitte Handbuch im Admin-Bereich indizieren";
-        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: 0 Chunks`;
+        if (title) title.textContent = "Keine Anleitung geladen";
+        if (subtitle) subtitle.textContent = "Bitte Markdown im Admin-Menü einfügen";
       }
     }
-    function appendMessage(role, content, mode = 'fallback', originalQuery = '', usedModel = '') {
+
+    function appendMessage(role, content, mode = 'fallback', originalQuery = '', usedModel = '', tokenUsage = '') {
       const container = document.getElementById('messagesContainer');
       if (!container) return;
 
@@ -1201,6 +1137,10 @@ WICHTIGE VERHALTENSREGELN:
     🔄 Passt nicht? Hier 3 weitere Themenvorschläge aus dem Handbuch anzeigen...
   </button>
 </div>`;
+        }
+
+        if (mode === 'ai' && tokenUsage) {
+          cleanedContent += `\n\n<div class="text-[10px] text-slate-400 font-mono text-right mt-3 pt-2 border-t border-slate-100 select-none opacity-80">⚡ ${tokenUsage}</div>`;
         }
         
         const contentBox = document.createElement('div');
@@ -1269,8 +1209,9 @@ WICHTIGE VERHALTENSREGELN:
 
       try {
         const responseObj = await getAIResponse(text);
-        appendMessage('assistant', responseObj.text, responseObj.mode, text, responseObj.usedModel);
+        appendMessage('assistant', responseObj.text, responseObj.mode, text, responseObj.usedModel, responseObj.tokenUsage);
       } catch (err) {
+        console.error('Anfragefehler:', err);
         appendMessage('assistant', 'Es ist ein Fehler aufgetreten.', 'fallback', text);
       } finally {
         if (indicator) indicator.classList.add('hidden');
