@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:50 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 14:05 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -422,6 +422,8 @@
     let isAdminAuthenticated = false;
     let selectedSearchMode = 'ai'; // Default auf KI-Antworten gesetzt
     let chatHistory = []; // Konversations-Gedächtnis für Kontextsuche & KI-Verlauf
+    let globalImageRegistry = {}; // Speichert Base64-Bilder separat außerhalb der LLM-Prompts
+    let globalImageCounter = 1;
 
     const PROVIDER_CONFIGS = {
       gemini: {
@@ -588,11 +590,33 @@
       return temp.innerHTML;
     }
 
+    // Re-Hydrierung: Ersetzt Bild-Referenzen vor der HTML-Ausgabe durch echte Base64-URLs
+    function rehydrateImages(text) {
+      if (!text || typeof text !== 'string') return text || '';
+      return text.replace(/img_ref_\d+/g, (match) => {
+        if (globalImageRegistry[match]) {
+          return globalImageRegistry[match].src;
+        }
+        return match;
+      });
+    }
+
     function parseMarkdownToChunks(text, sourceName) {
       if (!text || typeof text !== 'string') return [];
       if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) return [];
       
-      const cleanedRaw = cleanBoilerplateText(text);
+      // Base64-Bilddaten VOR dem Chunking in globalImageRegistry auslagern (Token-Ersparnis >99%)
+      let preprocessedText = text.replace(/!\[([^\]]*)\]\((data:image\/[^;]+;base64,[^)]+)\)/gi, (match, alt, base64Url) => {
+        const refId = `img_ref_${globalImageCounter++}`;
+        globalImageRegistry[refId] = { src: base64Url, alt: alt.trim() || 'Handbuch Screenshot' };
+        return `![${alt.trim() || 'Handbuch Screenshot'}](${refId})`;
+      }).replace(/<img[^>]+src=["'](data:image\/[^;]+;base64,[^"']+)["'][^>]*>/gi, (match, base64Url) => {
+        const refId = `img_ref_${globalImageCounter++}`;
+        globalImageRegistry[refId] = { src: base64Url, alt: 'Handbuch Screenshot' };
+        return `![Handbuch Screenshot](${refId})`;
+      });
+
+      const cleanedRaw = cleanBoilerplateText(preprocessedText);
       const lines = cleanedRaw.split('\n');
       const chunks = [];
       let currentHeading = 'Allgemein';
@@ -600,30 +624,21 @@
       let currentContent = [];
       let headingStack = [];
 
-      const genericSubheadings = /^(vorgehensweise|vorgehen|anleitung|schritte|hinweise|ergebnis|beispiel|beispiele|details|optionen|voraussetzungen|schritt-für-schritt)$/i;
-      // Nur echte FAQ-Dateien als FAQ verarbeiten, Leitfäden als zusammenhängende Dokumente parsen
       const isFaqSource = /\bfaq/i.test(sourceName);
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
-        // Extrakt für FAQ & Q&A Listen (z.B. "Q:", "Frage:", "**Frage:**", "1. Frage")
+        const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         const faqMatch = isFaqSource && line.match(/^[-*]?\s*(?:\*\*|\#\#?\s*)?(?:Q|Frage|\d+\.)[:\s]+([^*#\n]+)/i);
 
         if (headingMatch || faqMatch) {
           const level = headingMatch ? headingMatch[1].length : 3;
           const titleText = headingMatch ? headingMatch[2].replace(/[*_]/g, '').trim() : faqMatch[1].replace(/[*_]/g, '').trim();
 
-          const isSubtitle = /^\(.*\)$/.test(titleText);
-          if (!isFaqSource && (level >= 3 || isSubtitle || genericSubheadings.test(titleText))) {
-            currentContent.push(`\n**${titleText}**\n`);
-            continue;
-          }
-
           if (currentContent.length > 0) {
             const bodyText = cleanBoilerplateText(currentContent.join('\n'));
             const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-            if (bodyText.length > 15 && !isTOC) {
+            if (bodyText.length > 10 && !isTOC) {
               chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
             }
             currentContent = [];
@@ -641,19 +656,8 @@
       if (currentContent.length > 0) {
         const bodyText = cleanBoilerplateText(currentContent.join('\n'));
         const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-        if (bodyText.length > 15 && !isTOC) {
+        if (bodyText.length > 10 && !isTOC) {
           chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
-        }
-      }
-
-      // Zusammenführung von zusammengehörigen Abschnitten bei Leitfäden & Handbuchkapiteln
-      if (!isFaqSource) {
-        for (let j = 0; j < chunks.length - 1; j++) {
-          const c = chunks[j];
-          const nextC = chunks[j + 1];
-          if (c.source === nextC.source && c.content.length < 900) {
-            c.content += '\n\n### ' + nextC.title + '\n\n' + nextC.content;
-          }
         }
       }
 
@@ -786,23 +790,19 @@
         .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG)[^.\n]+[.\n]+/i, '')
         .trim();
 
+      // Automatisches Re-Hydrieren aller Bild-Referenzen
+      cleaned = rehydrateImages(cleaned);
+
+      // Falls die KI im Text keinen Bild-Tag gesetzt hat, das Hauptbild aus dem Handbuch-Kontext anhängen
       if (imageMap && Object.keys(imageMap).length > 0) {
-        // Sort keys descending by length so img_ref_10 is replaced before img_ref_1
-        const sortedRefs = Object.keys(imageMap).sort((a, b) => b.length - a.length);
-
-        sortedRefs.forEach(refId => {
-          const imgObj = imageMap[refId];
-          const realSrc = (typeof imgObj === 'object' && imgObj !== null) ? imgObj.src : imgObj;
-          const realAlt = (typeof imgObj === 'object' && imgObj !== null) ? (imgObj.alt || 'Handbuch Screenshot') : 'Handbuch Screenshot';
-
-          // 1. Erst Markdown-Bild-Syntax ersetzen: ![Alt](img_ref_X)
-          const mdImgRegex = new RegExp('!\\[([^\\]]*)\\]\\(' + refId + '\\)', 'g');
-          cleaned = cleaned.replace(mdImgRegex, (m, alt) => `![${alt || realAlt}](${realSrc})`);
-
-          // 2. Freistehende Ref-Tags ersetzen
-          const bareRegex = new RegExp('\\b' + refId + '\\b', 'g');
-          cleaned = cleaned.replace(bareRegex, `![${realAlt}](${realSrc})`);
-        });
+        const hasImage = /!\[|<img/i.test(cleaned);
+        if (!hasImage) {
+          const firstRef = Object.keys(imageMap)[0];
+          if (firstRef && globalImageRegistry[firstRef]) {
+            const imgObj = globalImageRegistry[firstRef];
+            cleaned += `\n\n![${imgObj.alt || 'Handbuch Screenshot'}](${imgObj.src})`;
+          }
+        }
       }
 
       return cleaned;
@@ -879,20 +879,22 @@
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
       
-      // Schlanker Kontext mit Unterscheidung zwischen Buttons/Icons und Screenshots
+      // Schlanker Kontext ohne Base64-Ballast
       const imageMap = {};
-      let imageCounter = 1;
 
       const contextText = relevant.slice(0, 8).map((c, i) => {
-        let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
-          const cleanAlt = alt.trim() || 'Handbuch Screenshot';
-          const refId = `img_ref_${imageCounter++}`;
-          imageMap[refId] = { src: src, alt: cleanAlt };
-          return `![${cleanAlt}](${refId})`;
+        let contentForAi = c.content;
+
+        // Bild-Referenzen für die spätere Darstellung erfassen
+        const imgMatches = contentForAi.match(/img_ref_\d+/g) || [];
+        imgMatches.forEach(refId => {
+          if (globalImageRegistry[refId]) {
+            imageMap[refId] = globalImageRegistry[refId];
+          }
         });
 
-        if (contentForAi.length > 4000) {
-          contentForAi = contentForAi.slice(0, 4000);
+        if (contentForAi.length > 3000) {
+          contentForAi = contentForAi.slice(0, 3000);
         }
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path} (${c.source || 'Handbuch'})]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
@@ -929,34 +931,50 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let usedModelName = '';
           let usageInfo = '';
 
-          // Nachrichtenverlauf für die KI zusammenstellen
-          const apiMessages = [{ role: 'system', content: systemPrompt }];
-          chatHistory.slice(-4).forEach(msg => {
-            apiMessages.push({
-              role: msg.role === 'user' ? 'user' : 'assistant',
-              content: msg.content
-            });
-          });
-          apiMessages.push({ role: 'user', content: userQuery });
-
-          // 1. OpenAI / DeepSeek / Groq / Mistral / Melious (OpenAI-Kompatibel)
-          if (['openai', 'deepseek', 'groq', 'mistral', 'melious'].includes(provider)) {
-            const endpoints = {
-              openai: 'https://api.openai.com/v1/chat/completions',
-              deepseek: 'https://api.deepseek.com/chat/completions',
-              groq: 'https://api.groq.com/openai/v1/chat/completions',
-              mistral: 'https://api.mistral.ai/v1/chat/completions',
-              melious: 'https://api.melious.ai/v1/chat/completions'
+          if (provider === 'gemini') {
+            const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`;
+            const apiPayload = {
+              contents: [{
+                parts: [
+                  { text: systemPrompt },
+                  { text: `Benutzeranfrage: ${userQuery}` }
+                ]
+              }]
             };
 
-            const endpointUrl = endpoints[provider];
-            
-            let modelsToTry = [config.model];
-            if (provider === 'openai') {
-              modelsToTry = ['gpt-6-luna', 'gpt-6.1-sol', config.model, 'gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'o1-mini'];
-              modelsToTry = [...new Set(modelsToTry.filter(Boolean))];
-            }
+            response = await fetch(endpointUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(apiPayload)
+            });
 
+            if (response.status === 429) {
+              errorMessage = `Google Gemini (${config.model}) meldet Rate-Limit (HTTP 429).`;
+            } else if (response.ok) {
+              const data = await response.json();
+              replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (data.usageMetadata) {
+                usageInfo = `${(data.usageMetadata.totalTokenCount || 0).toLocaleString('de-DE')} Tokens (In: ${(data.usageMetadata.promptTokenCount || 0).toLocaleString('de-DE')} | Out: ${(data.usageMetadata.candidatesTokenCount || 0).toLocaleString('de-DE')})`;
+              }
+              usedModelName = config.model;
+            } else {
+              let errDetail = '';
+              try {
+                const errData = await response.json();
+                errDetail = errData.error?.message || '';
+              } catch(e) {}
+              errorMessage = `Google Gemini Fehler (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
+            }
+          } else {
+            // OpenAI / Anthropic / Groq / DeepSeek / Mistral / Melious API Integration
+            let endpointUrl = 'https://api.openai.com/v1/chat/completions';
+            if (provider === 'anthropic') endpointUrl = 'https://api.anthropic.com/v1/messages';
+            else if (provider === 'deepseek') endpointUrl = 'https://api.deepseek.com/chat/completions';
+            else if (provider === 'groq') endpointUrl = 'https://api.groq.com/openai/v1/chat/completions';
+            else if (provider === 'mistral') endpointUrl = 'https://api.mistral.ai/v1/chat/completions';
+            else if (provider === 'melious') endpointUrl = 'https://api.melious.ai/v1/chat/completions';
+
+            const modelsToTry = [config.model, 'gpt-4o-mini', 'gpt-4o', 'llama-3.3-70b-versatile', 'claude-3-5-sonnet-20241022'];
             let lastErrorDetail = '';
 
             for (const currentModel of modelsToTry) {
@@ -969,7 +987,10 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
                   },
                   body: JSON.stringify({ 
                     model: currentModel,
-                    messages: apiMessages
+                    messages: [
+                      { role: 'system', content: systemPrompt },
+                      { role: 'user', content: userQuery }
+                    ]
                   })
                 });
 
@@ -979,7 +1000,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
                     const errData = await response.json();
                     errDetail = errData.error?.message || errData.message || '';
                   } catch(e) {}
-                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit / Guthaben erschöpft (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
+                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
                   break;
                 } else if (response.ok) {
                   const contentType = response.headers.get('content-type') || '';
@@ -1001,9 +1022,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
                     const errData = await response.json();
                     errDetail = errData.error?.message || errData.message || '';
                   } catch(e) {}
-                  console.warn(`OpenAI Modell ${currentModel} nicht verfügbar (HTTP ${response.status}):`, errDetail);
                   lastErrorDetail = `${currentModel} (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
-                  errorMessage = `Anbieter ${config.name} Modell-Kaskade fehlgeschlagen. Letzter Versuch: ${lastErrorDetail}`;
+                  errorMessage = `Anbieter ${config.name} Fehler: ${lastErrorDetail}`;
                 }
               } catch (fetchErr) {
                 lastErrorDetail = `${currentModel} (${fetchErr.message || fetchErr})`;
@@ -1014,7 +1034,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 
           if (replyText && replyText.trim().length > 0) {
             let processedText = postProcessResponse(replyText, imageMap);
-
             return { text: processedText, mode: 'ai', usedModel: usedModelName || config.model, tokenUsage: usageInfo };
           }
 
@@ -1027,7 +1046,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
             };
           }
         } catch (e) {
-          console.warn(`API-Anfrage an ${config.name} fehlgeschlagen. Umschalten auf Handbuch-Suche:`, e);
+          console.warn(`API-Anfrage fehlgeschlagen:`, e);
         }
       }
 
@@ -1057,6 +1076,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 
       let loadedChunks = [];
       let loadedFileNames = [];
+      globalImageRegistry = {}; // Bildspeicher beim Laden zurücksetzen
+      globalImageCounter = 1;
 
       // 1. Haupt-Handbuchdateien laden
       for (const pair of filePairs) {
@@ -1151,6 +1172,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         }
 
         let cleanedContent = cleanBoilerplateText(content);
+        cleanedContent = rehydrateImages(cleanedContent);
+
         if (mode === 'fallback' && originalQuery) {
           cleanedContent += `\n\n---
 <div class="mt-4 pt-3 border-t border-slate-200 text-center">
@@ -1171,37 +1194,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        // Sanfter schrittweiser Aufbau (Progressive Reveal) für ALLE Modi (inklusive KI-Antworten)
         let rawHtml = (mode === 'selection') 
           ? cleanedContent 
           : (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
 
         rawHtml = processDocImages(rawHtml);
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = rawHtml;
-        const childNodes = Array.from(tempDiv.childNodes);
-        contentBox.innerHTML = '';
-
-        let index = 0;
-        const revealTimer = setInterval(() => {
-          if (index < childNodes.length) {
-            const node = childNodes[index].cloneNode(true);
-            if (node.nodeType === 1) {
-              node.style.opacity = '0';
-              node.style.transition = 'opacity 0.2s ease-out';
-              contentBox.appendChild(node);
-              requestAnimationFrame(() => { node.style.opacity = '1'; });
-            } else {
-              contentBox.appendChild(node);
-            }
-            index++;
-            scrollToBottom();
-          } else {
-            clearInterval(revealTimer);
-            scrollToBottom();
-          }
-        }, 50);
+        contentBox.innerHTML = rawHtml;
+        scrollToBottom();
       }
     }
 
