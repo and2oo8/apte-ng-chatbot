@@ -1195,10 +1195,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         container.appendChild(msgDiv);
 
         if (mode === 'ai') {
-          // Streaming Typewriter Effekt: Schreibt Wort für Wort und scrollt flüssig mit dem Text mit
+          // Streaming Typewriter Effekt mit gezieltem Scroll-Verhalten (Frage in Screen-Mitte, Antwort füllt bis Eingabefeld)
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
+
+          // Zu Beginn der Antwort einmalig so scrollen, dass die Frage in der oberen/mittleren Ansicht steht
+          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
           function typeNextWord() {
             if (wordIdx < words.length) {
@@ -1209,13 +1212,16 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              // Während des Schreibens kontinuierlich ans Ende der Nachricht scrollen, damit die Ansicht mitwandert
-              msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+              // Während des Aufbaus nur sanft scrollen, wenn das untere Ende der Antwort sich dem Eingabefeld nähert
+              const rect = innerDiv.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+              if (rect.bottom > containerRect.bottom - 120) {
+                container.scrollBy({ top: 40, behavior: 'smooth' });
+              }
 
               setTimeout(typeNextWord, 12);
             } else {
-              // Am Ende final nach unten ausrichten
-              msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+              // Finaler Stopp: Automatisch stoppen, User scrollt ab hier selbst
             }
           }
           typeNextWord();
@@ -1223,7 +1229,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
-          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
     }
