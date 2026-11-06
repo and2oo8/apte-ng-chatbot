@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:05 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:10 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1200,7 +1200,10 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
 
-          // Zu Beginn der Antwort die Frage-Bubble an den oberen Rand scrollen
+          // Temporären Scrollraum unten schaffen (70vh), damit die Frage exakt bis an die obere Kante wandern kann
+          container.style.paddingBottom = '70vh';
+
+          // Zu Beginn der Antwort die Frage-Bubble direkt an die obere Kante scrollen
           const prevMsg = msgDiv.previousElementSibling;
           if (prevMsg) {
             prevMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1217,11 +1220,27 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
+              // Sanftes Mitscrollen nur dann, wenn der generierte Text die Unterkante vor der Eingabeleiste erreicht
+              const containerRect = container.getBoundingClientRect();
+              const msgRect = msgDiv.getBoundingClientRect();
+              const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+              if (isNearBottom && msgRect.bottom > containerRect.bottom - 60) {
+                container.scrollTop += (msgRect.bottom - (containerRect.bottom - 60));
+              }
+
               setTimeout(typeNextWord, 12);
+            } else {
+              // Nach Abschluss des Tippens temporären Scrollraum sauber zurücksetzen
+              setTimeout(() => {
+                container.style.paddingBottom = '';
+              }, 300);
             }
           }
           typeNextWord();
         } else {
+          // Für Auswahl- und Direktsuche-Modus ebenfalls ausreichend Scrollraum gewährleisten
+          container.style.paddingBottom = '70vh';
+
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
@@ -1232,6 +1251,10 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           } else {
             msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
+
+          setTimeout(() => {
+            container.style.paddingBottom = '';
+          }, 300);
         }
       }
     }
