@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 14:38 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 14:50 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1195,15 +1195,15 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         container.appendChild(msgDiv);
 
         if (mode === 'ai') {
-          // Streaming Typewriter Effekt mit gezieltem Scroll-Verhalten (Frage in Screen-Mitte, Antwort füllt bis Eingabefeld)
+          // Streaming Typewriter Effekt: Frage am oberen Rand positionieren für maximalen Platz darunter
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
 
-          // Zu Beginn der Antwort die Frage-Bubble in die Mitte des Bildschirms scrollen
+          // Zu Beginn der Antwort die Frage-Bubble an den oberen Rand scrollen
           const prevMsg = msgDiv.previousElementSibling;
           if (prevMsg) {
-            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
           } else {
             msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
@@ -1217,9 +1217,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              // Keinerlei automatisches Weiterscrollen während des Tippens:
-              // Die Frage bleibt zentriert fixiert, der Text füllt den Raum bis zum Eingabefeld.
-
               setTimeout(typeNextWord, 12);
             }
           }
@@ -1231,7 +1228,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           
           const prevMsg = msgDiv.previousElementSibling;
           if (prevMsg) {
-            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
           } else {
             msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
