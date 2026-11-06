@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 05.11.2026 - 13:59 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:00 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1020,7 +1020,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
       const chunkInfo = document.getElementById('chunkCountInfo');
 
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
-      if (title) title.textContent = "Lade Handbuch-Dateien...";
+      if (title) title.textContent = "Lade Wissensdatenbank...";
 
       const filePairs = [
         ['apte_ng_anleitung_teil_1.md', 'apte_ng_anleitung_teil_2.md'],
@@ -1028,9 +1028,12 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md']
       ];
 
+      const extraFiles = ['FAQs.md', 'Neue_Bewerbungsrunde.md'];
+
       let loadedChunks = [];
       let loadedFileNames = [];
 
+      // 1. Haupt-Handbuchdateien laden
       for (const pair of filePairs) {
         try {
           const responses = await Promise.all(pair.map(file => fetch(file)));
@@ -1039,8 +1042,23 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
             texts.forEach((text, idx) => {
               loadedChunks.push(...parseMarkdownToChunks(text, pair[idx]));
             });
-            loadedFileNames = pair;
+            loadedFileNames = [...pair];
             break;
+          }
+        } catch (err) {}
+      }
+
+      // 2. Zusätzliche Wissensdateien laden (FAQs.md, Neue_Bewerbungsrunde.md)
+      for (const extraFile of extraFiles) {
+        try {
+          const res = await fetch(extraFile);
+          if (res.ok) {
+            const text = await res.text();
+            const chunks = parseMarkdownToChunks(text, extraFile);
+            if (chunks.length > 0) {
+              loadedChunks.push(...chunks);
+              loadedFileNames.push(extraFile);
+            }
           }
         } catch (err) {}
       }
@@ -1048,12 +1066,12 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
       if (loadedChunks.length > 0) {
         indexedChunks = loadedChunks;
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
-        if (title) title.textContent = "Anleitung indiziert";
-        if (subtitle) subtitle.textContent = loadedFileNames.join(' & ');
-        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks`;
+        if (title) title.textContent = "Wissensdatenbank indiziert";
+        if (subtitle) subtitle.textContent = loadedFileNames.join(', ');
+        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Dateien)`;
       } else {
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
-        if (title) title.textContent = "Keine Anleitung geladen";
+        if (title) title.textContent = "Keine Dateien geladen";
         if (subtitle) subtitle.textContent = "Bitte Markdown im Admin-Menü einfügen";
       }
     }
