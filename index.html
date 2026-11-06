@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 14:05 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 14:38 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1200,8 +1200,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
 
-          // Zu Beginn der Antwort einmalig so scrollen, dass die Frage in der oberen/mittleren Ansicht steht
-          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Zu Beginn der Antwort die Frage-Bubble in die Mitte des Bildschirms scrollen
+          const prevMsg = msgDiv.previousElementSibling;
+          if (prevMsg) {
+            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
 
           function typeNextWord() {
             if (wordIdx < words.length) {
@@ -1212,16 +1217,10 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              // Während des Aufbaus nur sanft scrollen, wenn das untere Ende der Antwort sich dem Eingabefeld nähert
-              const rect = innerDiv.getBoundingClientRect();
-              const containerRect = container.getBoundingClientRect();
-              if (rect.bottom > containerRect.bottom - 120) {
-                container.scrollBy({ top: 40, behavior: 'smooth' });
-              }
+              // Keinerlei automatisches Weiterscrollen während des Tippens:
+              // Die Frage bleibt zentriert fixiert, der Text füllt den Raum bis zum Eingabefeld.
 
               setTimeout(typeNextWord, 12);
-            } else {
-              // Finaler Stopp: Automatisch stoppen, User scrollt ab hier selbst
             }
           }
           typeNextWord();
@@ -1229,7 +1228,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
-          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          const prevMsg = msgDiv.previousElementSibling;
+          if (prevMsg) {
+            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
       }
     }
