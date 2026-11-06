@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:10 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:15 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -790,20 +790,8 @@
         .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG)[^.\n]+[.\n]+/i, '')
         .trim();
 
-      // Automatisches Re-Hydrieren aller Bild-Referenzen
+      // Automatisches Re-Hydrieren aller Bild-Referenzen (nur wenn im KI-Text enthalten)
       cleaned = rehydrateImages(cleaned);
-
-      // Falls die KI im Text keinen Bild-Tag gesetzt hat, das Hauptbild aus dem Handbuch-Kontext anhängen
-      if (imageMap && Object.keys(imageMap).length > 0) {
-        const hasImage = /!\[|<img/i.test(cleaned);
-        if (!hasImage) {
-          const firstRef = Object.keys(imageMap)[0];
-          if (firstRef && globalImageRegistry[firstRef]) {
-            const imgObj = globalImageRegistry[firstRef];
-            cleaned += `\n\n![${imgObj.alt || 'Handbuch Screenshot'}](${imgObj.src})`;
-          }
-        }
-      }
 
       return cleaned;
     }
@@ -1203,13 +1191,10 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           // Temporären Scrollraum unten schaffen (70vh), damit die Frage exakt bis an die obere Kante wandern kann
           container.style.paddingBottom = '70vh';
 
-          // Zu Beginn der Antwort die Frage-Bubble direkt an die obere Kante scrollen
+          // Zu Beginn der Antwort die Frage-Bubble direkt und exakt an die obere Kante verankern
           const prevMsg = msgDiv.previousElementSibling;
-          if (prevMsg) {
-            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          const targetElement = prevMsg || msgDiv;
+          container.scrollTop = targetElement.offsetTop - 16;
 
           function typeNextWord() {
             if (wordIdx < words.length) {
@@ -1220,12 +1205,11 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              // Sanftes Mitscrollen nur dann, wenn der generierte Text die Unterkante vor der Eingabeleiste erreicht
+              // Sanftes Mitscrollen erst, wenn die Antwort unten an die Eingabeleiste stößt
               const containerRect = container.getBoundingClientRect();
               const msgRect = msgDiv.getBoundingClientRect();
-              const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-              if (isNearBottom && msgRect.bottom > containerRect.bottom - 60) {
-                container.scrollTop += (msgRect.bottom - (containerRect.bottom - 60));
+              if (msgRect.bottom > containerRect.bottom - 40) {
+                container.scrollTop += (msgRect.bottom - (containerRect.bottom - 40));
               }
 
               setTimeout(typeNextWord, 12);
@@ -1246,11 +1230,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           contentBox.innerHTML = rawHtml;
           
           const prevMsg = msgDiv.previousElementSibling;
-          if (prevMsg) {
-            prevMsg.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          const targetElement = prevMsg || msgDiv;
+          container.scrollTop = targetElement.offsetTop - 16;
 
           setTimeout(() => {
             container.style.paddingBottom = '';
