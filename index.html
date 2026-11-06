@@ -179,7 +179,7 @@
     <main class="flex-1 flex flex-col bg-white min-w-0 h-full relative">
 
       <!-- Messages Stream -->
-      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
+      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 relative">
         
         <!-- User-friendly Welcome Card -->
         <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:15 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:30 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1188,13 +1188,14 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
 
-          // Temporären Scrollraum unten schaffen (70vh), damit die Frage exakt bis an die obere Kante wandern kann
-          container.style.paddingBottom = '70vh';
-
-          // Zu Beginn der Antwort die Frage-Bubble direkt und exakt an die obere Kante verankern
+          // Zu Beginn der Antwort die Frage-Bubble direkt an der Oberkante des Chatfensters verankern
           const prevMsg = msgDiv.previousElementSibling;
           const targetElement = prevMsg || msgDiv;
-          container.scrollTop = targetElement.offsetTop - 16;
+          
+          const containerRect = container.getBoundingClientRect();
+          const targetRect = targetElement.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
+          container.scrollTop = Math.max(0, relativeTop - 16);
 
           function typeNextWord() {
             if (wordIdx < words.length) {
@@ -1205,37 +1206,22 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              // Sanftes Mitscrollen erst, wenn die Antwort unten an die Eingabeleiste stößt
-              const containerRect = container.getBoundingClientRect();
-              const msgRect = msgDiv.getBoundingClientRect();
-              if (msgRect.bottom > containerRect.bottom - 40) {
-                container.scrollTop += (msgRect.bottom - (containerRect.bottom - 40));
-              }
-
               setTimeout(typeNextWord, 12);
-            } else {
-              // Nach Abschluss des Tippens temporären Scrollraum sauber zurücksetzen
-              setTimeout(() => {
-                container.style.paddingBottom = '';
-              }, 300);
             }
           }
           typeNextWord();
         } else {
-          // Für Auswahl- und Direktsuche-Modus ebenfalls ausreichend Scrollraum gewährleisten
-          container.style.paddingBottom = '70vh';
-
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
           
           const prevMsg = msgDiv.previousElementSibling;
           const targetElement = prevMsg || msgDiv;
-          container.scrollTop = targetElement.offsetTop - 16;
-
-          setTimeout(() => {
-            container.style.paddingBottom = '';
-          }, 300);
+          
+          const containerRect = container.getBoundingClientRect();
+          const targetRect = targetElement.getBoundingClientRect();
+          const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
+          container.scrollTop = Math.max(0, relativeTop - 16);
         }
       }
     }
