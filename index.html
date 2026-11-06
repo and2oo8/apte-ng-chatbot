@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:42 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:50 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -352,19 +352,21 @@
 
       <!-- File Status -->
       <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Handbuch-Dateien</label>
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Wissensquellen & Dokumente</label>
         
-        <div id="mdFileStatusBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
-            <div class="min-w-0">
-              <p id="mdStatusTitle" class="font-bold text-slate-800 truncate">Prüfe Dateistatus...</p>
-              <p id="mdStatusSubtitle" class="text-[11px] text-slate-500 font-mono truncate">apte_ng_anleitung_teil_1.md & teil_2.md</p>
+        <div id="mdFileStatusBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+            <div class="flex items-center gap-2">
+              <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
+              <p id="mdStatusTitle" class="font-bold text-slate-800">Prüfe Dateistatus...</p>
             </div>
+            <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
+              Neu laden
+            </button>
           </div>
-          <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
-            Neu laden
-          </button>
+          <div id="mdStatusFileList" class="space-y-1.5 font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto pr-1">
+            <span class="text-slate-400 italic font-sans text-xs">Keine Dateien geladen</span>
+          </div>
         </div>
         <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
       </div>
@@ -599,7 +601,8 @@
       let headingStack = [];
 
       const genericSubheadings = /^(vorgehensweise|vorgehen|anleitung|schritte|hinweise|ergebnis|beispiel|beispiele|details|optionen|voraussetzungen|schritt-für-schritt)$/i;
-      const isFaqSource = /faq/i.test(sourceName) || /bewerbungsrunde/i.test(sourceName);
+      // Nur echte FAQ-Dateien als FAQ verarbeiten, Leitfäden als zusammenhängende Dokumente parsen
+      const isFaqSource = /\bfaq/i.test(sourceName);
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
@@ -611,7 +614,8 @@
           const level = headingMatch ? headingMatch[1].length : 3;
           const titleText = headingMatch ? headingMatch[2].replace(/[*_]/g, '').trim() : faqMatch[1].replace(/[*_]/g, '').trim();
 
-          if (!isFaqSource && (level >= 4 || genericSubheadings.test(titleText))) {
+          const isSubtitle = /^\(.*\)$/.test(titleText);
+          if (!isFaqSource && (level >= 3 || isSubtitle || genericSubheadings.test(titleText))) {
             currentContent.push(`\n**${titleText}**\n`);
             continue;
           }
@@ -642,14 +646,13 @@
         }
       }
 
-      // Zusammenführung von aufeinanderfolgenden Handlungsschritten NUR bei klassischen Handbuchkapiteln
+      // Zusammenführung von zusammengehörigen Abschnitten bei Leitfäden & Handbuchkapiteln
       if (!isFaqSource) {
         for (let j = 0; j < chunks.length - 1; j++) {
           const c = chunks[j];
           const nextC = chunks[j + 1];
-          const hasSteps = /1\.\s+/.test(c.content) || /vorgehensweise/i.test(c.content);
-          if (!hasSteps && (/1\.\s+/.test(nextC.content) || /vorgehensweise/i.test(nextC.content))) {
-            c.content += '\n\n' + nextC.content;
+          if (c.source === nextC.source && c.content.length < 900) {
+            c.content += '\n\n### ' + nextC.title + '\n\n' + nextC.content;
           }
         }
       }
@@ -880,7 +883,7 @@
       const imageMap = {};
       let imageCounter = 1;
 
-      const contextText = relevant.slice(0, 5).map((c, i) => {
+      const contextText = relevant.slice(0, 8).map((c, i) => {
         let contentForAi = c.content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, src) => {
           const cleanAlt = alt.trim() || 'Handbuch Screenshot';
           const refId = `img_ref_${imageCounter++}`;
@@ -891,7 +894,7 @@
         if (contentForAi.length > 4000) {
           contentForAi = contentForAi.slice(0, 4000);
         }
-        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path}]\nTitel: ${c.title}\n${contentForAi}`;
+        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path} (${c.source || 'Handbuch'})]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
       // Optimierter Prompt: Strikte Vollständigkeit, Synonym-Flexibilität & Kontext-Gedächtnis
@@ -1034,7 +1037,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
     async function loadMarkdownFiles() {
       const badge = document.getElementById('mdStatusBadge');
       const title = document.getElementById('mdStatusTitle');
-      const subtitle = document.getElementById('mdStatusSubtitle');
+      const fileListContainer = document.getElementById('mdStatusFileList');
       const chunkInfo = document.getElementById('chunkCountInfo');
 
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
@@ -1092,12 +1095,23 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         indexedChunks = loadedChunks;
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0";
         if (title) title.textContent = "Wissensdatenbank indiziert";
-        if (subtitle) subtitle.textContent = loadedFileNames.join(', ');
-        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Dateien)`;
+        
+        if (fileListContainer) {
+          fileListContainer.innerHTML = loadedFileNames.map(f => `
+            <div class="flex items-center gap-2 p-1.5 bg-white border border-slate-200 rounded-md">
+              <span class="text-emerald-600 font-bold text-xs">✓</span>
+              <span class="truncate font-semibold text-slate-800" title="${f}">${f}</span>
+            </div>
+          `).join('');
+        }
+
+        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Quellen)`;
       } else {
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
         if (title) title.textContent = "Keine Dateien geladen";
-        if (subtitle) subtitle.textContent = "Bitte Markdown im Admin-Menü einfügen";
+        if (fileListContainer) {
+          fileListContainer.innerHTML = `<span class="text-rose-600 font-medium font-sans text-xs">Bitte Markdown im Admin-Menü bereitstellen</span>`;
+        }
       }
     }
 
