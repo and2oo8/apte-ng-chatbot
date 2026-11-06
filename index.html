@@ -1194,11 +1194,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        // Beim Erscheinen der Assistenten-Nachricht zum Anfang der Nachricht scrollen, damit der User direkt oben mitlesen kann
-        msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
         if (mode === 'ai') {
-          // Streaming Typewriter Effekt für KI-Antworten ohne störendes Nach-Unten-Zwingen
+          // Streaming Typewriter Effekt: Schreibt Wort für Wort und scrollt flüssig mit dem Text mit
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
@@ -1212,7 +1209,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
+              // Während des Schreibens kontinuierlich ans Ende der Nachricht scrollen, damit die Ansicht mitwandert
+              msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
               setTimeout(typeNextWord, 12);
+            } else {
+              // Am Ende final nach unten ausrichten
+              msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
           }
           typeNextWord();
@@ -1220,11 +1223,13 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
+          msgDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
       }
     }
 
     function scrollToBottom() {
+      // Wird nur für User-Nachrichten verwendet, um die Eingabe im Blick zu behalten
       const container = document.getElementById('messagesContainer');
       if (container) container.scrollTop = container.scrollHeight;
     }
