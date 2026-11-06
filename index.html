@@ -1194,8 +1194,11 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
+        // Beim Erscheinen der Assistenten-Nachricht zum Anfang der Nachricht scrollen, damit der User direkt oben mitlesen kann
+        msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
         if (mode === 'ai') {
-          // Streaming Typewriter Effekt für KI-Antworten
+          // Streaming Typewriter Effekt für KI-Antworten ohne störendes Nach-Unten-Zwingen
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
@@ -1208,7 +1211,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
               let rawHtml = typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(currentText)) : currentText;
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
-              scrollToBottom();
 
               setTimeout(typeNextWord, 12);
             }
@@ -1218,7 +1220,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
-          scrollToBottom();
         }
       }
     }
