@@ -1194,13 +1194,32 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
-        let rawHtml = (mode === 'selection') 
-          ? cleanedContent 
-          : (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
+        if (mode === 'ai') {
+          // Streaming Typewriter Effekt für KI-Antworten
+          let currentText = '';
+          const words = cleanedContent.split(' ');
+          let wordIdx = 0;
 
-        rawHtml = processDocImages(rawHtml);
-        contentBox.innerHTML = rawHtml;
-        scrollToBottom();
+          function typeNextWord() {
+            if (wordIdx < words.length) {
+              currentText += (wordIdx === 0 ? '' : ' ') + words[wordIdx];
+              wordIdx++;
+              
+              let rawHtml = typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(currentText)) : currentText;
+              rawHtml = processDocImages(rawHtml);
+              contentBox.innerHTML = rawHtml;
+              scrollToBottom();
+
+              setTimeout(typeNextWord, 12);
+            }
+          }
+          typeNextWord();
+        } else {
+          let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
+          rawHtml = processDocImages(rawHtml);
+          contentBox.innerHTML = rawHtml;
+          scrollToBottom();
+        }
       }
     }
 
