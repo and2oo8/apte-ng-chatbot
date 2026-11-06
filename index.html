@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:00 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 13:22 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -598,16 +598,19 @@
       let headingStack = [];
 
       const genericSubheadings = /^(vorgehensweise|vorgehen|anleitung|schritte|hinweise|ergebnis|beispiel|beispiele|details|optionen|voraussetzungen|schritt-für-schritt)$/i;
+      const isFaqSource = /faq/i.test(sourceName) || /bewerbungsrunde/i.test(sourceName);
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
+        // Extrakt für FAQ & Q&A Listen (z.B. "Q:", "Frage:", "**Frage:**", "1. Frage")
+        const faqMatch = isFaqSource && line.match(/^[-*]?\s*(?:\*\*|\#\#?\s*)?(?:Q|Frage|\d+\.)[:\s]+([^*#\n]+)/i);
 
-        if (headingMatch) {
-          const level = headingMatch[1].length;
-          const titleText = headingMatch[2].replace(/[*_]/g, '').trim();
+        if (headingMatch || faqMatch) {
+          const level = headingMatch ? headingMatch[1].length : 3;
+          const titleText = headingMatch ? headingMatch[2].replace(/[*_]/g, '').trim() : faqMatch[1].replace(/[*_]/g, '').trim();
 
-          if (level >= 4 || genericSubheadings.test(titleText)) {
+          if (!isFaqSource && (level >= 4 || genericSubheadings.test(titleText))) {
             currentContent.push(`\n**${titleText}**\n`);
             continue;
           }
@@ -615,7 +618,7 @@
           if (currentContent.length > 0) {
             const bodyText = cleanBoilerplateText(currentContent.join('\n'));
             const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-            if (bodyText.length > 20 && !isTOC) {
+            if (bodyText.length > 15 && !isTOC) {
               chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
             }
             currentContent = [];
@@ -633,17 +636,20 @@
       if (currentContent.length > 0) {
         const bodyText = cleanBoilerplateText(currentContent.join('\n'));
         const isTOC = /Inhaltsverzeichnis/i.test(currentHeading) || (bodyText.match(/\|\s*\d+\s*\|/g) || []).length > 5;
-        if (bodyText.length > 20 && !isTOC) {
+        if (bodyText.length > 15 && !isTOC) {
           chunks.push({ title: currentHeading, path: currentPath, content: bodyText, source: sourceName });
         }
       }
 
-      for (let j = 0; j < chunks.length - 1; j++) {
-        const c = chunks[j];
-        const nextC = chunks[j + 1];
-        const hasSteps = /1\.\s+/.test(c.content) || /vorgehensweise/i.test(c.content);
-        if (!hasSteps && (/1\.\s+/.test(nextC.content) || /vorgehensweise/i.test(nextC.content))) {
-          c.content += '\n\n' + nextC.content;
+      // Zusammenführung von aufeinanderfolgenden Handlungsschritten NUR bei klassischen Handbuchkapiteln
+      if (!isFaqSource) {
+        for (let j = 0; j < chunks.length - 1; j++) {
+          const c = chunks[j];
+          const nextC = chunks[j + 1];
+          const hasSteps = /1\.\s+/.test(c.content) || /vorgehensweise/i.test(c.content);
+          if (!hasSteps && (/1\.\s+/.test(nextC.content) || /vorgehensweise/i.test(nextC.content))) {
+            c.content += '\n\n' + nextC.content;
+          }
         }
       }
 
@@ -1028,7 +1034,11 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md']
       ];
 
-      const extraFiles = ['FAQs.md', 'Neue_Bewerbungsrunde.md'];
+      // Dateigruppen mit geläufigen Namens- und Schreibweisen-Varianten für maximale Lade-Sicherheit
+      const extraFileGroups = [
+        ['FAQs.md', 'faqs.md', 'faq.md', 'FAQ.md'],
+        ['Neue_Bewerbungsrunde.md', 'neue_bewerbungsrunde.md', 'Neue-Bewerbungsrunde.md', 'neue-bewerbungsrunde.md']
+      ];
 
       let loadedChunks = [];
       let loadedFileNames = [];
@@ -1048,19 +1058,22 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         } catch (err) {}
       }
 
-      // 2. Zusätzliche Wissensdateien laden (FAQs.md, Neue_Bewerbungsrunde.md)
-      for (const extraFile of extraFiles) {
-        try {
-          const res = await fetch(extraFile);
-          if (res.ok) {
-            const text = await res.text();
-            const chunks = parseMarkdownToChunks(text, extraFile);
-            if (chunks.length > 0) {
-              loadedChunks.push(...chunks);
-              loadedFileNames.push(extraFile);
+      // 2. Zusätzliche Wissensdateien laden (mit automatischer Schreibweisen-Toleranz)
+      for (const group of extraFileGroups) {
+        for (const extraFile of group) {
+          try {
+            const res = await fetch(extraFile);
+            if (res.ok) {
+              const text = await res.text();
+              const chunks = parseMarkdownToChunks(text, extraFile);
+              if (chunks.length > 0) {
+                loadedChunks.push(...chunks);
+                loadedFileNames.push(extraFile);
+                break; // Nach erfolgreichem Treffer innerhalb der Gruppe aufhören
+              }
             }
-          }
-        } catch (err) {}
+          } catch (err) {}
+        }
       }
 
       if (loadedChunks.length > 0) {
