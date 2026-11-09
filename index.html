@@ -1142,11 +1142,12 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
       if (title) title.textContent = "Lade Wissensdatenbank...";
 
-      // Neue v13-Dateien haben jetzt oberste Priorität
+      // Nur noch v13-Dateinamen zulassen (alte Dateinamen wie apte_ng_anleitung_teil_1.md vollständig entfernt)
       const filePairs = [
         ['APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Anleitung-v13-Teil2.md'],
+        ['apte-ng-anleitung-v13-teil1.md', 'apte-ng-anleitung-v13-teil2.md'],
         ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md'],
-        ['apte_ng_anleitung_teil_1.md', 'apte_ng_anleitung_teil_2.md']
+        ['apte-ng-handbuch-v13-teil1.md', 'apte-ng-handbuch-v13-teil2.md']
       ];
 
       // Dateigruppen mit geläufigen Namens- und Schreibweisen-Varianten für maximale Lade-Sicherheit
@@ -1160,22 +1161,27 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       globalImageRegistry = {}; // Bildspeicher beim Laden zurücksetzen
       globalImageCounter = 1;
 
-      // 1. Haupt-Handbuchdateien laden (mit striktem Cache-Busting)
+      // 1. Haupt-Handbuchdateien laden (mit striktem Cache-Busting & Chunk-Validierung)
       for (const pair of filePairs) {
         try {
           const responses = await Promise.all(pair.map(file => fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' })));
           if (responses.every(r => r.ok)) {
             const texts = await Promise.all(responses.map(r => r.text()));
+            let pairChunks = [];
             texts.forEach((text, idx) => {
-              loadedChunks.push(...parseMarkdownToChunks(text, pair[idx]));
+              pairChunks.push(...parseMarkdownToChunks(text, pair[idx]));
             });
-            loadedFileNames = [...pair];
-            break;
+            // Nur abbrechen, wenn auch WIRKLICH Chunks extrahiert wurden (verhindert 404-HTML-Redirects & leere Treffer)
+            if (pairChunks.length > 0) {
+              loadedChunks.push(...pairChunks);
+              loadedFileNames = [...pair];
+              break;
+            }
           }
         } catch (err) {}
       }
 
-      // 2. Zusätzliche Wissensdateien laden (mit striktem Cache-Busting)
+      // 2. Zusätzliche Wissensdateien laden (mit striktem Cache-Busting & Validation)
       for (const group of extraFileGroups) {
         for (const extraFile of group) {
           try {
