@@ -402,6 +402,14 @@
           </div>
           <input type="checkbox" id="showSearchModeToggleCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
         </div>
+
+        <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="space-y-0.5">
+            <label for="ignoreDocImagesCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Bilder & Screenshots ignorieren</label>
+            <p class="text-[10px] text-slate-500">Filtert alle Grafiken vollständig aus den Antworten heraus</p>
+          </div>
+          <input type="checkbox" id="ignoreDocImagesCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
+        </div>
       </div>
 
       <!-- Footer Action -->
@@ -455,6 +463,7 @@
     let isAdminAuthenticated = false;
     let selectedSearchMode = 'ai'; // Default auf KI-Antworten gesetzt
     let showSearchModeToggle = localStorage.getItem('APTE_SHOW_SEARCH_MODE_TOGGLE') === 'true'; // Default: false (ausgeblendet)
+    let ignoreDocImages = localStorage.getItem('APTE_IGNORE_DOC_IMAGES') === 'true';
     let chatHistory = []; // Konversations-Gedächtnis für Kontextsuche & KI-Verlauf
     let globalImageRegistry = {}; // Speichert Base64-Bilder separat außerhalb der LLM-Prompts
     let globalImageCounter = 1;
@@ -673,14 +682,20 @@
       if (!text || typeof text !== 'string') return [];
       if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) return [];
       
+      // Falls in Admin "Bilder ignorieren" aktiviert ist, Grafiken komplett vor der Indizierung filtern
+      if (ignoreDocImages) {
+        text = text.replace(/!\[([^\]]*)\]\([^)]+\)/gi, '')
+                   .replace(/<img[^>]*>/gi, '');
+      }
+
       // Base64-Bilddaten VOR dem Chunking in globalImageRegistry auslagern (Token-Ersparnis >99%)
       let preprocessedText = text.replace(/!\[([^\]]*)\]\((data:image\/[^;]+;base64,[^)]+)\)/gi, (match, alt, base64Url) => {
         const refId = `img_ref_${globalImageCounter++}`;
-        globalImageRegistry[refId] = { src: base64Url, alt: alt.trim() || 'Handbuch Screenshot' };
+        globalImageRegistry[refId] = { src: base64Url, alt: alt.trim() || 'Handbuch Screenshot', source: sourceName };
         return `![${alt.trim() || 'Handbuch Screenshot'}](${refId})`;
       }).replace(/<img[^>]+src=["'](data:image\/[^;]+;base64,[^"']+)["'][^>]*>/gi, (match, base64Url) => {
         const refId = `img_ref_${globalImageCounter++}`;
-        globalImageRegistry[refId] = { src: base64Url, alt: 'Handbuch Screenshot' };
+        globalImageRegistry[refId] = { src: base64Url, alt: 'Handbuch Screenshot', source: sourceName };
         return `![Handbuch Screenshot](${refId})`;
       });
 
@@ -1213,7 +1228,14 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
           `).join('');
         }
 
-        if (chunkInfo) chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Quellen)`;
+        if (chunkInfo) {
+          const imgCount = Object.keys(globalImageRegistry).length;
+          const imgSources = [...new Set(Object.values(globalImageRegistry).map(i => i.source))];
+          let imgDetail = imgCount > 0 
+            ? ` · 🖼️ ${imgCount} Bild(er) aus (${imgSources.join(', ')})` 
+            : ' · 🖼️ Keine Bilder im Speicher';
+          chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Quellen)${imgDetail}`;
+        }
       } else {
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
         if (title) title.textContent = "Keine Dateien geladen";
@@ -1486,6 +1508,16 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         showSearchModeToggle = e.target.checked;
         localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
         updateSearchModeVisibility();
+      });
+    }
+
+    const ignoreImagesCheckbox = document.getElementById('ignoreDocImagesCheckbox');
+    if (ignoreImagesCheckbox) {
+      ignoreImagesCheckbox.checked = ignoreDocImages;
+      ignoreImagesCheckbox.addEventListener('change', (e) => {
+        ignoreDocImages = e.target.checked;
+        localStorage.setItem('APTE_IGNORE_DOC_IMAGES', ignoreDocImages ? 'true' : 'false');
+        loadMarkdownFiles();
       });
     }
 
