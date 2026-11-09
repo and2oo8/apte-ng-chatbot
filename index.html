@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:30 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:45 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1143,7 +1143,12 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         innerDiv.textContent = content;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
-        scrollToBottom();
+        
+        // Genügend Scroll-Raum schaffen & neue Frage sofort ganz an die Oberkante scrollen
+        container.style.paddingBottom = '80vh';
+        requestAnimationFrame(() => {
+          container.scrollTop = Math.max(0, msgDiv.offsetTop - 12);
+        });
       } else {
         innerDiv.className = 'max-w-3xl bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden w-full';
         
@@ -1182,20 +1187,20 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
 
+        // 80vh Scroll-Puffer verankern, damit die Frage am oberen Rand fixiert bleibt
+        container.style.paddingBottom = '80vh';
+        const prevMsg = msgDiv.previousElementSibling;
+        const targetElement = prevMsg || msgDiv;
+
+        requestAnimationFrame(() => {
+          container.scrollTop = Math.max(0, targetElement.offsetTop - 12);
+        });
+
         if (mode === 'ai') {
-          // Streaming Typewriter Effekt: Frage am oberen Rand positionieren für maximalen Platz darunter
+          // Streaming Typewriter Effekt
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
-
-          // Zu Beginn der Antwort die Frage-Bubble direkt an der Oberkante des Chatfensters verankern
-          const prevMsg = msgDiv.previousElementSibling;
-          const targetElement = prevMsg || msgDiv;
-          
-          const containerRect = container.getBoundingClientRect();
-          const targetRect = targetElement.getBoundingClientRect();
-          const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
-          container.scrollTop = Math.max(0, relativeTop - 16);
 
           function typeNextWord() {
             if (wordIdx < words.length) {
@@ -1214,14 +1219,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
           contentBox.innerHTML = rawHtml;
-          
-          const prevMsg = msgDiv.previousElementSibling;
-          const targetElement = prevMsg || msgDiv;
-          
-          const containerRect = container.getBoundingClientRect();
-          const targetRect = targetElement.getBoundingClientRect();
-          const relativeTop = targetRect.top - containerRect.top + container.scrollTop;
-          container.scrollTop = Math.max(0, relativeTop - 16);
         }
       }
     }
@@ -1481,6 +1478,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
         chatHistory = []; // Verlauf im Speicher leeren
         const msgContainer = document.getElementById('messagesContainer');
         if (msgContainer) {
+          msgContainer.style.paddingBottom = '';
           const welcomeCard = document.getElementById('welcomeCard');
           msgContainer.innerHTML = '';
           if (welcomeCard) msgContainer.appendChild(welcomeCard);
