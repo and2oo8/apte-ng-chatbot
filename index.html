@@ -294,7 +294,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 09.11.2026 - 10:05 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 09.11.2026 - 10:10 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -904,7 +904,8 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
    - Platziere im Handbuch enthaltene Bild-Referenzen ![Beschriftung](img_ref_X) punktgenau beim jeweiligen Handlungsschritt.
 7. BUTTONS & SCHALTFLÄCHEN:
    - Schreib Schaltflächen fett in Anführungszeichen (z.B. **"Speichern"**).
-8. UNKLARHEITEN: Falls eine fachliche Frage auch unter Berücksichtigung von Synonymen nicht im Kontext enthalten ist, antworte höflich: "${NO_MATCH_TEXT}".\n\n${contextText}`;
+8. UNKLARHEITEN: Falls eine fachliche Frage auch unter Berücksichtigung von Synonymen nicht im Kontext enthalten ist, antworte höflich: "${NO_MATCH_TEXT}".
+9. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?" oder "Benötigen Sie Hilfe bei einem bestimmten Teilschritt?"), um den Anwender aktiv bei der Umsetzung zu begleiten.\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
