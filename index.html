@@ -327,7 +327,7 @@
     <aside id="kbSidebar" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-slate-50 border-l border-slate-200 flex flex-col z-40 transition-transform duration-300 transform translate-x-full shadow-2xl">
       
       <!-- Drawer Header -->
-      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
         <div class="flex items-center gap-2">
           <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
           <h2 class="font-bold text-base text-slate-900">Admin-Verwaltung</h2>
@@ -337,84 +337,89 @@
         </button>
       </div>
 
-      <!-- API Key Configuration Box with Provider Selector & Reset Option -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">API-Anbieter & Schlüssel</label>
-        <p class="text-[11px] text-slate-500 leading-snug">
-          Wählen Sie den gewünschten KI-Anbieter aus und hinterlegen Sie den entsprechenden API-Schlüssel.
-        </p>
-        
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
-          <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
-            <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
-            <option value="openai">OpenAI (GPT-6 Luna)</option>
-            <option value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</option>
-            <option value="deepseek">DeepSeek (DeepSeek-V3)</option>
-            <option value="groq">Groq (Llama 3.3 70B)</option>
-            <option value="mistral">Mistral AI (Mistral Small)</option>
-            <option value="melious">melious.ai</option>
-          </select>
-          <p id="providerInfoHint" class="text-[10px] text-slate-500 mt-1 italic"></p>
-        </div>
+      <!-- Scrollable Body Content Container -->
+      <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-200">
 
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-700 mb-1">API-Schlüssel</label>
-          <input type="password" id="geminiApiKeyInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="Schlüssel eintragen..." />
+        <!-- API Key Configuration Box with Provider Selector & Reset Option -->
+        <div class="p-4 bg-white space-y-3">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">API-Anbieter & Schlüssel</label>
+          <p class="text-[11px] text-slate-500 leading-snug">
+            Wählen Sie den gewünschten KI-Anbieter aus und hinterlegen Sie den entsprechenden API-Schlüssel.
+          </p>
           
-          <div class="flex gap-2">
-            <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
-            <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
+            <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
+              <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
+              <option value="openai">OpenAI (GPT-6 Luna)</option>
+              <option value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</option>
+              <option value="deepseek">DeepSeek (DeepSeek-V3)</option>
+              <option value="groq">Groq (Llama 3.3 70B)</option>
+              <option value="mistral">Mistral AI (Mistral Small)</option>
+              <option value="melious">melious.ai</option>
+            </select>
+            <p id="providerInfoHint" class="text-[10px] text-slate-500 mt-1 italic"></p>
           </div>
-        </div>
-        <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ KI-Anbindung ist aktiv</p>
-        <p id="apiKeyFeedback" class="text-[11px] font-medium hidden"></p>
-      </div>
 
-      <!-- File Status -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Wissensquellen & Dokumente</label>
-        
-        <div id="mdFileStatusBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs">
-          <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
-            <div class="flex items-center gap-2">
-              <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
-              <p id="mdStatusTitle" class="font-bold text-slate-800">Prüfe Dateistatus...</p>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-700 mb-1">API-Schlüssel</label>
+            <input type="password" id="geminiApiKeyInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="Schlüssel eintragen..." />
+            
+            <div class="flex gap-2">
+              <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
+              <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
             </div>
-            <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
-              Neu laden
-            </button>
           </div>
-          <div id="mdStatusFileList" class="space-y-1.5 font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto pr-1">
-            <span class="text-slate-400 italic font-sans text-xs">Keine Dateien geladen</span>
+          <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ KI-Anbindung ist aktiv</p>
+          <p id="apiKeyFeedback" class="text-[11px] font-medium hidden"></p>
+        </div>
+
+        <!-- File Status -->
+        <div class="p-4 bg-white space-y-3">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Wissensquellen & Dokumente</label>
+          
+          <div id="mdFileStatusBox" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 text-xs">
+            <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+              <div class="flex items-center gap-2">
+                <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
+                <p id="mdStatusTitle" class="font-bold text-slate-800">Prüfe Dateistatus...</p>
+              </div>
+              <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
+                Neu laden
+              </button>
+            </div>
+            <div id="mdStatusFileList" class="space-y-1.5 font-mono text-[11px] text-slate-700 max-h-40 overflow-y-auto pr-1">
+              <span class="text-slate-400 italic font-sans text-xs">Keine Dateien geladen</span>
+            </div>
+          </div>
+          <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
+        </div>
+
+        <!-- Test & Debug Options -->
+        <div class="p-4 bg-white space-y-3">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Test- & Oberflächen-Optionen</label>
+          <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+            <div class="space-y-0.5">
+              <label for="showSearchModeToggleCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Handbuch-Direktsuche in UI anzeigen</label>
+              <p class="text-[10px] text-slate-500">Blendet den Modus-Umschalter für Anwender ein</p>
+            </div>
+            <input type="checkbox" id="showSearchModeToggleCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
+          </div>
+
+          <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+            <div class="space-y-0.5">
+              <label for="ignoreDocImagesCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Bilder & Screenshots ignorieren</label>
+              <p class="text-[10px] text-slate-500">Filtert alle Grafiken vollständig aus den Antworten heraus</p>
+            </div>
+            <input type="checkbox" id="ignoreDocImagesCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
           </div>
         </div>
-        <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
+
       </div>
 
-      <!-- Test & Debug Options -->
-      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Test- & Oberflächen-Optionen</label>
-        <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
-          <div class="space-y-0.5">
-            <label for="showSearchModeToggleCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Handbuch-Direktsuche in UI anzeigen</label>
-            <p class="text-[10px] text-slate-500">Blendet den Modus-Umschalter für Anwender ein</p>
-          </div>
-          <input type="checkbox" id="showSearchModeToggleCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
-        </div>
-
-        <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
-          <div class="space-y-0.5">
-            <label for="ignoreDocImagesCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Bilder & Screenshots ignorieren</label>
-            <p class="text-[10px] text-slate-500">Filtert alle Grafiken vollständig aus den Antworten heraus</p>
-          </div>
-          <input type="checkbox" id="ignoreDocImagesCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
-        </div>
-      </div>
-
-      <!-- Footer Action -->
-      <div class="p-4 bg-white border-t border-slate-200 mt-auto">
-        <button id="finishAdminBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow-sm">
+      <!-- Sticky Footer Action -->
+      <div class="p-4 bg-white border-t border-slate-200 shrink-0">
+        <button id="finishAdminBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow-sm cursor-pointer">
           Fertig
         </button>
       </div>
