@@ -822,6 +822,15 @@
       return cleanBoilerplateText(chunk.content);
     }
 
+    // Hilfsfunktion zur Generierung von Schnellantwort-Buttons für die Handbuch-Direktsuche
+    function generateManualQuickReplyButtons(chunk, query) {
+      let buttonsHtml = '\n\n<div class="mt-3 pt-2 border-t border-slate-200/80 flex flex-wrap gap-1.5 select-none">';
+      buttonsHtml += `[BUTTON: 🔍 Verwandte Themen anzeigen|Weitere Themen zu ${chunk.title}]`;
+      buttonsHtml += `[BUTTON: 📖 Zurück zur Themenauswahl|${query || chunk.title}]`;
+      buttonsHtml += '</div>';
+      return buttonsHtml;
+    }
+
     function generateSelectionHtml(relevantChunks, displayCount = 3, query = '') {
       const currentWindowSize = 3;
       const totalChunks = relevantChunks.length;
@@ -1220,8 +1229,8 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         const targetElement = (prevMsg && prevMsg !== spacer) ? prevMsg : msgDiv;
         container.scrollTop = Math.max(0, targetElement.offsetTop - 16);
 
-        if (mode === 'ai') {
-          // Streaming Typewriter Effekt (Ansicht bleibt fest verankert)
+        // Sowohl KI-Antworten als auch Handbuch-Direktinhalte mit flüssigem Typewriter-Effekt aufbauen
+        if (mode === 'ai' || mode === 'fallback') {
           let currentText = '';
           const words = cleanedContent.split(' ');
           let wordIdx = 0;
@@ -1235,7 +1244,7 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
               rawHtml = processDocImages(rawHtml);
               contentBox.innerHTML = rawHtml;
 
-              setTimeout(typeNextWord, 12);
+              setTimeout(typeNextWord, 10);
             }
           }
           typeNextWord();
@@ -1468,7 +1477,10 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
                 relatedHtml += `</div></div>`;
               }
 
-              appendMessage('assistant', `### ${selectedChunk.title}\n\n${formattedContent}${relatedHtml}`, 'fallback', query);
+              const quickButtons = generateManualQuickReplyButtons(selectedChunk, query);
+              const fullManualResponse = `### ${selectedChunk.title}\n\n${formattedContent}${relatedHtml}${quickButtons}`;
+
+              appendMessage('assistant', fullManualResponse, 'fallback', query);
             }
             return;
           }
