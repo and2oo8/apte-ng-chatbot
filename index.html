@@ -186,7 +186,7 @@
           <div class="flex items-start gap-3.5">
             <div class="w-10 h-10 rounded-xl bg-bordeaux-soft border border-bordeaux-border flex items-center justify-center text-bordeaux shrink-0 mt-0.5 p-1.5">
               <img src="./raute.png" alt="APTE-NG Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
-              <svg class="w-5 h-5 fill-current hidden" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+              <svg class="w-full h-full text-bordeaux hidden" viewBox="0 0 128 128"><circle cx="64" cy="64" r="64" fill="#8c2230" /><g fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="butt"><line x1="8" y1="46" x2="124" y2="46" /><line x1="8" y1="80" x2="124" y2="80" /><line x1="52" y1="118" x2="76" y2="10" /><line x1="84" y1="118" x2="108" y2="10" /></g></svg>
             </div>
             <div>
               <h2 class="font-extrabold text-lg text-slate-900 tracking-tight">Guten Tag! Wie kann ich Sie in APTE-NG unterstützen?</h2>
@@ -1142,10 +1142,11 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
       if (title) title.textContent = "Lade Wissensdatenbank...";
 
+      // Neue v13-Dateien haben jetzt oberste Priorität
       const filePairs = [
-        ['apte_ng_anleitung_teil_1.md', 'apte_ng_anleitung_teil_2.md'],
         ['APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Anleitung-v13-Teil2.md'],
-        ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md']
+        ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md'],
+        ['apte_ng_anleitung_teil_1.md', 'apte_ng_anleitung_teil_2.md']
       ];
 
       // Dateigruppen mit geläufigen Namens- und Schreibweisen-Varianten für maximale Lade-Sicherheit
@@ -1159,10 +1160,10 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       globalImageRegistry = {}; // Bildspeicher beim Laden zurücksetzen
       globalImageCounter = 1;
 
-      // 1. Haupt-Handbuchdateien laden
+      // 1. Haupt-Handbuchdateien laden (mit striktem Cache-Busting)
       for (const pair of filePairs) {
         try {
-          const responses = await Promise.all(pair.map(file => fetch(file)));
+          const responses = await Promise.all(pair.map(file => fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' })));
           if (responses.every(r => r.ok)) {
             const texts = await Promise.all(responses.map(r => r.text()));
             texts.forEach((text, idx) => {
@@ -1174,11 +1175,11 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         } catch (err) {}
       }
 
-      // 2. Zusätzliche Wissensdateien laden (mit automatischer Schreibweisen-Toleranz)
+      // 2. Zusätzliche Wissensdateien laden (mit striktem Cache-Busting)
       for (const group of extraFileGroups) {
         for (const extraFile of group) {
           try {
-            const res = await fetch(extraFile);
+            const res = await fetch(`${extraFile}?v=${Date.now()}`, { cache: 'no-store' });
             if (res.ok) {
               const text = await res.text();
               const chunks = parseMarkdownToChunks(text, extraFile);
