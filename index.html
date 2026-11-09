@@ -176,10 +176,10 @@
   <div class="flex-1 flex overflow-hidden relative bg-white">
 
     <!-- MAIN CHAT PANEL -->
-    <main class="flex-1 flex flex-col bg-white min-w-0 h-full relative">
+    <main class="flex-1 min-h-0 flex flex-col bg-white min-w-0 relative">
 
       <!-- Messages Stream -->
-      <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 relative">
+      <div id="messagesContainer" class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 relative">
         
         <!-- User-friendly Welcome Card -->
         <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
@@ -232,10 +232,10 @@
       </div>
 
       <!-- Input Form Bar -->
-      <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 shrink-0">
+      <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0 z-10">
         
         <!-- Search Mode Toggle Control with Info Tooltip -->
-        <div class="max-w-3xl mx-auto mb-2.5 flex items-center justify-between flex-wrap gap-2">
+        <div class="max-w-3xl mx-auto mb-2 flex items-center justify-between flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <div class="inline-flex p-1 bg-slate-200/90 rounded-xl text-xs font-semibold shadow-inner">
               <button type="button" id="modeAiBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
@@ -285,7 +285,7 @@
         </div>
 
         <form id="chatForm" class="max-w-3xl mx-auto relative flex items-end gap-3 bg-white border border-slate-300 rounded-xl p-2 focus-within:border-bordeaux focus-within:ring-1 focus-within:ring-bordeaux transition shadow-md">
-          <textarea id="chatInput" rows="2" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[56px] leading-relaxed disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="Ihre Frage stellen..."></textarea>
+          <textarea id="chatInput" rows="2" class="flex-1 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none resize-none max-h-32 min-h-[50px] leading-relaxed disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed" placeholder="Ihre Frage stellen..."></textarea>
           
           <button type="submit" id="sendBtn" class="px-4 py-2.5 rounded-lg bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold transition shadow flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed">
             <span>Senden</span>
@@ -293,8 +293,8 @@
           </button>
         </form>
         
-        <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2.5 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 15:45 CET)</span></span>
+        <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(Build: 06.11.2026 - 16:00 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -1245,7 +1245,6 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 
       const indicator = document.getElementById('typingIndicator');
       if (indicator) indicator.classList.remove('hidden');
-      scrollToBottom();
 
       try {
         const responseObj = await getAIResponse(text);
