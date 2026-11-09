@@ -1407,7 +1407,10 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
           if (retryBtn) {
             const query = decodeURIComponent(retryBtn.getAttribute('data-query'));
             const relevant = findRelevantChunks(query, 15);
+            
+            const currentScrollPos = container.scrollTop;
             appendMessage('assistant', generateSelectionHtml(relevant, 3, query), 'selection', query);
+            container.scrollTop = currentScrollPos;
             return;
           }
 
@@ -1416,14 +1419,14 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
             const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count'), 10);
             const query = decodeURIComponent(loadMoreBtn.getAttribute('data-query'));
             const relevant = findRelevantChunks(query, 15);
-            const newHtml = generateSelectionHtml(relevant, nextCount, query);
             
-            const contentBox = loadMoreBtn.closest('.selection-content-box');
-            if (contentBox) {
-              contentBox.innerHTML = newHtml;
-              // Ausrichten der Ansicht am oberen Rand der Auswahl-Card
-              const parentCard = contentBox.closest('.message-row') || contentBox;
-              container.scrollTop = Math.max(0, parentCard.offsetTop - 16);
+            const parentCard = loadMoreBtn.closest('.editorial-prose');
+            const currentScrollPos = container.scrollTop;
+            
+            if (parentCard) {
+              const contentBox = parentCard.querySelector('.selection-content-box');
+              if (contentBox) contentBox.innerHTML = generateSelectionHtml(relevant, nextCount, query);
+              container.scrollTop = currentScrollPos;
             }
             return;
           }
@@ -1433,66 +1436,34 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
             const prevCount = parseInt(loadPrevBtn.getAttribute('data-prev-count'), 10);
             const query = decodeURIComponent(loadPrevBtn.getAttribute('data-query'));
             const relevant = findRelevantChunks(query, 15);
-            const newHtml = generateSelectionHtml(relevant, prevCount, query);
             
-            const contentBox = loadPrevBtn.closest('.selection-content-box');
-            if (contentBox) {
-              contentBox.innerHTML = newHtml;
-              // Ausrichten der Ansicht am oberen Rand der Auswahl-Card
-              const parentCard = contentBox.closest('.message-row') || contentBox;
-              container.scrollTop = Math.max(0, parentCard.offsetTop - 16);
+            const parentCard = loadPrevBtn.closest('.editorial-prose');
+            const currentScrollPos = container.scrollTop;
+
+            if (parentCard) {
+              const contentBox = parentCard.querySelector('.selection-content-box');
+              if (contentBox) contentBox.innerHTML = generateSelectionHtml(relevant, prevCount, query);
+              container.scrollTop = currentScrollPos;
             }
             return;
           }
 
-          const selectBtn = e.target.closest('.select-topic-btn');
-          if (selectBtn) {
-            const chunkIdx = parseInt(selectBtn.getAttribute('data-chunk-index'), 10);
-            const query = decodeURIComponent(selectBtn.getAttribute('data-query') || '');
-            const topicTitleAttr = selectBtn.getAttribute('data-topic-title');
-            const topicTitle = topicTitleAttr ? decodeURIComponent(topicTitleAttr) : (indexedChunks[chunkIdx] ? indexedChunks[chunkIdx].title : '');
-
-            const savedApiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
-
-            // KI-Modus: Wenn API-Schlüssel vorliegt und KI-Modus aktiv ist, KI-Antwort für das vorgeschlagene Thema auslösen
-            if (selectedSearchMode === 'ai' && savedApiKey.length > 3 && topicTitle) {
-              handleSendMessage(topicTitle);
-              return;
-            }
-
-            // Handbuch-Direktsuche oder kein Key: 1:1 Kapitel ausgeben
-            if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
-              const selectedChunk = indexedChunks[chunkIdx];
-              const formattedContent = formatProceduralFallback(selectedChunk, selectedChunk.title);
-
-              const searchBase = query || selectedChunk.title;
-              const relevant = findRelevantChunks(searchBase, 6);
-              const related = relevant.filter(c => indexedChunks.indexOf(c) !== chunkIdx).slice(0, 3);
-              
-              let relatedHtml = '';
-              if (related.length > 0) {
-                relatedHtml = `\n\n---\n<div class="mt-4 pt-3 border-t border-slate-200">
-                  <p class="text-xs font-bold text-slate-700 mb-2">💡 Verwandte Themen im Handbuch:</p>
-                  <div class="space-y-1.5">`;
-                related.forEach(relChunk => {
-                  const idx = indexedChunks.indexOf(relChunk);
-                  relatedHtml += `<div><button class="select-topic-btn text-left text-xs text-bordeaux hover:underline font-semibold inline-flex items-center gap-1 cursor-pointer" data-chunk-index="${idx}" data-topic-title="${encodeURIComponent(relChunk.title)}" data-query="${encodeURIComponent(query)}"><span>→ ${relChunk.title}</span> <span class="text-[11px] text-slate-400 font-normal">(${relChunk.path})</span></button></div>`;
-                });
-                relatedHtml += `</div></div>`;
-              }
-
-              const quickButtons = generateManualQuickReplyButtons(selectedChunk, query);
-              const fullManualResponse = `### ${selectedChunk.title}\n\n${formattedContent}${relatedHtml}${quickButtons}`;
-
-              appendMessage('assistant', fullManualResponse, 'fallback', query);
+          const topicBtn = e.target.closest('.select-topic-btn');
+          if (topicBtn) {
+            const chunkIndex = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
+            if (!isNaN(chunkIndex) && indexedChunks[chunkIndex]) {
+              const chunk = indexedChunks[chunkIndex];
+              const query = decodeURIComponent(topicBtn.getAttribute('data-query') || '');
+              const content = formatProceduralFallback(chunk, query) + generateManualQuickReplyButtons(chunk, query);
+              appendMessage('assistant', content, 'fallback', query);
             }
             return;
           }
 
-          const img = e.target.closest('.zoomable-img, img');
-          if (img && zoomModal && zoomTarget && zoomCaption) {
-            zoomTarget.src = img.src;
-            zoomCaption.textContent = img.alt || img.title || 'Handbuch Screenshot';
+          const imgEl = e.target.closest('.zoomable-img');
+          if (imgEl && zoomModal && zoomTarget && zoomCaption) {
+            zoomTarget.src = imgEl.src;
+            zoomCaption.textContent = imgEl.alt || 'APTE-NG Handbuch Screenshot';
             zoomModal.classList.remove('hidden');
           }
         });
@@ -1520,21 +1491,44 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
             handleSendMessage();
           }
         });
-
-        chatInput.addEventListener('input', () => {
-          chatInput.style.height = 'auto';
-          chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + 'px';
+        chatInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = (this.scrollHeight) + 'px';
         });
       }
 
       document.getElementById('clearChatBtn')?.addEventListener('click', () => {
-        chatHistory = []; // Verlauf im Speicher leeren
-        const msgContainer = document.getElementById('messagesContainer');
-        if (msgContainer) {
-          const welcomeCard = document.getElementById('welcomeCard');
-          msgContainer.innerHTML = '';
-          if (welcomeCard) msgContainer.appendChild(welcomeCard);
-        }
+        const container = document.getElementById('messagesContainer');
+        if (!container) return;
+        chatHistory = [];
+        container.innerHTML = `
+          <div id="welcomeCard" class="max-w-3xl mx-auto border-l-4 border-bordeaux pl-5 py-2 bg-slate-50/80 p-4 rounded-r-xl border-y border-r border-slate-200">
+            <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-lg text-slate-900">APTE-NG Support-Assistent</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>Anleitung v13 indiziert
+                </span>
+              </div>
+            </div>
+            <p class="text-sm text-slate-700 leading-relaxed mb-4">
+              Willkommen beim APTE-NG Support-Assistenten. Wählen Sie direkt eine der häufigsten Fragen per Klick aus oder stellen Sie Ihre eigene Frage im Eingabefeld unten.
+            </p>
+            <div class="space-y-2">
+              <p class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Häufig gesuchte Themen:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button type="button" class="suggestion-btn text-left p-3 rounded-lg bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition group shadow-sm flex items-start gap-2.5 cursor-pointer" data-query="Wie erstelle ich eine Datenansicht?">
+                  <span class="text-bordeaux font-bold text-sm leading-none mt-0.5">📌</span>
+                  <span class="text-xs font-semibold text-slate-800 group-hover:text-bordeaux leading-snug">Wie erstelle ich eine Datenansicht?</span>
+                </button>
+                <button type="button" class="suggestion-btn text-left p-3 rounded-lg bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition group shadow-sm flex items-start gap-2.5 cursor-pointer" data-query="Abgabeperiode und URL einstellen">
+                  <span class="text-bordeaux font-bold text-sm leading-none mt-0.5">📌</span>
+                  <span class="text-xs font-semibold text-slate-800 group-hover:text-bordeaux leading-snug">Abgabeperiode und URL einstellen</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
       });
     });
   </script>
