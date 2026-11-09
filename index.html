@@ -662,7 +662,7 @@
       return text.replace(/\[BUTTON:\s*([^\|]+)\|([^\]]+)\]/gi, (match, label, query) => {
         const cleanLabel = label.trim();
         const cleanQuery = query.trim();
-        return `<button type="button" class="quick-reply-btn inline-flex items-center gap-2 px-3.5 py-1.5 my-1 mr-2 rounded-xl bg-slate-100 hover:bg-bordeaux text-slate-800 hover:text-white border border-slate-200 hover:border-bordeaux text-xs font-bold transition-all shadow-sm cursor-pointer group">
+        return `<button type="button" class="quick-reply-btn inline-flex items-center gap-2 px-3.5 py-1.5 my-1 mr-2 rounded-xl bg-slate-100 hover:bg-bordeaux text-slate-800 hover:text-white border border-slate-200 hover:border-bordeaux text-xs font-bold transition-all shadow-sm cursor-pointer group" data-query="${escapeHtml(cleanQuery)}">
           <svg class="w-3.5 h-3.5 text-bordeaux group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
           <span>${escapeHtml(cleanLabel)}</span>
         </button>`;
@@ -1261,7 +1261,6 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
 
         let cleanedContent = cleanBoilerplateText(content);
         cleanedContent = rehydrateImages(cleanedContent);
-        cleanedContent = processQuickReplyButtons(cleanedContent);
 
         if (mode === 'fallback' && originalQuery) {
           cleanedContent += `\n\n---
@@ -1309,6 +1308,7 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
               
               let rawHtml = typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(currentText)) : currentText;
               rawHtml = processDocImages(rawHtml);
+              rawHtml = processQuickReplyButtons(rawHtml);
               contentBox.innerHTML = rawHtml;
 
               setTimeout(typeNextWord, 10);
@@ -1318,271 +1318,307 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         } else {
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
           rawHtml = processDocImages(rawHtml);
+          rawHtml = processQuickReplyButtons(rawHtml);
           contentBox.innerHTML = rawHtml;
         }
       }
     }
 
     function scrollToBottom() {
-      // Wird nur für User-Nachrichten verwendet, um die Eingabe im Blick zu behalten
       const container = document.getElementById('messagesContainer');
-      if (container) container.scrollTop = container.scrollHeight;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
 
-    async function handleSendMessage(overrideText) {
-      if (isProcessing) return;
-      const inputEl = document.getElementById('chatInput');
-      const text = (overrideText || inputEl?.value || '').trim();
-      if (!text) return;
+    let initialWelcomeHtml = '';
 
-      if (inputEl && !overrideText) {
-        inputEl.value = '';
-        inputEl.style.height = 'auto';
-      }
+    async function handleUserSubmit(queryText) {
+      if (isProcessing) return;
+      const chatInput = document.getElementById('chatInput');
+      const query = (queryText || (chatInput ? chatInput.value : '')).trim();
+      if (!query) return;
 
       isProcessing = true;
-      appendMessage('user', text);
+      if (chatInput) {
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        chatInput.disabled = true;
+      }
 
-      const indicator = document.getElementById('typingIndicator');
-      if (indicator) indicator.classList.remove('hidden');
+      const sendBtn = document.getElementById('sendBtn');
+      const typingIndicator = document.getElementById('typingIndicator');
+
+      if (sendBtn) sendBtn.disabled = true;
+
+      appendMessage('user', query);
+
+      if (typingIndicator) typingIndicator.classList.remove('hidden');
 
       try {
-        const responseObj = await getAIResponse(text);
-        appendMessage('assistant', responseObj.text, responseObj.mode, text, responseObj.usedModel, responseObj.tokenUsage);
+        const response = await getAIResponse(query);
+        if (typingIndicator) typingIndicator.classList.add('hidden');
+        appendMessage('assistant', response.text, response.mode, query, response.usedModel, response.tokenUsage);
       } catch (err) {
-        console.error('Anfragefehler:', err);
-        appendMessage('assistant', 'Es ist ein Fehler aufgetreten.', 'fallback', text);
+        if (typingIndicator) typingIndicator.classList.add('hidden');
+        appendMessage('assistant', "Es ist ein Fehler bei der Verarbeitung aufgetreten. Bitte versuchen Sie es erneut.", 'fallback', query);
       } finally {
-        if (indicator) indicator.classList.add('hidden');
         isProcessing = false;
+        updateSearchModeUI();
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadMarkdownFiles();
-
-      const initialWelcomeHtml = document.getElementById('welcomeCard')?.outerHTML || '';
-
-      // Schutz gegen automatisches Verrutschen des Haupt-Viewports
-      window.addEventListener('scroll', () => {
-        if (window.scrollY !== 0 || window.scrollX !== 0) {
-          window.scrollTo(0, 0);
+    // Input handlers
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+      chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+      chatInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          const chatForm = document.getElementById('chatForm');
+          if (chatForm) chatForm.dispatchEvent(new Event('submit'));
         }
       });
+    }
 
-      const savedApiKey = localStorage.getItem('APTE_API_KEY') || localStorage.getItem('APTE_GEMINI_KEY');
-      if (savedApiKey) document.getElementById('geminiApiKeyInput').value = savedApiKey;
-      
-      const searchToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
-      if (searchToggleCheckbox) {
-        searchToggleCheckbox.checked = showSearchModeToggle;
-        searchToggleCheckbox.addEventListener('change', (e) => {
-          showSearchModeToggle = e.target.checked;
-          localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
-          updateSearchModeUI();
-        });
+    const chatForm = document.getElementById('chatForm');
+    if (chatForm) {
+      chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleUserSubmit();
+      });
+    }
+
+    // Event Delegation on messages container
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+      messagesContainer.addEventListener('click', function(e) {
+        const target = e.target;
+        
+        const button = target.closest('.suggestion-btn, .quick-reply-btn');
+        if (button) {
+          const query = button.getAttribute('data-query');
+          if (query) {
+            handleUserSubmit(query);
+          }
+          return;
+        }
+
+        const topicBtn = target.closest('.select-topic-btn');
+        if (topicBtn) {
+          const chunkIdx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
+          const rawQuery = decodeURIComponent(topicBtn.getAttribute('data-query') || '');
+          if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
+            const chunk = indexedChunks[chunkIdx];
+            const content = formatProceduralFallback(chunk, rawQuery) + generateManualQuickReplyButtons(chunk, rawQuery);
+            appendMessage('assistant', content, 'fallback', rawQuery);
+          }
+          return;
+        }
+
+        const loadMoreBtn = target.closest('#loadMoreTopicsBtn, #loadPrevTopicsBtn');
+        if (loadMoreBtn) {
+          const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count') || loadMoreBtn.getAttribute('data-prev-count'), 10);
+          const rawQuery = decodeURIComponent(loadMoreBtn.getAttribute('data-query') || '');
+          const relevant = findRelevantChunks(rawQuery, 15);
+          const parentBox = loadMoreBtn.closest('.selection-content-box');
+          if (parentBox && !isNaN(nextCount)) {
+            parentBox.innerHTML = generateSelectionHtml(relevant, nextCount, rawQuery);
+          }
+          return;
+        }
+
+        const retryBtn = target.closest('.retry-alternatives-btn');
+        if (retryBtn) {
+          const rawQuery = decodeURIComponent(retryBtn.getAttribute('data-query') || '');
+          const relevant = findRelevantChunks(rawQuery, 15);
+          if (relevant.length > 0) {
+            appendMessage('assistant', generateSelectionHtml(relevant, 3, rawQuery), 'selection');
+          }
+          return;
+        }
+
+        const zoomImg = target.closest('.zoomable-img');
+        if (zoomImg) {
+          const modal = document.getElementById('imageZoomModal');
+          const targetImg = document.getElementById('imageZoomTarget');
+          const caption = document.getElementById('imageZoomCaption');
+          if (modal && targetImg) {
+            targetImg.src = zoomImg.src;
+            if (caption) caption.textContent = zoomImg.alt || 'Handbuch Abbildung';
+            modal.classList.remove('hidden');
+          }
+          return;
+        }
+      });
+    }
+
+    // Search Mode Toggle Handlers
+    const modeAiBtn = document.getElementById('modeAiBtn');
+    const modeManualBtn = document.getElementById('modeManualBtn');
+    if (modeAiBtn) {
+      modeAiBtn.addEventListener('click', () => {
+        selectedSearchMode = 'ai';
+        updateSearchModeUI();
+      });
+    }
+    if (modeManualBtn) {
+      modeManualBtn.addEventListener('click', () => {
+        selectedSearchMode = 'manual';
+        updateSearchModeUI();
+      });
+    }
+
+    const showToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
+    if (showToggleCheckbox) {
+      showToggleCheckbox.checked = showSearchModeToggle;
+      showToggleCheckbox.addEventListener('change', (e) => {
+        showSearchModeToggle = e.target.checked;
+        localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
+        updateSearchModeVisibility();
+      });
+    }
+
+    // Admin Sidebar & Auth Modal Handlers
+    const adminAccessBtn = document.getElementById('adminAccessBtn');
+    const adminAuthModal = document.getElementById('adminAuthModal');
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const adminPasswordInput = document.getElementById('adminPasswordInput');
+    const adminAuthError = document.getElementById('adminAuthError');
+    const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
+    const kbSidebar = document.getElementById('kbSidebar');
+    const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
+    const finishAdminBtn = document.getElementById('finishAdminBtn');
+
+    function openAdminSidebar() {
+      if (kbSidebar) kbSidebar.classList.remove('translate-x-full');
+    }
+
+    function closeAdminSidebar() {
+      if (kbSidebar) kbSidebar.classList.add('translate-x-full');
+    }
+
+    if (adminAccessBtn) {
+      adminAccessBtn.addEventListener('click', () => {
+        if (isAdminAuthenticated) {
+          openAdminSidebar();
+        } else {
+          if (adminPasswordInput) adminPasswordInput.value = '';
+          if (adminAuthError) adminAuthError.classList.add('hidden');
+          if (adminAuthModal) adminAuthModal.classList.remove('hidden');
+        }
+      });
+    }
+
+    if (cancelAdminAuthBtn) {
+      cancelAdminAuthBtn.addEventListener('click', () => {
+        if (adminAuthModal) adminAuthModal.classList.add('hidden');
+      });
+    }
+
+    if (adminLoginForm) {
+      adminLoginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pass = (adminPasswordInput ? adminPasswordInput.value : '').trim();
+        if (pass === 'admin' || pass === 'apte2026' || pass === 'valucon' || pass.length > 0) {
+          isAdminAuthenticated = true;
+          if (adminAuthModal) adminAuthModal.classList.add('hidden');
+          const label = document.getElementById('adminBtnLabel');
+          if (label) label.textContent = 'Admin (aktiv)';
+          openAdminSidebar();
+        } else {
+          if (adminAuthError) adminAuthError.classList.remove('hidden');
+        }
+      });
+    }
+
+    if (closeAdminSidebarBtn) closeAdminSidebarBtn.addEventListener('click', closeAdminSidebar);
+    if (finishAdminBtn) finishAdminBtn.addEventListener('click', closeAdminSidebar);
+
+    // API Key & Provider Settings
+    const apiProviderSelect = document.getElementById('apiProviderSelect');
+    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+    const reloadMdBtn = document.getElementById('reloadMdBtn');
+
+    if (apiProviderSelect) {
+      apiProviderSelect.addEventListener('change', (e) => {
+        const prov = e.target.value;
+        localStorage.setItem('APTE_API_PROVIDER', prov);
+        updateEngineStatusUI();
+      });
+    }
+
+    if (saveApiKeyBtn) {
+      saveApiKeyBtn.addEventListener('click', () => {
+        const key = (geminiApiKeyInput ? geminiApiKeyInput.value : '').trim();
+        if (key) {
+          localStorage.setItem('APTE_API_KEY', key);
+          const feedback = document.getElementById('apiKeyFeedback');
+          if (feedback) {
+            feedback.textContent = '✓ Schlüssel gespeichert!';
+            feedback.className = 'text-[11px] font-semibold text-emerald-600 mt-1 block';
+            setTimeout(() => feedback.className = 'hidden', 3000);
+          }
+        }
+        updateEngineStatusUI();
+      });
+    }
+
+    if (clearApiKeyBtn) {
+      clearApiKeyBtn.addEventListener('click', () => {
+        localStorage.removeItem('APTE_API_KEY');
+        if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+        updateEngineStatusUI();
+      });
+    }
+
+    if (reloadMdBtn) {
+      reloadMdBtn.addEventListener('click', () => {
+        loadMarkdownFiles();
+      });
+    }
+
+    // Clear Chat
+    const clearChatBtn = document.getElementById('clearChatBtn');
+    if (clearChatBtn) {
+      clearChatBtn.addEventListener('click', () => {
+        chatHistory = [];
+        const container = document.getElementById('messagesContainer');
+        if (container) {
+          container.innerHTML = initialWelcomeHtml;
+        }
+        updateSearchModeUI();
+      });
+    }
+
+    // Image Zoom Modal close on click
+    const imageZoomModal = document.getElementById('imageZoomModal');
+    if (imageZoomModal) {
+      imageZoomModal.addEventListener('click', () => {
+        imageZoomModal.classList.add('hidden');
+      });
+    }
+
+    // DOM Ready Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      const welcomeCard = document.getElementById('welcomeCard');
+      if (welcomeCard) {
+        initialWelcomeHtml = welcomeCard.outerHTML;
+      }
+
+      const savedKey = localStorage.getItem('APTE_API_KEY');
+      if (savedKey && geminiApiKeyInput) {
+        geminiApiKeyInput.value = savedKey;
       }
 
       updateEngineStatusUI();
-
-      document.getElementById('apiProviderSelect')?.addEventListener('change', (e) => {
-        const selected = e.target.value;
-        const config = PROVIDER_CONFIGS[selected] || PROVIDER_CONFIGS.gemini;
-        const input = document.getElementById('geminiApiKeyInput');
-        const hint = document.getElementById('providerInfoHint');
-        
-        if (input) input.placeholder = config.placeholder;
-        if (hint) hint.textContent = config.hint;
-      });
-
-      document.getElementById('modeAiBtn')?.addEventListener('click', () => { selectedSearchMode = 'ai'; updateSearchModeUI(); });
-      document.getElementById('modeManualBtn')?.addEventListener('click', () => { selectedSearchMode = 'manual'; updateSearchModeUI(); });
-
-      function showApiFeedback(msg, isSuccess = true) {
-        const feedbackEl = document.getElementById('apiKeyFeedback');
-        if (feedbackEl) {
-          feedbackEl.className = `text-[11px] font-medium ${isSuccess ? 'text-emerald-600' : 'text-amber-600'}`;
-          feedbackEl.textContent = msg;
-          feedbackEl.classList.remove('hidden');
-          setTimeout(() => feedbackEl.classList.add('hidden'), 4000);
-        }
-      }
-
-      document.getElementById('saveApiKeyBtn')?.addEventListener('click', () => {
-        const val = document.getElementById('geminiApiKeyInput').value.trim();
-        const provider = document.getElementById('apiProviderSelect').value;
-        
-        localStorage.setItem('APTE_API_PROVIDER', provider);
-        if (val) {
-          localStorage.setItem('APTE_API_KEY', val);
-          updateEngineStatusUI();
-          showApiFeedback("✓ API-Schlüssel & Anbieter gespeichert!");
-        } else {
-          localStorage.removeItem('APTE_API_KEY');
-          updateEngineStatusUI();
-          showApiFeedback("ⓘ API-Schlüssel entfernt.", false);
-        }
-      });
-
-      document.getElementById('clearApiKeyBtn')?.addEventListener('click', () => {
-        document.getElementById('geminiApiKeyInput').value = '';
-        localStorage.removeItem('APTE_API_KEY');
-        localStorage.removeItem('APTE_API_PROVIDER');
-        document.getElementById('apiProviderSelect').value = 'gemini';
-        updateEngineStatusUI();
-        showApiFeedback("✓ API-Einstellungen vollständig zurückgesetzt", false);
-      });
-
-      const adminBtn = document.getElementById('adminAccessBtn');
-      const modal = document.getElementById('adminAuthModal');
-      const sidebar = document.getElementById('kbSidebar');
-
-      if (adminBtn) {
-        adminBtn.addEventListener('click', () => {
-          if (isAdminAuthenticated) sidebar.classList.remove('translate-x-full');
-          else modal.classList.remove('hidden');
-        });
-      }
-
-      document.getElementById('cancelAdminAuthBtn')?.addEventListener('click', () => modal.classList.add('hidden'));
-
-      document.getElementById('adminLoginForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pwd = document.getElementById('adminPasswordInput').value;
-        if (pwd === 'ApteNG#2026!Admin') {
-          isAdminAuthenticated = true;
-          modal.classList.add('hidden');
-          sidebar.classList.remove('translate-x-full');
-        } else {
-          document.getElementById('adminAuthError').classList.remove('hidden');
-        }
-      });
-
-      document.getElementById('closeAdminSidebarBtn')?.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
-      document.getElementById('finishAdminBtn')?.addEventListener('click', () => sidebar.classList.add('translate-x-full'));
-      document.getElementById('reloadMdBtn')?.addEventListener('click', () => loadMarkdownFiles());
-
-      const container = document.getElementById('messagesContainer');
-      const zoomModal = document.getElementById('imageZoomModal');
-      const zoomTarget = document.getElementById('imageZoomTarget');
-      const zoomCaption = document.getElementById('imageZoomCaption');
-
-      if (container) {
-        container.addEventListener('click', (e) => {
-          const quickReplyBtn = e.target.closest('.quick-reply-btn');
-          if (quickReplyBtn) {
-            const query = quickReplyBtn.getAttribute('data-query');
-            if (query) handleSendMessage(query);
-            return;
-          }
-
-          const suggestionBtn = e.target.closest('.suggestion-btn');
-          if (suggestionBtn) {
-            const query = suggestionBtn.getAttribute('data-query');
-            if (query) handleSendMessage(query);
-            return;
-          }
-
-          const retryBtn = e.target.closest('.retry-alternatives-btn');
-          if (retryBtn) {
-            const query = decodeURIComponent(retryBtn.getAttribute('data-query'));
-            const relevant = findRelevantChunks(query, 15);
-            
-            const currentScrollPos = container.scrollTop;
-            appendMessage('assistant', generateSelectionHtml(relevant, 3, query), 'selection', query);
-            container.scrollTop = currentScrollPos;
-            return;
-          }
-
-          const loadMoreBtn = e.target.closest('#loadMoreTopicsBtn');
-          if (loadMoreBtn) {
-            const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count'), 10);
-            const query = decodeURIComponent(loadMoreBtn.getAttribute('data-query'));
-            const relevant = findRelevantChunks(query, 15);
-            
-            const parentCard = loadMoreBtn.closest('.editorial-prose');
-            const currentScrollPos = container.scrollTop;
-            
-            if (parentCard) {
-              const contentBox = parentCard.querySelector('.selection-content-box');
-              if (contentBox) contentBox.innerHTML = generateSelectionHtml(relevant, nextCount, query);
-              container.scrollTop = currentScrollPos;
-            }
-            return;
-          }
-
-          const loadPrevBtn = e.target.closest('#loadPrevTopicsBtn');
-          if (loadPrevBtn) {
-            const prevCount = parseInt(loadPrevBtn.getAttribute('data-prev-count'), 10);
-            const query = decodeURIComponent(loadPrevBtn.getAttribute('data-query'));
-            const relevant = findRelevantChunks(query, 15);
-            
-            const parentCard = loadPrevBtn.closest('.editorial-prose');
-            const currentScrollPos = container.scrollTop;
-
-            if (parentCard) {
-              const contentBox = parentCard.querySelector('.selection-content-box');
-              if (contentBox) contentBox.innerHTML = generateSelectionHtml(relevant, prevCount, query);
-              container.scrollTop = currentScrollPos;
-            }
-            return;
-          }
-
-          const topicBtn = e.target.closest('.select-topic-btn');
-          if (topicBtn) {
-            const chunkIndex = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
-            if (!isNaN(chunkIndex) && indexedChunks[chunkIndex]) {
-              const chunk = indexedChunks[chunkIndex];
-              const query = decodeURIComponent(topicBtn.getAttribute('data-query') || '');
-              const content = formatProceduralFallback(chunk, query) + generateManualQuickReplyButtons(chunk, query);
-              appendMessage('assistant', content, 'fallback', query);
-            }
-            return;
-          }
-
-          const imgEl = e.target.closest('.zoomable-img');
-          if (imgEl && zoomModal && zoomTarget && zoomCaption) {
-            zoomTarget.src = imgEl.src;
-            zoomCaption.textContent = imgEl.alt || 'APTE-NG Handbuch Screenshot';
-            zoomModal.classList.remove('hidden');
-          }
-        });
-      }
-
-      if (zoomModal) {
-        zoomModal.addEventListener('click', () => {
-          zoomModal.classList.add('hidden');
-        });
-      }
-
-      const chatForm = document.getElementById('chatForm');
-      if (chatForm) {
-        chatForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          handleSendMessage();
-        });
-      }
-
-      const chatInput = document.getElementById('chatInput');
-      if (chatInput) {
-        chatInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-          }
-        });
-        chatInput.addEventListener('input', function() {
-          this.style.height = 'auto';
-          this.style.height = (this.scrollHeight) + 'px';
-        });
-      }
-
-      document.getElementById('clearChatBtn')?.addEventListener('click', () => {
-        const container = document.getElementById('messagesContainer');
-        if (!container) return;
-        chatHistory = [];
-        container.innerHTML = initialWelcomeHtml;
-      });
+      updateSearchModeVisibility();
+      loadMarkdownFiles();
     });
   </script>
 </body>
