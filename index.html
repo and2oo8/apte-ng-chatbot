@@ -1216,10 +1216,7 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         
         let badgeHtml = '';
         if (mode === 'ai') {
-          const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
-          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.gemini;
-          const displayModel = usedModel || config.model;
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none"><span>Antwort via KI (${config.name} – ${displayModel})</span></div>`;
+          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3 select-none"><span>Antwort via KI</span></div>`;
         } else if (mode === 'selection') {
           badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche: Themenauswahl</span></div>`;
         } else {
@@ -1239,8 +1236,14 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
 </div>`;
         }
 
-        if (mode === 'ai' && tokenUsage) {
-          cleanedContent += `\n\n<div class="text-[10px] text-slate-400 font-mono text-right mt-3 pt-2 border-t border-slate-100 select-none opacity-80">⚡ ${tokenUsage}</div>`;
+        if (mode === 'ai') {
+          const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
+          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.gemini;
+          const displayModel = usedModel || config.model;
+          const footerInfo = tokenUsage 
+            ? `${config.name} (${displayModel}) · ⚡ ${tokenUsage}` 
+            : `${config.name} (${displayModel})`;
+          cleanedContent += `\n\n<div class="text-[10px] text-slate-400 font-mono text-right mt-3 pt-2 border-t border-slate-100 select-none opacity-80">Modell: ${footerInfo}</div>`;
         }
         
         const contentBox = document.createElement('div');
