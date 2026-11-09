@@ -184,8 +184,9 @@
         <!-- User-friendly Welcome Card -->
         <div id="welcomeCard" class="max-w-3xl mx-auto p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 shadow-sm space-y-4">
           <div class="flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-bordeaux-soft border border-bordeaux-border flex items-center justify-center text-bordeaux shrink-0 mt-0.5">
-              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
+            <div class="w-10 h-10 rounded-xl bg-bordeaux-soft border border-bordeaux-border flex items-center justify-center text-bordeaux shrink-0 mt-0.5 p-1.5">
+              <img src="./raute.png" alt="APTE-NG Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+              <svg class="w-5 h-5 fill-current hidden" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
             </div>
             <div>
               <h2 class="font-extrabold text-lg text-slate-900 tracking-tight">Guten Tag! Wie kann ich Sie in APTE-NG unterstützen?</h2>
@@ -1372,6 +1373,8 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
     document.addEventListener('DOMContentLoaded', () => {
       loadMarkdownFiles();
 
+      const initialWelcomeHtml = document.getElementById('welcomeCard')?.outerHTML || '';
+
       // Schutz gegen automatisches Verrutschen des Haupt-Viewports
       window.addEventListener('scroll', () => {
         if (window.scrollY !== 0 || window.scrollX !== 0) {
@@ -1590,78 +1593,7 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         const container = document.getElementById('messagesContainer');
         if (!container) return;
         chatHistory = [];
-        container.innerHTML = `
-          <div id="welcomeCard" class="max-w-3xl mx-auto p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-start gap-3.5">
-              <div class="w-10 h-10 rounded-xl bg-bordeaux-soft border border-bordeaux-border flex items-center justify-center text-bordeaux shrink-0 mt-0.5">
-                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z"/></svg>
-              </div>
-              <div>
-                <h2 class="font-extrabold text-lg text-slate-900 tracking-tight">Guten Tag! Wie kann ich Sie in APTE-NG unterstützen?</h2>
-                <p class="text-xs text-slate-600 leading-relaxed mt-1">
-                  Hier erhalten Sie direkte Hilfe zur Konfiguration von Formularen, Datenansichten oder Akten. Stellen Sie Ihre Frage unten oder wählen Sie ein Thema:
-                </p>
-              </div>
-            </div>
-
-            <div class="pt-2 border-t border-slate-100">
-              <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">Häufig gesuchte Themen:</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button type="button" class="suggestion-btn text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie erstelle ich eine Datenansicht?">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Datenansichten</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Filter & Spalten konfigurieren</span>
-                    </div>
-                  </div>
-                  <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
-
-                <button type="button" class="suggestion-btn text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Abgabeperiode und URL einstellen">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Abgabeperiode & URL</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Freischaltung & Zugriffsteuerung</span>
-                    </div>
-                  </div>
-                  <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
-
-                <button type="button" class="suggestion-btn text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie erstelle ich Standardlabels?">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Standardlabels</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Kategorisierung & Kennzeichnung</span>
-                    </div>
-                  </div>
-                  <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
-
-                <button type="button" class="suggestion-btn text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie ergänze ich Detaildaten von Stipendiaten?">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-                    </div>
-                    <div>
-                      <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Stipendiaten-Detaildaten</span>
-                      <span class="text-[11px] text-slate-500 font-normal">Personenakten & Stammdaten</span>
-                    </div>
-                  </div>
-                  <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
+        container.innerHTML = initialWelcomeHtml;
       });
     });
   </script>
