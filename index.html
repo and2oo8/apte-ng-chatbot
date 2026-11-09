@@ -234,9 +234,9 @@
       <!-- Input Form Bar -->
       <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0 z-10">
         
-        <!-- Search Mode Toggle Control with Info Tooltip -->
+        <!-- Search Mode Toggle Control with Info Tooltip (Default hidden, optionally toggleable in Admin) -->
         <div class="max-w-3xl mx-auto mb-2 flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
+          <div id="searchModeToggleWrapper" class="hidden items-center gap-2">
             <div class="inline-flex p-1 bg-slate-200/90 rounded-xl text-xs font-semibold shadow-inner">
               <button type="button" id="modeAiBtn" class="px-3.5 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer select-none">
                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -278,7 +278,7 @@
           </div>
 
           <!-- Dynamic Notice for Missing API Key when AI mode is active -->
-          <div id="noApiKeyNotice" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium cursor-help" title="Um KI-Antworten zu nutzen, muss ein API-Schlüssel in der Admin-Verwaltung hinterlegt werden. Alternativ können Sie auf Handbuch-Direktsuche umschalten.">
+          <div id="noApiKeyNotice" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium cursor-help" title="Um KI-Antworten zu nutzen, muss ein API-Schlüssel in der Admin-Verwaltung hinterlegt werden.">
             <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <span>Kein API-Schlüssel hinterlegt</span>
           </div>
@@ -371,6 +371,18 @@
         <div id="chunkCountInfo" class="text-[11px] text-slate-500 font-medium">Indizierte Wissenseinheiten: 0 Chunks</div>
       </div>
 
+      <!-- Test & Debug Options -->
+      <div class="p-4 border-b border-slate-200 bg-white space-y-3">
+        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">Test- & Oberflächen-Optionen</label>
+        <div class="flex items-center justify-between gap-3 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="space-y-0.5">
+            <label for="showSearchModeToggleCheckbox" class="text-xs font-semibold text-slate-800 block cursor-pointer">Handbuch-Direktsuche in UI anzeigen</label>
+            <p class="text-[10px] text-slate-500">Blendet den Modus-Umschalter für Anwender ein</p>
+          </div>
+          <input type="checkbox" id="showSearchModeToggleCheckbox" class="w-4 h-4 text-bordeaux rounded border-slate-300 focus:ring-bordeaux cursor-pointer shrink-0">
+        </div>
+      </div>
+
       <!-- Footer Action -->
       <div class="p-4 bg-white border-t border-slate-200 mt-auto">
         <button id="finishAdminBtn" class="w-full py-2.5 bg-bordeaux hover:bg-bordeaux-hover text-white text-xs font-bold rounded-lg transition shadow-sm">
@@ -421,6 +433,7 @@
     let isProcessing = false;
     let isAdminAuthenticated = false;
     let selectedSearchMode = 'ai'; // Default auf KI-Antworten gesetzt
+    let showSearchModeToggle = localStorage.getItem('APTE_SHOW_SEARCH_MODE_TOGGLE') === 'true'; // Default: false (ausgeblendet)
     let chatHistory = []; // Konversations-Gedächtnis für Kontextsuche & KI-Verlauf
     let globalImageRegistry = {}; // Speichert Base64-Bilder separat außerhalb der LLM-Prompts
     let globalImageCounter = 1;
@@ -489,7 +502,22 @@
       return filtered.join('\n').replace(/\n{3,}/g, '\n\n').trim();
     }
 
+    function updateSearchModeVisibility() {
+      const wrapper = document.getElementById('searchModeToggleWrapper');
+      if (wrapper) {
+        if (showSearchModeToggle) {
+          wrapper.classList.remove('hidden');
+          wrapper.classList.add('flex');
+        } else {
+          wrapper.classList.add('hidden');
+          wrapper.classList.remove('flex');
+          selectedSearchMode = 'ai'; // KI-Modus erzwingen, wenn der Umschalter verborgen ist
+        }
+      }
+    }
+
     function updateSearchModeUI() {
+      updateSearchModeVisibility();
       const modeAiBtn = document.getElementById('modeAiBtn');
       const modeManualBtn = document.getElementById('modeManualBtn');
       const noApiKeyNotice = document.getElementById('noApiKeyNotice');
@@ -507,7 +535,7 @@
           if (noApiKeyNotice) noApiKeyNotice.classList.remove('hidden');
           if (chatInput) {
             chatInput.disabled = true;
-            chatInput.placeholder = "Bitte hinterlegen Sie im Admin-Menü einen API-Schlüssel, um KI-Antworten zu nutzen (oder wechseln Sie auf Handbuch-Direktsuche).";
+            chatInput.placeholder = "Bitte hinterlegen Sie im Admin-Menü einen API-Schlüssel, um KI-Antworten zu nutzen.";
           }
           if (sendBtn) sendBtn.disabled = true;
         } else {
@@ -1303,6 +1331,17 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
 
       const savedApiKey = localStorage.getItem('APTE_API_KEY') || localStorage.getItem('APTE_GEMINI_KEY');
       if (savedApiKey) document.getElementById('geminiApiKeyInput').value = savedApiKey;
+      
+      const searchToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
+      if (searchToggleCheckbox) {
+        searchToggleCheckbox.checked = showSearchModeToggle;
+        searchToggleCheckbox.addEventListener('change', (e) => {
+          showSearchModeToggle = e.target.checked;
+          localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
+          updateSearchModeUI();
+        });
+      }
+
       updateEngineStatusUI();
 
       document.getElementById('apiProviderSelect')?.addEventListener('change', (e) => {
