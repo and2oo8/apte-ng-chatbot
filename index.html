@@ -1421,7 +1421,9 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
             const contentBox = loadMoreBtn.closest('.selection-content-box');
             if (contentBox) {
               contentBox.innerHTML = newHtml;
-              scrollToBottom();
+              // Ausrichten der Ansicht am oberen Rand der Auswahl-Card
+              const parentCard = contentBox.closest('.message-row') || contentBox;
+              container.scrollTop = Math.max(0, parentCard.offsetTop - 16);
             }
             return;
           }
@@ -1436,7 +1438,9 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
             const contentBox = loadPrevBtn.closest('.selection-content-box');
             if (contentBox) {
               contentBox.innerHTML = newHtml;
-              scrollToBottom();
+              // Ausrichten der Ansicht am oberen Rand der Auswahl-Card
+              const parentCard = contentBox.closest('.message-row') || contentBox;
+              container.scrollTop = Math.max(0, parentCard.offsetTop - 16);
             }
             return;
           }
