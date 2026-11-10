@@ -1484,8 +1484,8 @@ ${contextText}`;
       if (adminLoginForm) {
         adminLoginForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const pass = adminPasswordInput ? adminPasswordInput.value : '';
-          if (pass === 'admin123' || pass === 'valucon' || pass === 'admin' || pass === 'apte2026') {
+          const pass = adminPasswordInput ? adminPasswordInput.value.trim() : '';
+          if (pass === 'ApteNG#2026!Admin' || pass === 'admin' || pass === 'apte2026' || pass === 'valucon') {
             isAdminAuthenticated = true;
             if (adminAuthModal) adminAuthModal.classList.add('hidden');
             if (adminAuthError) adminAuthError.classList.add('hidden');
