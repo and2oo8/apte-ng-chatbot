@@ -352,6 +352,7 @@
             <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
               <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
               <option value="openai">OpenAI (GPT-6 Luna)</option>
+              <option value="openrouter">OpenRouter (openai/gpt-6-luna)</option>
               <option value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</option>
               <option value="deepseek">DeepSeek (DeepSeek-V3)</option>
               <option value="groq">Groq (Llama 3.3 70B)</option>
@@ -365,6 +366,9 @@
             <label class="block text-[11px] font-semibold text-slate-700 mb-1">API-Schlüssel</label>
             <input type="password" id="geminiApiKeyInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="Schlüssel eintragen..." />
             
+            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Custom API-Endpoint (optional)</label>
+            <input type="text" id="customApiEndpointInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="z. B. https://openrouter.ai/api/v1/chat/completions" />
+
             <div class="flex gap-2">
               <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
               <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
@@ -484,7 +488,13 @@
         name: 'OpenAI',
         model: 'gpt-6-luna',
         placeholder: 'sk-proj-...',
-        hint: 'Modell: GPT-6 Luna (Kaskade: gpt-6-luna → gpt-6.1-sol → gpt-4o-mini → gpt-4o)'
+        hint: 'Modell: GPT-6 Luna (Kaskade: gpt-6-luna → gpt-4o-mini → gpt-4o)'
+      },
+      openrouter: {
+        name: 'OpenRouter',
+        model: 'openai/gpt-6-luna',
+        placeholder: 'sk-or-v1-...',
+        hint: 'Modell: OpenRouter (openai/gpt-6-luna)'
       },
       anthropic: {
         name: 'Anthropic Claude',
@@ -596,17 +606,20 @@
 
     function updateEngineStatusUI() {
       const savedApiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
+      const savedEndpoint = (localStorage.getItem('APTE_CUSTOM_ENDPOINT') || '').trim();
       const selectedProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
       const hasKey = savedApiKey.length > 3;
       const apiKeyStatus = document.getElementById('apiKeyStatus');
       const providerSelect = document.getElementById('apiProviderSelect');
       const keyInput = document.getElementById('geminiApiKeyInput');
+      const endpointInput = document.getElementById('customApiEndpointInput');
       const hintEl = document.getElementById('providerInfoHint');
 
       const config = PROVIDER_CONFIGS[selectedProvider] || PROVIDER_CONFIGS.gemini;
 
       if (providerSelect) providerSelect.value = selectedProvider;
       if (keyInput && !keyInput.value) keyInput.placeholder = config.placeholder;
+      if (endpointInput) endpointInput.value = savedEndpoint;
       if (hintEl) hintEl.textContent = config.hint;
 
       if (hasKey && apiKeyStatus) {
@@ -831,329 +844,264 @@
             score += Math.min(matches.length, 6) * 2;
           } else if (contentNorm.includes(tokenNorm)) {
             score += 4;
-          } else {
-            subTokens.forEach(st => {
-              if (st.length >= 5 && contentLower.includes(st)) score += 2;
-            });
           }
         });
 
-        if (isProceduralQuery && score > 0) {
-          const proceduralTriggers = ['vorgehensweise', 'gehen sie wie folgt vor', 'anleitung', 'schritt-für-schritt', 'konfiguration:', 'neuerstellung:', 'hinzufügen'];
-          proceduralTriggers.forEach(trigger => { if (contentLower.includes(trigger)) score += 10; });
-          if (/1\.\s+.*2\.\s+/.test(chunk.content) || /1\.\s+Öffnen/.test(chunk.content)) score += 15;
+        if (isProceduralQuery && /^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen)/i.test(chunk.title)) {
+          score += 5;
         }
 
         return { chunk, score, index };
       });
 
-      scored.sort((a, b) => b.score - a.score);
-      const filtered = scored.filter(s => s.score > 0);
-      
-      if (filtered.length > 0 && isProceduralQuery) {
-        const topScored = filtered[0];
-        const topChunk = topScored.chunk;
-        const idx = topScored.index;
-        const hasSteps = /1\.\s+/.test(topChunk.content) || /gehen sie wie folgt vor/i.test(topChunk.content);
+      return scored
+        .filter(s => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topN);
+    }
 
-        if (!hasSteps && idx < indexedChunks.length - 1) {
-          const nextChunk = indexedChunks[idx + 1];
-          if (/1\.\s+/.test(nextChunk.content) || /gehen sie wie folgt vor/i.test(nextChunk.content)) {
-            const mergedChunk = {
-              ...topChunk,
-              content: topChunk.content + '\n\n### ' + nextChunk.title + '\n\n' + nextChunk.content
-            };
-            filtered[0].chunk = mergedChunk;
-          }
+    function sanitizeMarkdownImages(text) {
+      if (!text || typeof text !== 'string') return '';
+      return text;
+    }
+
+    function postProcessResponse(text, imageMap) {
+      if (!text || typeof text !== 'string') return '';
+      let processed = text;
+      if (imageMap) {
+        for (const [key, val] of Object.entries(imageMap)) {
+          processed = processed.replaceAll(key, val);
         }
       }
-
-      return filtered.map(s => s.chunk).slice(0, topN);
+      return processed;
     }
 
-    function postProcessResponse(replyText, imageMap = {}) {
-      if (!replyText) return '';
-      let cleaned = cleanBoilerplateText(replyText)
-        .replace(/^(Klickpfad|Pfad):\s*.*$/gm, '')
-        .replace(/^(Basierend auf|Laut dem|Auf Basis des|Gemäß dem|In APTE-NG)[^.\n]+[.\n]+/i, '')
-        .trim();
+    function generateSelectionHtml(relevantList, displayCount, query) {
+      if (!relevantList || relevantList.length === 0) {
+        return `<p class="text-slate-600 mb-3">Leider wurden keine direkt passenden Abschnitte im Handbuch gefunden. Bitte formulieren Sie Ihre Frage anders oder wählen Sie eine der Themen im Handbuch:</p>`;
+      }
 
-      // Automatisches Re-Hydrieren aller Bild-Referenzen (nur wenn im KI-Text enthalten)
-      cleaned = rehydrateImages(cleaned);
+      const items = relevantList.slice(0, displayCount);
+      let html = `<p class="text-slate-700 font-semibold mb-3">Im Handbuch wurden folgende relevante Themen gefunden. Bitte wählen Sie ein Thema aus:</p>`;
+      html += `<div class="space-y-2 mb-3">`;
 
-      return cleaned;
-    }
+      items.forEach(item => {
+        const chunk = item.chunk;
+        const chunkIdx = item.index !== undefined ? item.index : indexedChunks.indexOf(chunk);
+        const snippet = chunk.content.replace(/[*_#]/g, '').slice(0, 140).trim() + '...';
 
-    function sanitizeMarkdownImages(mdText) {
-      if (!mdText || typeof mdText !== 'string') return '';
-      return mdText;
-    }
-
-    function formatProceduralFallback(chunk, query = '') {
-      if (!chunk || !chunk.content) return '';
-      return cleanBoilerplateText(chunk.content);
-    }
-
-    // Hilfsfunktion zur Generierung von Schnellantwort-Buttons für die Handbuch-Direktsuche
-    function generateManualQuickReplyButtons(chunk, query) {
-      let buttonsHtml = '\n\n<div class="mt-3 pt-2 border-t border-slate-200/80 flex flex-wrap gap-1.5 select-none">';
-      buttonsHtml += `[BUTTON: 🔍 Verwandte Themen anzeigen|Weitere Themen zu ${chunk.title}]`;
-      buttonsHtml += `[BUTTON: 📖 Zurück zur Themenauswahl|${query || chunk.title}]`;
-      buttonsHtml += '</div>';
-      return buttonsHtml;
-    }
-
-    function generateSelectionHtml(relevantChunks, displayCount = 3, query = '') {
-      const currentWindowSize = 3;
-      const totalChunks = relevantChunks.length;
-      
-      const startIndex = Math.max(0, displayCount - currentWindowSize);
-      const currentWindowChunks = relevantChunks.slice(startIndex, displayCount);
-      const hasMore = displayCount < totalChunks;
-      const hasPrevious = startIndex > 0;
-
-      let html = `<p class="font-bold text-slate-800 mb-2">Ich habe folgende passende Kapitel im Handbuch gefunden. Bitte wählen Sie das gewünschte Thema aus:</p>`;
-      
-      currentWindowChunks.forEach((c) => {
-        html += `<div class="my-2">
-          <button class="select-topic-btn text-left block w-full bg-white hover:bg-bordeaux-soft p-3 rounded-xl border border-slate-200 hover:border-bordeaux shadow-sm transition group cursor-pointer" data-chunk-index="${indexedChunks.indexOf(c)}" data-topic-title="${encodeURIComponent(c.title)}" data-query="${encodeURIComponent(query)}">
-            <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-lg bg-slate-100 group-hover:bg-white text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <span class="text-xs font-bold text-slate-900 group-hover:text-bordeaux block truncate transition-colors">${c.title}</span>
-                <span class="text-[11px] font-normal text-slate-500 block truncate mt-0.5">${c.path}</span>
-              </div>
+        html += `
+          <button type="button" class="select-topic-btn w-full text-left p-3 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition group shadow-sm flex items-start gap-3 cursor-pointer" data-chunk-index="${chunkIdx}" data-query="${encodeURIComponent(query)}">
+            <div class="w-7 h-7 rounded-lg bg-bordeaux-soft text-bordeaux font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 border border-bordeaux-border">
+              📖
             </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-bold text-xs text-slate-900 group-hover:text-bordeaux transition truncate">${escapeHtml(chunk.title)}</div>
+              <div class="text-[11px] text-slate-500 font-medium truncate mt-0.5">${escapeHtml(chunk.path)}</div>
+              <div class="text-[11px] text-slate-600 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(snippet)}</div>
+            </div>
+            <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        `;
+      });
+      html += `</div>`;
+
+      if (relevantList.length > displayCount) {
+        html += `<div class="text-center pt-1">
+          <button type="button" id="loadMoreTopicsBtn" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-300 shadow-sm cursor-pointer" data-next-count="${displayCount + 3}" data-query="${encodeURIComponent(query)}">
+            Mehr Themen anzeigen (${relevantList.length - displayCount} weitere)
           </button>
         </div>`;
-      });
-
-      html += `<div class="mt-3 pt-2 flex flex-col gap-2">`;
-      
-      if (hasMore) {
-        html += `<button id="loadMoreTopicsBtn" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition shadow-sm cursor-pointer w-full" data-next-count="${displayCount + currentWindowSize}" data-query="${encodeURIComponent(query)}">🔍 Mehr passende Themen anzeigen (weitere Vorschläge laden)...</button>`;
       }
-
-      if (hasPrevious) {
-        html += `<button id="loadPrevTopicsBtn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer w-full" data-prev-count="${Math.max(currentWindowSize, displayCount - currentWindowSize)}" data-query="${encodeURIComponent(query)}">◀ Zurück zu den vorherigen Vorschlägen</button>`;
-      }
-
-      if (!hasMore && !hasPrevious) {
-        html += `<p class="text-xs text-slate-500 text-center italic">Alle gefundenen Themen wurden angezeigt.</p>`;
-      }
-
-      html += `</div>`;
 
       return html;
     }
 
+    function formatProceduralFallback(chunk, query) {
+      return `### ${chunk.title}\n*Pfad: ${chunk.path}*\n\n${chunk.content}`;
+    }
+
+    function generateManualQuickReplyButtons(chunk, query) {
+      return '';
+    }
+
     async function getAIResponse(userQuery) {
-      const NO_MATCH_TEXT = "Zu Ihrer Anfrage wurden leider keine passenden Informationen im Systemhandbuch gefunden. Bitte prüfen Sie die Schreibweise oder versuchen Sie es mit anderen Begriffen.";
-      if (!indexedChunks || indexedChunks.length === 0) return { text: "Das Systemhandbuch ist aktuell nicht geladen.", mode: 'fallback' };
+      const relevant = findRelevantChunks(userQuery, 10);
 
-      // Erkennung von Begrüßung / Smalltalk
-      const isGreeting = /^(hallo|hi|guten\s+tag|servus|moin|hey|guten\s+morgen|guten\s+abend|wer\s+bist\s+du|hilfe|wie\s+geht)\b/i.test(userQuery.trim());
-
-      // Kontext-Anreicherung bei Folgefragen ("dann", "danach", "welche schritte", etc.)
-      let searchTargetQuery = userQuery;
-      const isFollowUp = /^(dann|danach|welche schritte|wie geht es weiter|was noch|weiter|dazu|das|diese|dieser|dieses)\b/i.test(userQuery.trim()) || userQuery.trim().split(/\s+/).length <= 4;
-      
-      if (isFollowUp && chatHistory.length > 0) {
-        const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
-        if (lastUserMsg) {
-          searchTargetQuery = `${lastUserMsg.content} ${userQuery}`;
-        }
-      }
-
-      const relevant = findRelevantChunks(searchTargetQuery, 15);
-      if (!relevant || relevant.length === 0) {
-        if (!isGreeting) return { text: NO_MATCH_TEXT, mode: 'fallback' };
-      }
-
-      if (selectedSearchMode === 'manual' && !isGreeting) {
+      if (selectedSearchMode === 'manual') {
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
       }
-      
-      // Schlanker Kontext ohne Base64-Ballast
-      const imageMap = {};
 
-      const contextText = relevant.slice(0, 8).map((c, i) => {
-        let contentForAi = c.content;
-
-        // Bild-Referenzen für die spätere Darstellung erfassen
-        const imgMatches = contentForAi.match(/img_ref_\d+/g) || [];
-        imgMatches.forEach(refId => {
-          if (globalImageRegistry[refId]) {
-            imageMap[refId] = globalImageRegistry[refId];
-          }
-        });
-
-        if (contentForAi.length > 3000) {
-          contentForAi = contentForAi.slice(0, 3000);
-        }
-        return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path} (${c.source || 'Handbuch'})]\nTitel: ${c.title}\n${contentForAi}`;
-      }).join('\n\n');
-
-      // Optimierter Prompt: Strikte Vollständigkeit, Synonym-Flexibilität & Kontext-Gedächtnis
-      const systemPrompt = `Du bist der fachlich präzise APTE-NG Support-Assistent.
-Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System direkt, sachlich und lückenlos zu helfen.
-
-WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
-1. KEINE UNNÖTIGEN BEGRÜSSUNGEN: Grüß NUR dann ("Guten Tag", "Hallo"), wenn der Nutzer selbst explizit grüßt. In laufenden Dialogen oder Folgefragen verzichte VOLLSTÄNDIG auf Begrüßungen!
-2. DIREKTER EINSTIEG (KEIN FLOSKEL-BALLAST): Verzichte komplett auf Höflichkeitsfloskeln wie "Es freut mich, dass Sie sich interessieren...", "Sehr gerne helfe ich Ihnen dabei..." oder "Das ist eine gute Frage!". Steige sofort sachlich und auf den Punkt in die Erklärung oder Anleitung ein.
-3. KONTEXT & FOLGEFRAGEN: Beachte den bisherigen Verlauf des Gesprächs. Wenn der Nutzer Folgefragen stellt (z.B. "Welche Schritte werden dann gemacht?"), beziehe dich direkt auf das zuvor besprochene Thema und liefere die ausstehenden Details.
-4. SEMANTISCHES VERSTÄNDNIS & SYNONYME:
-   - Nutze aktives semantisches Sprachverständnis für Synonyme ("einstellen" vs. "festlegen", "anlegen" vs. "erstellen", "Gutachter" vs. "Prüfer/Mitglieder").
-5. STRIKTE VOLLSTÄNDIGKEIT & KEINE HALLUZINATIONEN (MANDATORISCH):
-   - Stütze dich AUSSCHLIESSLICH auf den bereitgestellten Handbuch-Kontext.
-   - ERFINDE NIEMALS Menüpfade, Buttons, Unterpunkte oder Optionen (wie z. B. "Mitarbeitende -> Einladen" oder eine angebliche direkte Gruppenauswahl beim Einladen), die NICHT explizit im bereitgestellten Handbuch-Text stehen!
-   - Wenn im Handbuch z. B. zum Einladen von Gutachtern ein bestimmter Ablauf beschrieben ist, gib exakt nur diesen lückenlos wieder. Ergänze keinesfalls vermutete Klickpfade aus generischen Admin-Systemen.
-6. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
-   - Platziere im Handbuch enthaltene Bild-Referenzen ![Beschriftung](img_ref_X) punktgenau beim jeweiligen Handlungsschritt.
-7. BUTTONS & SCHALTFLÄCHEN:
-   - Schreib Schaltflächen fett in Anführungszeichen (z.B. **"Speichern"**).
-8. UNKLARHEITEN & FEHLENDE SCHRITTE:
-   - Falls eine fachliche Frage oder ein Teilschritt nicht im bereitgestellten Kontext enthalten ist, antworte höflich: "${NO_MATCH_TEXT}". Behaupte NIEMALS, dass ein nicht dokumentierter Button oder Menüpfad existiert.
-9. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?" oder "Benötigen Sie Hilfe bei einem bestimmten Teilschritt?"), um den Anwender aktiv bei der Umsetzung zu begleiten.
-10. SCHNELLANTWORT-BUTTONS (MANDATORISCH): Platziere direkt unter deiner Abschlussfrage ausnahmslos 1 bis 2 anklickbare Schnellantwort-Buttons für den Nutzer im Format [BUTTON: Kurzer Button-Text|Vollständige Folgefrage].
-Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ich ein Standardlabel?]\n\n${contextText}`;
-
-      let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
-      apiKey = apiKey.replace(/^["']|["']$/g, '');
-      const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
+      const apiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
+      const provider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
       const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.gemini;
 
-      if (apiKey) {
-        try {
-          let response;
-          let replyText = '';
-          let errorMessage = '';
-          let usedModelName = '';
-          let usageInfo = '';
+      if (!apiKey) {
+        return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
+      }
 
-          if (provider === 'gemini') {
-            const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`;
-            const apiPayload = {
-              contents: [{
-                parts: [
-                  { text: systemPrompt },
-                  { text: `Benutzeranfrage: ${userQuery}` }
-                ]
-              }],
+      if (relevant.length === 0) {
+        return { 
+          text: `<p>Zu Ihrer Suchanfrage konnte im Handbuch kein direkter Treffer gefunden werden. Bitte formulieren Sie Ihre Frage genauer.</p>`, 
+          mode: 'fallback' 
+        };
+      }
+
+      const contextText = relevant.slice(0, 5).map(r => `[DOKUMENT: ${r.chunk.path} | TITEL: ${r.chunk.title}]\n${r.chunk.content}`).join('\n\n---\n\n');
+
+      const systemPrompt = `Du bist der offizielle APTE-NG Support-Assistent für Hochschulen und Universitäten.
+Beantworte die Anwenderfrage STRIKT auf Basis der folgenden Auszüge aus dem Handbuch.
+
+Regeln:
+1. Sei präzise, sachlich und direkt. Einleitende Höflichkeitsfloskeln wie "Guten Tag!", "Gerne helfe ich Ihnen", "Es freut mich..." SIND VERBOTEN. Steige DIREKT beim Inhalt ein.
+2. Wenn Schritte oder Handlungsanweisungen im Text stehen, gebe sie exakt 1:1 wieder.
+3. ERFINDE NIEMALS Menüpfade, Optionen oder Felder, die nicht im bereitgestellten Handbuch-Text enthalten sind.
+4. Nutze übersichtliches Markdown (Fettdruck, Aufzählungen, nummerierte Schritte).
+5. Wenn im Text Bild-Referenzen wie ![Alt](img_ref_X) stehen, übernehme diese exakt im Markdown.
+
+HANDBUCH-KONTEXT:
+${contextText}`;
+
+      let replyText = '';
+      let usedModelName = config.model;
+      let usageInfo = '';
+      let errorMessage = '';
+
+      if (provider === 'gemini') {
+        try {
+          const geminiModel = config.model || 'gemini-2.0-flash';
+          const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
+          
+          const response = await fetch(endpointUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: systemPrompt + '\n\nFRAGE DES ANWENDERS: ' + userQuery }]
+                }
+              ],
               generationConfig: {
                 temperature: 0.8
               }
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (data.usageMetadata) {
+              usageInfo = `${(data.usageMetadata.totalTokenCount || 0).toLocaleString('de-DE')} Tokens`;
+            }
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            const errDetail = errData.error?.message || response.statusText;
+            console.error(`[Gemini API Fehler ${response.status}]`, errDetail);
+            errorMessage = `Gemini API-Fehler (HTTP ${response.status}): ${errDetail}`;
+          }
+        } catch (err) {
+          console.error('[Gemini Netzwerkfehler]', err);
+          errorMessage = `Netzwerkfehler bei Google Gemini: ${err.message}`;
+        }
+      } else {
+        let customEndpoint = (localStorage.getItem('APTE_CUSTOM_ENDPOINT') || '').trim();
+        let endpointUrl = customEndpoint;
+
+        if (!endpointUrl) {
+          if (provider === 'openrouter') endpointUrl = 'https://openrouter.ai/api/v1/chat/completions';
+          else if (provider === 'anthropic') endpointUrl = 'https://api.anthropic.com/v1/messages';
+          else if (provider === 'deepseek') endpointUrl = 'https://api.deepseek.com/chat/completions';
+          else if (provider === 'groq') endpointUrl = 'https://api.groq.com/openai/v1/chat/completions';
+          else if (provider === 'mistral') endpointUrl = 'https://api.mistral.ai/v1/chat/completions';
+          else if (provider === 'melious') endpointUrl = 'https://api.melious.ai/v1/chat/completions';
+          else endpointUrl = 'https://api.openai.com/v1/chat/completions';
+        }
+
+        const modelsToTry = [config.model];
+        if (provider === 'openai') {
+          modelsToTry.push('gpt-4o-mini', 'gpt-4o');
+        } else if (provider === 'openrouter') {
+          modelsToTry.push('openai/gpt-4o-mini', 'openai/gpt-4o');
+        }
+
+        for (const currentModel of modelsToTry) {
+          try {
+            const headers = {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
             };
 
-            response = await fetch(endpointUrl, {
+            if (provider === 'openrouter' || endpointUrl.includes('openrouter.ai')) {
+              headers['HTTP-Referer'] = window.location.href;
+              headers['X-Title'] = 'APTE-NG Support Assistent';
+            }
+
+            const response = await fetch(endpointUrl, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(apiPayload)
+              headers: headers,
+              body: JSON.stringify({ 
+                model: currentModel,
+                temperature: 0.8,
+                messages: [
+                  { role: 'system', content: systemPrompt },
+                  { role: 'user', content: userQuery }
+                ]
+              })
             });
 
             if (response.status === 429) {
-              errorMessage = `Google Gemini (${config.model}) meldet Rate-Limit (HTTP 429).`;
+              let errDetail = '';
+              try {
+                const errData = await response.json();
+                errDetail = errData.error?.message || errData.message || '';
+              } catch(e) {}
+              console.error(`[KI-Kaskade] Modell '${currentModel}' Rate-Limit:`, errDetail);
+              errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
+              break;
             } else if (response.ok) {
-              const data = await response.json();
-              replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-              if (data.usageMetadata) {
-                usageInfo = `${(data.usageMetadata.totalTokenCount || 0).toLocaleString('de-DE')} Tokens (In: ${(data.usageMetadata.promptTokenCount || 0).toLocaleString('de-DE')} | Out: ${(data.usageMetadata.candidatesTokenCount || 0).toLocaleString('de-DE')})`;
+              const contentType = response.headers.get('content-type') || '';
+              if (contentType.includes('application/json')) {
+                const data = await response.json();
+                replyText = data.choices?.[0]?.message?.content || '';
+                if (data.usage) {
+                  usageInfo = `${data.usage.total_tokens.toLocaleString('de-DE')} Tokens (In: ${data.usage.prompt_tokens.toLocaleString('de-DE')} | Out: ${data.usage.completion_tokens.toLocaleString('de-DE')})`;
+                }
+                if (replyText) {
+                  usedModelName = currentModel;
+                  errorMessage = '';
+                  console.log(`[KI-Erfolg] Modell '${currentModel}' hat erfolgreich geantwortet.`);
+                  break;
+                }
               }
-              usedModelName = config.model;
             } else {
               let errDetail = '';
               try {
                 const errData = await response.json();
-                errDetail = errData.error?.message || '';
+                errDetail = errData.error?.message || errData.message || JSON.stringify(errData);
               } catch(e) {}
-              errorMessage = `Google Gemini Fehler (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
+              console.error(`[KI-Kaskade] Modell '${currentModel}' abgelehnt mit HTTP ${response.status}:`, errDetail);
+              errorMessage = `Anbieter ${config.name} Fehler: ${currentModel} (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
             }
-          } else {
-            // OpenAI / Anthropic / Groq / DeepSeek / Mistral / Melious API Integration
-            let endpointUrl = 'https://api.openai.com/v1/chat/completions';
-            if (provider === 'anthropic') endpointUrl = 'https://api.anthropic.com/v1/messages';
-            else if (provider === 'deepseek') endpointUrl = 'https://api.deepseek.com/chat/completions';
-            else if (provider === 'groq') endpointUrl = 'https://api.groq.com/openai/v1/chat/completions';
-            else if (provider === 'mistral') endpointUrl = 'https://api.mistral.ai/v1/chat/completions';
-            else if (provider === 'melious') endpointUrl = 'https://api.melious.ai/v1/chat/completions';
-
-            const modelsToTry = [config.model, 'gpt-4o-mini', 'gpt-4o', 'llama-3.3-70b-versatile', 'claude-3-5-sonnet-20241022'];
-            let lastErrorDetail = '';
-
-            for (const currentModel of modelsToTry) {
-              try {
-                response = await fetch(endpointUrl, {
-                  method: 'POST',
-                  headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                  },
-                  body: JSON.stringify({ 
-                    model: currentModel,
-                    temperature: 0.8,
-                    messages: [
-                      { role: 'system', content: systemPrompt },
-                      { role: 'user', content: userQuery }
-                    ]
-                  })
-                });
-
-                if (response.status === 429) {
-                  let errDetail = '';
-                  try {
-                    const errData = await response.json();
-                    errDetail = errData.error?.message || errData.message || '';
-                  } catch(e) {}
-                  errorMessage = `Anbieter ${config.name} (${currentModel}) meldet Rate-Limit (HTTP 429${errDetail ? ': ' + errDetail : ''}).`;
-                  break;
-                } else if (response.ok) {
-                  const contentType = response.headers.get('content-type') || '';
-                  if (contentType.includes('application/json')) {
-                    const data = await response.json();
-                    replyText = data.choices?.[0]?.message?.content || '';
-                    if (data.usage) {
-                      usageInfo = `${data.usage.total_tokens.toLocaleString('de-DE')} Tokens (In: ${data.usage.prompt_tokens.toLocaleString('de-DE')} | Out: ${data.usage.completion_tokens.toLocaleString('de-DE')})`;
-                    }
-                    if (replyText) {
-                      usedModelName = currentModel;
-                      errorMessage = '';
-                      break;
-                    }
-                  }
-                } else {
-                  let errDetail = '';
-                  try {
-                    const errData = await response.json();
-                    errDetail = errData.error?.message || errData.message || '';
-                  } catch(e) {}
-                  lastErrorDetail = `${currentModel} (HTTP ${response.status}${errDetail ? ': ' + errDetail : ''})`;
-                  errorMessage = `Anbieter ${config.name} Fehler: ${lastErrorDetail}`;
-                }
-              } catch (fetchErr) {
-                lastErrorDetail = `${currentModel} (${fetchErr.message || fetchErr})`;
-                errorMessage = `Anbieter ${config.name} Fehler: ${lastErrorDetail}`;
-              }
-            }
+          } catch (fetchErr) {
+            console.error(`[KI-Kaskade] Netzwerkfehler bei '${currentModel}':`, fetchErr);
+            errorMessage = `Anbieter ${config.name} Fehler: ${currentModel} (${fetchErr.message || fetchErr})`;
           }
-
-          if (replyText && replyText.trim().length > 0) {
-            let processedText = postProcessResponse(replyText, imageMap);
-            return { text: processedText, mode: 'ai', usedModel: usedModelName || config.model, tokenUsage: usageInfo };
-          }
-
-          if (errorMessage) {
-            console.warn(errorMessage);
-            const selectionHtml = generateSelectionHtml(relevant, 3, userQuery);
-            return { 
-              text: `<div class="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-medium">⚠️ <strong>${config.name}-API Hinweis:</strong> ${errorMessage} Automatisch auf Handbuch-Direktsuche umgeschaltet.</div>` + selectionHtml, 
-              mode: 'selection' 
-            };
-          }
-        } catch (e) {
-          console.warn(`API-Anfrage fehlgeschlagen:`, e);
         }
+      }
+
+      if (replyText && replyText.trim().length > 0) {
+        let processedText = postProcessResponse(replyText);
+        return { text: processedText, mode: 'ai', usedModel: usedModelName || config.model, tokenUsage: usageInfo };
+      }
+
+      if (errorMessage) {
+        console.warn(errorMessage);
+        const selectionHtml = generateSelectionHtml(relevant, 3, userQuery);
+        return { 
+          text: `<div class="p-3 mb-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs font-medium">⚠️ <strong>${config.name}-API Hinweis:</strong> ${errorMessage} Automatisch auf Handbuch-Direktsuche umgeschaltet.</div>` + selectionHtml, 
+          mode: 'selection' 
+        };
       }
 
       return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
@@ -1607,15 +1555,31 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
     if (saveApiKeyBtn) {
       saveApiKeyBtn.addEventListener('click', () => {
         const key = (geminiApiKeyInput ? geminiApiKeyInput.value : '').trim();
+        const endpoint = (customApiEndpointInput ? customApiEndpointInput.value : '').trim();
         if (key) {
           localStorage.setItem('APTE_API_KEY', key);
-          const feedback = document.getElementById('apiKeyFeedback');
-          if (feedback) {
-            feedback.textContent = '✓ Schlüssel gespeichert!';
-            feedback.className = 'text-[11px] font-semibold text-emerald-600 mt-1 block';
-            setTimeout(() => feedback.className = 'hidden', 3000);
-          }
         }
+        if (endpoint) {
+          localStorage.setItem('APTE_CUSTOM_ENDPOINT', endpoint);
+        } else {
+          localStorage.removeItem('APTE_CUSTOM_ENDPOINT');
+        }
+        const feedback = document.getElementById('apiKeyFeedback');
+        if (feedback) {
+          feedback.textContent = '✓ Einstellungen gespeichert!';
+          feedback.className = 'text-[11px] font-semibold text-emerald-600 mt-1 block';
+          setTimeout(() => feedback.className = 'hidden', 3000);
+        }
+        updateEngineStatusUI();
+      });
+    }
+
+    if (clearApiKeyBtn) {
+      clearApiKeyBtn.addEventListener('click', () => {
+        localStorage.removeItem('APTE_API_KEY');
+        localStorage.removeItem('APTE_CUSTOM_ENDPOINT');
+        if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+        if (customApiEndpointInput) customApiEndpointInput.value = '';
         updateEngineStatusUI();
       });
     }
