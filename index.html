@@ -1037,17 +1037,24 @@ ${contextText}`;
               headers['X-Title'] = 'APTE-NG Support Assistent';
             }
 
+            // Request-Body dynamisch aufbauen (Luna erlaubt keinen abweichenden temperature-Wert)
+            const requestBody = { 
+              model: currentModel,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userQuery }
+              ]
+            };
+
+            // Nur für Standardmodelle 'temperature' mitsenden (Luna erzwingt Default=1)
+            if (!currentModel.toLowerCase().includes('luna')) {
+              requestBody.temperature = 0.8;
+            }
+
             const response = await fetch(endpointUrl, {
               method: 'POST',
               headers: headers,
-              body: JSON.stringify({ 
-                model: currentModel,
-                temperature: 0.8,
-                messages: [
-                  { role: 'system', content: systemPrompt },
-                  { role: 'user', content: userQuery }
-                ]
-              })
+              body: JSON.stringify(requestBody)
             });
 
             if (response.status === 429) {
