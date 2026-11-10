@@ -1211,6 +1211,14 @@ ${contextText}`;
         if (chatHistory.length > 10) chatHistory.shift();
       }
 
+      // Unsichtbaren Scroll-Spacer unten im Chat-Container verwalten (ermöglicht Platz zum Scrollen an den oberen Rand)
+      let spacer = document.getElementById('chatScrollSpacer');
+      if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.id = 'chatScrollSpacer';
+        spacer.className = 'h-[65vh] shrink-0 pointer-events-none';
+      }
+
       const msgDiv = document.createElement('div');
       msgDiv.className = role === 'user' ? 'max-w-3xl mx-auto w-full flex justify-end' : 'max-w-3xl mx-auto w-full flex justify-start';
 
@@ -1220,6 +1228,7 @@ ${contextText}`;
         innerDiv.textContent = content;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
+        container.appendChild(spacer); // Spacer immer am Ende des Verlaufs platzieren
         
         // Exklusiv den Chat-Container auf den Anfang der User-Frage scrollen (v1.0 Standard)
         container.scrollTop = Math.max(0, msgDiv.offsetTop - 16);
@@ -1253,11 +1262,12 @@ ${contextText}`;
         innerDiv.appendChild(contentBox);
         msgDiv.appendChild(innerDiv);
         
-        container.appendChild(msgDiv);
+        // KI-Antwort vor dem Spacer einfügen
+        container.insertBefore(msgDiv, spacer);
 
         // Ansicht stabil oben an der vorausgehenden Frage verankern (v1.0 Standard)
         const prevMsg = msgDiv.previousElementSibling;
-        const targetElement = prevMsg ? prevMsg : msgDiv;
+        const targetElement = (prevMsg && prevMsg !== spacer) ? prevMsg : msgDiv;
         container.scrollTop = Math.max(0, targetElement.offsetTop - 16);
 
         if (mode === 'ai' || mode === 'fallback') {
