@@ -996,26 +996,29 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path} (${c.source || 'Handbuch'})]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Strikte 1:1 Faktentreue ohne Negativ-Priming & ohne erfundene Felder
+      // Optimierter Prompt: Strikte Vollständigkeit, Synonym-Flexibilität & Kontext-Gedächtnis
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System präzise und vollständig zu helfen.
 
 WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
 2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet.
-3. KONTEXT & FOLGEFRAGEN: Beachte den bisherigen Gesprächsverlauf. Beziehe dich bei Folgefragen direkt auf das zuvor besprochene Thema.
-4. STRIKTE 1:1 ANLEITUNGEN (MANDATORISCH):
-   - Wenn du Handlungsschritte, Klickpfade oder Formularfelder aus dem Handbuch wiedergibst, übernimm diese EXAKT 1:1 und WORTGETREU aus den bereitgestellten Textabschnitten.
-   - Füge NIEMALS zusätzliche Eingabefelder, Dropdowns (wie z. B. Gruppenauswahl, Rollenauswahl) oder Zwischenschritte hinzu, die nicht explizit im Text stehen.
-   - Ändere keine Feldnamen und erfinde keine Menüoptionen aus allgemeinen Web-Systemen.
-5. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
+3. KONTEXT & FOLGEFRAGEN: Beachte den bisherigen Verlauf des Gesprächs. Wenn der Nutzer Folgefragen stellt (z.B. "Welche Schritte werden dann gemacht?"), beziehe dich direkt auf das zuvor besprochene Thema und liefere die ausstehenden Details.
+4. SEMANTISCHES VERSTÄNDNIS & SYNONYME:
+   - Nutze aktives semantisches Sprachverständnis für Synonyme ("einstellen" vs. "festlegen", "anlegen" vs. "erstellen", "Gutachter" vs. "Prüfer/Mitglieder").
+5. STRIKTE VOLLSTÄNDIGKEIT & KEINE HALLUZINATIONEN (MANDATORISCH):
+   - Stütze dich AUSSCHLIESSLICH auf den bereitgestellten Handbuch-Kontext.
+   - ERFINDE NIEMALS Menüpfade, Buttons, Unterpunkte oder Formularfelder, die NICHT explizit im bereitgestellten Handbuch-Text stehen!
+   - Gib Schritte, Pflichtfelder und Schalter exakt 1:1 so wieder, wie sie in den Kontext-Abschnitten beschrieben sind.
+6. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
    - Platziere im Handbuch enthaltene Bild-Referenzen ![Beschriftung](img_ref_X) punktgenau beim jeweiligen Handlungsschritt.
-6. BUTTONS & SCHALTFLÄCHEN:
-   - Schreib Schaltflächen fett in Anführungszeichen (z. B. **"Speichern"**).
-7. UNKLARHEITEN & FEHLENDE SCHRITTE:
-   - Falls eine Frage oder ein Schritt nicht im bereitgestellten Kontext steht, antworte höflich: "${NO_MATCH_TEXT}".
-8. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?").
-9. SCHNELLANTWORT-BUTTONS (MANDATORISCH): Platziere direkt unter deiner Abschlussfrage 1 bis 2 anklickbare Schnellantwort-Buttons im Format [BUTTON: Kurzer Button-Text|Vollständige Folgefrage].\n\n${contextText}`;
+7. BUTTONS & SCHALTFLÄCHEN:
+   - Schreib Schaltflächen fett in Anführungszeichen (z.B. **"Speichern"**).
+8. UNKLARHEITEN & FEHLENDE SCHRITTE:
+   - Falls eine fachliche Frage oder ein Teilschritt nicht im bereitgestellten Kontext enthalten ist, antworte höflich: "${NO_MATCH_TEXT}". Behaupte NIEMALS, dass ein nicht dokumentierter Button oder Menüpfad existiert.
+9. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?" oder "Benötigen Sie Hilfe bei einem bestimmten Teilschritt?"), um den Anwender aktiv bei der Umsetzung zu begleiten.
+10. SCHNELLANTWORT-BUTTONS (MANDATORISCH): Platziere direkt unter deiner Abschlussfrage ausnahmslos 1 bis 2 anklickbare Schnellantwort-Buttons für den Nutzer im Format [BUTTON: Kurzer Button-Text|Vollständige Folgefrage].
+Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ich ein Standardlabel?]\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
@@ -1040,7 +1043,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
                 ]
               }],
               generationConfig: {
-                temperature: 0.0
+                temperature: 0.2
               }
             };
 
@@ -1089,11 +1092,11 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
                   },
                   body: JSON.stringify({ 
                     model: currentModel,
-                    temperature: 0.0,
                     messages: [
                       { role: 'system', content: systemPrompt },
                       { role: 'user', content: userQuery }
-                    ]
+                    ],
+                    temperature: 0.2
                   })
                 });
 
