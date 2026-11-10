@@ -1229,7 +1229,7 @@ Daten _Gutachterfunktionen_
 
     8. Klicken Sie auf **“Übernehmen”** **Ergebnis:** Die FB-Gruppe erhält die gewählten Zugriffsrechte auf die Datenansicht.
 
-5. **Einladen von Gutachtern** Laden Sie im nächsten Schritt Gutachter ein und ordnen Sie sie der zuvor angelegten FB-Gruppe zu:
+5. **Einladen von Gutachtern** Laden Sie im nächsten Schritt Gutachter ein:
 
     1. Öffnen Sie die Seite **“Einstellungen”** \> **“Mitarbeitende”**
     2. Klicken Sie auf den Button **“Einladen”**
