@@ -996,29 +996,26 @@
         return `[HANDBUCH ABSCHNITT ${i+1}: ${c.path} (${c.source || 'Handbuch'})]\nTitel: ${c.title}\n${contentForAi}`;
       }).join('\n\n');
 
-      // Optimierter Prompt: Strikte Vollständigkeit, Synonym-Flexibilität & Kontext-Gedächtnis
+      // Strikte 1:1 Faktentreue ohne Negativ-Priming & ohne erfundene Felder
       const systemPrompt = `Du bist der freundliche und kompetente APTE-NG Support-Assistent.
 Deine Aufgabe ist es, Anwendern bei Fragen zum APTE-NG System präzise und vollständig zu helfen.
 
 WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
 1. BEGRÜSSUNG & SMALLTALK: Reagiert der Nutzer mit Begrüßungen ("Hallo", "Guten Tag", etc.) oder allgemeinen Fragen ("Wer bist du?"), antwortet stets freundlich und hilfsbereit.
 2. DYNAMISCHE EINLEITUNG: Formuliere zu Beginn jeder fachlichen Antwort einen kurzen, abwechslungsreichen Einleitungssatz, der sich dynamisch nach dem spezifischen Thema der Frage richtet.
-3. KONTEXT & FOLGEFRAGEN: Beachte den bisherigen Verlauf des Gesprächs. Wenn der Nutzer Folgefragen stellt (z.B. "Welche Schritte werden dann gemacht?"), beziehe dich direkt auf das zuvor besprochene Thema und liefere die ausstehenden Details.
-4. SEMANTISCHES VERSTÄNDNIS & SYNONYME:
-   - Nutze aktives semantisches Sprachverständnis für Synonyme ("einstellen" vs. "festlegen", "anlegen" vs. "erstellen", "Gutachter" vs. "Prüfer/Mitglieder").
-5. STRIKTE VOLLSTÄNDIGKEIT & KEINE HALLUZINATIONEN (MANDATORISCH):
-   - Stütze dich AUSSCHLIESSLICH auf den bereitgestellten Handbuch-Kontext.
-   - ERFINDE NIEMALS Menüpfade, Buttons, Unterpunkte oder Optionen (wie z. B. "Mitarbeitende -> Einladen" oder eine angebliche direkte Gruppenauswahl beim Einladen), die NICHT explizit im bereitgestellten Handbuch-Text stehen!
-   - Wenn im Handbuch z. B. zum Einladen von Gutachtern ein bestimmter Ablauf beschrieben ist, gib exakt nur diesen lückenlos wieder. Ergänze keinesfalls vermutete Klickpfade aus generischen Admin-Systemen.
-6. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
+3. KONTEXT & FOLGEFRAGEN: Beachte den bisherigen Gesprächsverlauf. Beziehe dich bei Folgefragen direkt auf das zuvor besprochene Thema.
+4. STRIKTE 1:1 ANLEITUNGEN (MANDATORISCH):
+   - Wenn du Handlungsschritte, Klickpfade oder Formularfelder aus dem Handbuch wiedergibst, übernimm diese EXAKT 1:1 und WORTGETREU aus den bereitgestellten Textabschnitten.
+   - Füge NIEMALS zusätzliche Eingabefelder, Dropdowns (wie z. B. Gruppenauswahl, Rollenauswahl) oder Zwischenschritte hinzu, die nicht explizit im Text stehen.
+   - Ändere keine Feldnamen und erfinde keine Menüoptionen aus allgemeinen Web-Systemen.
+5. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
    - Platziere im Handbuch enthaltene Bild-Referenzen ![Beschriftung](img_ref_X) punktgenau beim jeweiligen Handlungsschritt.
-7. BUTTONS & SCHALTFLÄCHEN:
-   - Schreib Schaltflächen fett in Anführungszeichen (z.B. **"Speichern"**).
-8. UNKLARHEITEN & FEHLENDE SCHRITTE:
-   - Falls eine fachliche Frage oder ein Teilschritt nicht im bereitgestellten Kontext enthalten ist, antworte höflich: "${NO_MATCH_TEXT}". Behaupte NIEMALS, dass ein nicht dokumentierter Button oder Menüpfad existiert.
-9. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?" oder "Benötigen Sie Hilfe bei einem bestimmten Teilschritt?"), um den Anwender aktiv bei der Umsetzung zu begleiten.
-10. SCHNELLANTWORT-BUTTONS (MANDATORISCH): Platziere direkt unter deiner Abschlussfrage ausnahmslos 1 bis 2 anklickbare Schnellantwort-Buttons für den Nutzer im Format [BUTTON: Kurzer Button-Text|Vollständige Folgefrage].
-Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ich ein Standardlabel?]\n\n${contextText}`;
+6. BUTTONS & SCHALTFLÄCHEN:
+   - Schreib Schaltflächen fett in Anführungszeichen (z. B. **"Speichern"**).
+7. UNKLARHEITEN & FEHLENDE SCHRITTE:
+   - Falls eine Frage oder ein Schritt nicht im bereitgestellten Kontext steht, antworte höflich: "${NO_MATCH_TEXT}".
+8. PROAKTIVER ABSCHLUSS & NACHFRAGE (MANDATORISCH): Beende jede fachliche Antwort am Ende ausnahmslos mit einer freundlichen, gezielten Nachfrage zum nächsten konkreten Schritt oder biete eine passende weiterführende Hilfestellung an (z. B. "Möchten Sie als Nächstes erfahren, wie Sie ...?").
+9. SCHNELLANTWORT-BUTTONS (MANDATORISCH): Platziere direkt unter deiner Abschlussfrage 1 bis 2 anklickbare Schnellantwort-Buttons im Format [BUTTON: Kurzer Button-Text|Vollständige Folgefrage].\n\n${contextText}`;
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
@@ -1041,7 +1038,10 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
                   { text: systemPrompt },
                   { text: `Benutzeranfrage: ${userQuery}` }
                 ]
-              }]
+              }],
+              generationConfig: {
+                temperature: 0.0
+              }
             };
 
             response = await fetch(endpointUrl, {
@@ -1089,6 +1089,7 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
                   },
                   body: JSON.stringify({ 
                     model: currentModel,
+                    temperature: 0.0,
                     messages: [
                       { role: 'system', content: systemPrompt },
                       { role: 'user', content: userQuery }
@@ -1238,434 +1239,354 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
 
         if (chunkInfo) {
           const imgCount = Object.keys(globalImageRegistry).length;
-          const imgSources = [...new Set(Object.values(globalImageRegistry).map(i => i.source))];
+          const sourcesList = loadedFileNames.join(', ');
           let imgDetail = imgCount > 0 
-            ? ` · 🖼️ ${imgCount} Bild(er) aus (${imgSources.join(', ')})` 
+            ? ` · 🖼️ ${imgCount} Bild(er) erfasst` 
             : ' · 🖼️ Keine Bilder im Speicher';
-          chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks (${loadedFileNames.length} Quellen)${imgDetail}`;
+          chunkInfo.textContent = `Indizierte Wissenseinheiten: ${indexedChunks.length} Chunks aus ${loadedFileNames.length} Quellen (${sourcesList})${imgDetail}`;
         }
       } else {
+        indexedChunks = [];
         if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0";
-        if (title) title.textContent = "Keine Dateien geladen";
+        if (title) title.textContent = "Keine Daten geladen";
         if (fileListContainer) {
-          fileListContainer.innerHTML = `<span class="text-rose-600 font-medium font-sans text-xs">Bitte Markdown im Admin-Menü bereitstellen</span>`;
+          fileListContainer.innerHTML = `<span class="text-rose-500 font-sans text-xs">Keine gültigen Handbuch-Dateien gefunden.</span>`;
         }
-      }
-    }
-
-    function appendMessage(role, content, mode = 'fallback', originalQuery = '', usedModel = '', tokenUsage = '') {
-      const container = document.getElementById('messagesContainer');
-      if (!container) return;
-
-      // Konversationsverlauf speichern
-      if (mode !== 'selection') {
-        chatHistory.push({ role, content });
-        if (chatHistory.length > 10) chatHistory.shift();
-      }
-
-      // Unsichtbaren Scroll-Spacer unten im Chat-Container verwalten
-      let spacer = document.getElementById('chatScrollSpacer');
-      if (!spacer) {
-        spacer = document.createElement('div');
-        spacer.id = 'chatScrollSpacer';
-        spacer.className = 'h-[65vh] shrink-0 pointer-events-none';
-      }
-
-      const msgDiv = document.createElement('div');
-      msgDiv.className = role === 'user' ? 'max-w-3xl mx-auto w-full flex justify-end' : 'max-w-3xl mx-auto w-full flex justify-start';
-
-      const innerDiv = document.createElement('div');
-      if (role === 'user') {
-        innerDiv.className = 'max-w-xl bg-slate-800 text-white p-4 rounded-2xl rounded-tr-none text-sm shadow-sm break-words';
-        innerDiv.textContent = content;
-        msgDiv.appendChild(innerDiv);
-        container.appendChild(msgDiv);
-        container.appendChild(spacer); // Spacer immer am Ende des Verlaufs platzieren
-        
-        // Exklusiv den Chat-Container auf den Anfang der User-Frage scrollen
-        container.scrollTop = Math.max(0, msgDiv.offsetTop - 16);
-      } else {
-        innerDiv.className = 'w-full bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden';
-        
-        let badgeHtml = '';
-        if (mode === 'ai') {
-          badgeHtml = '';
-        } else if (mode === 'selection') {
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche: Themenauswahl</span></div>`;
-        } else {
-          badgeHtml = `<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 mb-3 select-none"><span>Handbuch-Direktsuche</span></div>`;
-        }
-
-        let cleanedContent = cleanBoilerplateText(content);
-        cleanedContent = rehydrateImages(cleanedContent);
-
-        if (mode === 'fallback' && originalQuery) {
-          cleanedContent += `\n\n---
-<div class="mt-4 pt-3 border-t border-slate-200 text-center">
-  <button class="retry-alternatives-btn px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer w-full" data-query="${encodeURIComponent(originalQuery)}">
-    🔄 Passt nicht? Hier 3 weitere Themenvorschläge aus dem Handbuch anzeigen...
-  </button>
-</div>`;
-        }
-
-        if (mode === 'ai') {
-          const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
-          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.gemini;
-          const displayModel = usedModel || config.model;
-          const footerInfo = tokenUsage 
-            ? `${config.name} (${displayModel}) · ⚡ ${tokenUsage}` 
-            : `${config.name} (${displayModel})`;
-          cleanedContent += `\n\n<div class="text-[10px] text-slate-400 font-mono text-right mt-3 pt-2 border-t border-slate-100 select-none opacity-80">Modell: ${footerInfo}</div>`;
-        }
-        
-        const contentBox = document.createElement('div');
-        contentBox.className = 'selection-content-box w-full overflow-hidden break-words';
-        innerDiv.innerHTML = badgeHtml;
-        innerDiv.appendChild(contentBox);
-        msgDiv.appendChild(innerDiv);
-        
-        // KI-Antwort vor dem Spacer einfügen
-        container.insertBefore(msgDiv, spacer);
-
-        // Ansicht stabil oben an der vorausgehenden Frage verankern
-        const prevMsg = msgDiv.previousElementSibling;
-        const targetElement = (prevMsg && prevMsg !== spacer) ? prevMsg : msgDiv;
-        container.scrollTop = Math.max(0, targetElement.offsetTop - 16);
-
-        // Sowohl KI-Antworten als auch Handbuch-Direktinhalte mit flüssigem Typewriter-Effekt aufbauen
-        if (mode === 'ai' || mode === 'fallback') {
-          let currentText = '';
-          const words = cleanedContent.split(' ');
-          let wordIdx = 0;
-
-          function typeNextWord() {
-            if (wordIdx < words.length) {
-              currentText += (wordIdx === 0 ? '' : ' ') + words[wordIdx];
-              wordIdx++;
-              
-              let rawHtml = typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(currentText)) : currentText;
-              rawHtml = processDocImages(rawHtml);
-              rawHtml = processQuickReplyButtons(rawHtml);
-              contentBox.innerHTML = rawHtml;
-
-              setTimeout(typeNextWord, 10);
-            }
-          }
-          typeNextWord();
-        } else {
-          let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
-          rawHtml = processDocImages(rawHtml);
-          rawHtml = processQuickReplyButtons(rawHtml);
-          contentBox.innerHTML = rawHtml;
-        }
-      }
-    }
-
-    function scrollToBottom() {
-      const container = document.getElementById('messagesContainer');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
+        if (chunkInfo) chunkInfo.textContent = "Indizierte Wissenseinheiten: 0 Chunks";
       }
     }
 
     let initialWelcomeHtml = '';
 
-    async function handleUserSubmit(queryText) {
+    function appendUserMessage(text) {
+      const container = document.getElementById('messagesContainer');
+      const welcomeCard = document.getElementById('welcomeCard');
+      if (welcomeCard && !welcomeCard.classList.contains('hidden')) {
+        initialWelcomeHtml = welcomeCard.outerHTML;
+        welcomeCard.remove();
+      }
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'max-w-3xl mx-auto flex justify-end mb-4 animate-fadeIn';
+      msgDiv.innerHTML = `
+        <div class="bg-slate-800 text-white px-4 py-3 rounded-2xl rounded-tr-none text-xs sm:text-sm max-w-[85%] shadow-md leading-relaxed font-medium">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      chatHistory.push({ role: 'user', content: text });
+    }
+
+    function appendAssistantMessage(data, isTyping = true) {
+      const container = document.getElementById('messagesContainer');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'max-w-3xl mx-auto mb-6 animate-fadeIn';
+
+      let modelBadge = '';
+      if (data.mode === 'ai' && data.usedModel) {
+        modelBadge = `<div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-end text-[10px] text-slate-400 gap-2">
+          <span>Modell: ${escapeHtml(data.usedModel)}</span>
+          ${data.tokenUsage ? `<span>· ⚡ ${data.tokenUsage}</span>` : ''}
+        </div>`;
+      }
+
+      const cardHtml = `
+        <div class="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+          <div class="editorial-prose text-xs sm:text-sm text-slate-800 leading-relaxed message-body"></div>
+          ${modelBadge}
+        </div>
+      `;
+
+      msgDiv.innerHTML = cardHtml;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+
+      const bodyEl = msgDiv.querySelector('.message-body');
+
+      let rawHtml = '';
+      if (typeof marked !== 'undefined') {
+        rawHtml = marked.parse(data.text || '');
+      } else {
+        rawHtml = escapeHtml(data.text || '').replace(/\n/g, '<br>');
+      }
+
+      rawHtml = processQuickReplyButtons(rawHtml);
+      rawHtml = processDocImages(rawHtml);
+
+      bodyEl.innerHTML = rawHtml;
+      container.scrollTop = container.scrollHeight;
+
+      if (data.text) {
+        chatHistory.push({ role: 'assistant', content: data.text });
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      if (e) e.preventDefault();
       if (isProcessing) return;
-      const chatInput = document.getElementById('chatInput');
-      const query = (queryText || (chatInput ? chatInput.value : '')).trim();
+
+      const input = document.getElementById('chatInput');
+      const query = input.value.trim();
       if (!query) return;
 
+      input.value = '';
       isProcessing = true;
-      if (chatInput) {
-        chatInput.value = '';
-        chatInput.style.height = 'auto';
-        chatInput.disabled = true;
-      }
+      appendUserMessage(query);
 
-      const sendBtn = document.getElementById('sendBtn');
       const typingIndicator = document.getElementById('typingIndicator');
-
-      if (sendBtn) sendBtn.disabled = true;
-
-      appendMessage('user', query);
-
       if (typingIndicator) typingIndicator.classList.remove('hidden');
 
-      try {
-        const response = await getAIResponse(query);
-        if (typingIndicator) typingIndicator.classList.add('hidden');
-        appendMessage('assistant', response.text, response.mode, query, response.usedModel, response.tokenUsage);
-      } catch (err) {
-        if (typingIndicator) typingIndicator.classList.add('hidden');
-        appendMessage('assistant', "Es ist ein Fehler bei der Verarbeitung aufgetreten. Bitte versuchen Sie es erneut.", 'fallback', query);
-      } finally {
-        isProcessing = false;
-        updateSearchModeUI();
+      const response = await getAIResponse(query);
+
+      if (typingIndicator) typingIndicator.classList.add('hidden');
+      isProcessing = false;
+
+      appendAssistantMessage(response, true);
+    }
+
+    // Event Listeners setup
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMarkdownFiles();
+      updateEngineStatusUI();
+
+      const chatForm = document.getElementById('chatForm');
+      if (chatForm) chatForm.addEventListener('submit', handleFormSubmit);
+
+      const chatInput = document.getElementById('chatInput');
+      if (chatInput) {
+        chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleFormSubmit(e);
+          }
+        });
       }
-    }
 
-    // Input handlers
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-      chatInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-      });
-      chatInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          const chatForm = document.getElementById('chatForm');
-          if (chatForm) chatForm.dispatchEvent(new Event('submit'));
-        }
-      });
-    }
-
-    const chatForm = document.getElementById('chatForm');
-    if (chatForm) {
-      chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleUserSubmit();
-      });
-    }
-
-    // Event Delegation on messages container
-    const messagesContainer = document.getElementById('messagesContainer');
-    if (messagesContainer) {
-      messagesContainer.addEventListener('click', function(e) {
-        const target = e.target;
-        
-        const button = target.closest('.suggestion-btn, .quick-reply-btn');
-        if (button) {
-          const query = button.getAttribute('data-query');
-          if (query) {
-            handleUserSubmit(query);
+      // Quick Reply & Suggestion Buttons Event Delegation
+      document.addEventListener('click', (e) => {
+        const suggBtn = e.target.closest('.suggestion-btn');
+        if (suggBtn) {
+          const q = suggBtn.getAttribute('data-query');
+          if (q) {
+            document.getElementById('chatInput').value = q;
+            handleFormSubmit();
           }
           return;
         }
 
-        const topicBtn = target.closest('.select-topic-btn');
+        const quickReplyBtn = e.target.closest('.quick-reply-btn');
+        if (quickReplyBtn) {
+          const q = quickReplyBtn.getAttribute('data-query');
+          if (q) {
+            document.getElementById('chatInput').value = q;
+            handleFormSubmit();
+          }
+          return;
+        }
+
+        const topicBtn = e.target.closest('.select-topic-btn');
         if (topicBtn) {
-          const chunkIdx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
-          const rawQuery = decodeURIComponent(topicBtn.getAttribute('data-query') || '');
-          if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
-            const chunk = indexedChunks[chunkIdx];
-            const content = formatProceduralFallback(chunk, rawQuery) + generateManualQuickReplyButtons(chunk, rawQuery);
-            appendMessage('assistant', content, 'fallback', rawQuery);
+          const idx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
+          if (!isNaN(idx) && indexedChunks[idx]) {
+            const chunk = indexedChunks[idx];
+            let formattedText = formatProceduralFallback(chunk, topicBtn.getAttribute('data-query'));
+            formattedText += generateManualQuickReplyButtons(chunk, topicBtn.getAttribute('data-query'));
+            appendAssistantMessage({ text: formattedText, mode: 'manual' }, true);
           }
           return;
         }
 
-        const loadMoreBtn = target.closest('#loadMoreTopicsBtn, #loadPrevTopicsBtn');
+        const loadMoreBtn = e.target.closest('#loadMoreTopicsBtn');
         if (loadMoreBtn) {
-          const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count') || loadMoreBtn.getAttribute('data-prev-count'), 10);
-          const rawQuery = decodeURIComponent(loadMoreBtn.getAttribute('data-query') || '');
-          const relevant = findRelevantChunks(rawQuery, 15);
-          const parentBox = loadMoreBtn.closest('.selection-content-box');
-          if (parentBox && !isNaN(nextCount)) {
-            parentBox.innerHTML = generateSelectionHtml(relevant, nextCount, rawQuery);
+          const count = parseInt(loadMoreBtn.getAttribute('data-next-count'), 10);
+          const q = decodeURIComponent(loadMoreBtn.getAttribute('data-query') || '');
+          const relevant = findRelevantChunks(q, 15);
+          const parentMsg = loadMoreBtn.closest('.editorial-prose');
+          if (parentMsg) {
+            parentMsg.innerHTML = generateSelectionHtml(relevant, count, q);
           }
           return;
         }
 
-        const retryBtn = target.closest('.retry-alternatives-btn');
-        if (retryBtn) {
-          const rawQuery = decodeURIComponent(retryBtn.getAttribute('data-query') || '');
-          const relevant = findRelevantChunks(rawQuery, 15);
-          if (relevant.length > 0) {
-            appendMessage('assistant', generateSelectionHtml(relevant, 3, rawQuery), 'selection');
+        const loadPrevBtn = e.target.closest('#loadPrevTopicsBtn');
+        if (loadPrevBtn) {
+          const count = parseInt(loadPrevBtn.getAttribute('data-prev-count'), 10);
+          const q = decodeURIComponent(loadPrevBtn.getAttribute('data-query') || '');
+          const relevant = findRelevantChunks(q, 15);
+          const parentMsg = loadPrevBtn.closest('.editorial-prose');
+          if (parentMsg) {
+            parentMsg.innerHTML = generateSelectionHtml(relevant, count, q);
           }
           return;
         }
 
-        const zoomImg = target.closest('.zoomable-img');
+        const zoomImg = e.target.closest('.zoomable-img');
         if (zoomImg) {
           const modal = document.getElementById('imageZoomModal');
-          const targetImg = document.getElementById('imageZoomTarget');
+          const target = document.getElementById('imageZoomTarget');
           const caption = document.getElementById('imageZoomCaption');
-          if (modal && targetImg) {
-            targetImg.src = zoomImg.src;
-            if (caption) caption.textContent = zoomImg.alt || 'Handbuch Abbildung';
+          if (modal && target) {
+            target.src = zoomImg.src;
+            if (caption) caption.textContent = zoomImg.alt || zoomImg.title || 'Handbuch Abbildung';
             modal.classList.remove('hidden');
           }
           return;
         }
-      });
-    }
 
-    // Search Mode Toggle Handlers
-    const modeAiBtn = document.getElementById('modeAiBtn');
-    const modeManualBtn = document.getElementById('modeManualBtn');
-    if (modeAiBtn) {
-      modeAiBtn.addEventListener('click', () => {
-        selectedSearchMode = 'ai';
-        updateSearchModeUI();
-      });
-    }
-    if (modeManualBtn) {
-      modeManualBtn.addEventListener('click', () => {
-        selectedSearchMode = 'manual';
-        updateSearchModeUI();
-      });
-    }
-
-    const showToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
-    if (showToggleCheckbox) {
-      showToggleCheckbox.checked = showSearchModeToggle;
-      showToggleCheckbox.addEventListener('change', (e) => {
-        showSearchModeToggle = e.target.checked;
-        localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
-        updateSearchModeVisibility();
-      });
-    }
-
-    const ignoreImagesCheckbox = document.getElementById('ignoreDocImagesCheckbox');
-    if (ignoreImagesCheckbox) {
-      ignoreImagesCheckbox.checked = ignoreDocImages;
-      ignoreImagesCheckbox.addEventListener('change', (e) => {
-        ignoreDocImages = e.target.checked;
-        localStorage.setItem('APTE_IGNORE_DOC_IMAGES', ignoreDocImages ? 'true' : 'false');
-        loadMarkdownFiles();
-      });
-    }
-
-    // Admin Sidebar & Auth Modal Handlers
-    const adminAccessBtn = document.getElementById('adminAccessBtn');
-    const adminAuthModal = document.getElementById('adminAuthModal');
-    const adminLoginForm = document.getElementById('adminLoginForm');
-    const adminPasswordInput = document.getElementById('adminPasswordInput');
-    const adminAuthError = document.getElementById('adminAuthError');
-    const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
-    const kbSidebar = document.getElementById('kbSidebar');
-    const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
-    const finishAdminBtn = document.getElementById('finishAdminBtn');
-
-    function openAdminSidebar() {
-      if (kbSidebar) kbSidebar.classList.remove('translate-x-full');
-    }
-
-    function closeAdminSidebar() {
-      if (kbSidebar) kbSidebar.classList.add('translate-x-full');
-    }
-
-    if (adminAccessBtn) {
-      adminAccessBtn.addEventListener('click', () => {
-        if (isAdminAuthenticated) {
-          openAdminSidebar();
-        } else {
-          if (adminPasswordInput) adminPasswordInput.value = '';
-          if (adminAuthError) adminAuthError.classList.add('hidden');
-          if (adminAuthModal) adminAuthModal.classList.remove('hidden');
+        const zoomModal = document.getElementById('imageZoomModal');
+        if (zoomModal && !zoomModal.classList.contains('hidden') && e.target.closest('#imageZoomModal')) {
+          zoomModal.classList.add('hidden');
         }
       });
-    }
 
-    if (cancelAdminAuthBtn) {
-      cancelAdminAuthBtn.addEventListener('click', () => {
-        if (adminAuthModal) adminAuthModal.classList.add('hidden');
-      });
-    }
+      // Clear Chat / Reset
+      const clearBtn = document.getElementById('clearChatBtn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          const container = document.getElementById('messagesContainer');
+          container.innerHTML = initialWelcomeHtml || document.getElementById('welcomeCard')?.outerHTML || '';
+          chatHistory = [];
+        });
+      }
 
-    if (adminLoginForm) {
-      adminLoginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pass = (adminPasswordInput ? adminPasswordInput.value : '').trim();
-        if (pass === 'admin' || pass === 'apte2026' || pass === 'valucon' || pass.length > 0) {
-          isAdminAuthenticated = true;
-          if (adminAuthModal) adminAuthModal.classList.add('hidden');
-          const label = document.getElementById('adminBtnLabel');
-          if (label) label.textContent = 'Admin (aktiv)';
-          openAdminSidebar();
-        } else {
-          if (adminAuthError) adminAuthError.classList.remove('hidden');
-        }
-      });
-    }
+      // Admin Modal & Drawer handlers
+      const adminBtn = document.getElementById('adminAccessBtn');
+      const adminSidebar = document.getElementById('kbSidebar');
+      const adminAuthModal = document.getElementById('adminAuthModal');
+      const closeAdminBtn = document.getElementById('closeAdminSidebarBtn');
+      const finishAdminBtn = document.getElementById('finishAdminBtn');
 
-    if (closeAdminSidebarBtn) closeAdminSidebarBtn.addEventListener('click', closeAdminSidebar);
-    if (finishAdminBtn) finishAdminBtn.addEventListener('click', closeAdminSidebar);
+      if (adminBtn) {
+        adminBtn.addEventListener('click', () => {
+          if (isAdminAuthenticated) {
+            adminSidebar.classList.remove('translate-x-full');
+          } else {
+            adminAuthModal.classList.remove('hidden');
+            document.getElementById('adminPasswordInput').focus();
+          }
+        });
+      }
 
-    // API Key & Provider Settings
-    const apiProviderSelect = document.getElementById('apiProviderSelect');
-    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
-    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-    const reloadMdBtn = document.getElementById('reloadMdBtn');
+      const closeAdmin = () => {
+        if (adminSidebar) adminSidebar.classList.add('translate-x-full');
+      };
 
-    if (apiProviderSelect) {
-      apiProviderSelect.addEventListener('change', (e) => {
-        const prov = e.target.value;
-        localStorage.setItem('APTE_API_PROVIDER', prov);
-        updateEngineStatusUI();
-      });
-    }
+      if (closeAdminBtn) closeAdminBtn.addEventListener('click', closeAdmin);
+      if (finishAdminBtn) finishAdminBtn.addEventListener('click', closeAdmin);
 
-    if (saveApiKeyBtn) {
-      saveApiKeyBtn.addEventListener('click', () => {
-        const key = (geminiApiKeyInput ? geminiApiKeyInput.value : '').trim();
-        if (key) {
-          localStorage.setItem('APTE_API_KEY', key);
+      const cancelAuthBtn = document.getElementById('cancelAdminAuthBtn');
+      if (cancelAuthBtn) {
+        cancelAuthBtn.addEventListener('click', () => {
+          adminAuthModal.classList.add('hidden');
+        });
+      }
+
+      const adminLoginForm = document.getElementById('adminLoginForm');
+      if (adminLoginForm) {
+        adminLoginForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const pass = document.getElementById('adminPasswordInput').value;
+          const errEl = document.getElementById('adminAuthError');
+          if (pass === 'valucon2026' || pass === 'admin') {
+            isAdminAuthenticated = true;
+            adminAuthModal.classList.add('hidden');
+            document.getElementById('adminPasswordInput').value = '';
+            if (errEl) errEl.classList.remove('hidden');
+            document.getElementById('adminBtnLabel').textContent = 'Admin ✓';
+            adminSidebar.classList.remove('translate-x-full');
+          } else {
+            if (errEl) errEl.classList.remove('hidden');
+          }
+        });
+      }
+
+      // Search Mode Toggle Controls
+      const modeAiBtn = document.getElementById('modeAiBtn');
+      const modeManualBtn = document.getElementById('modeManualBtn');
+      if (modeAiBtn) {
+        modeAiBtn.addEventListener('click', () => {
+          selectedSearchMode = 'ai';
+          updateSearchModeUI();
+        });
+      }
+      if (modeManualBtn) {
+        modeManualBtn.addEventListener('click', () => {
+          selectedSearchMode = 'manual';
+          updateSearchModeUI();
+        });
+      }
+
+      // Admin Checkboxes
+      const showToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
+      if (showToggleCheckbox) {
+        showToggleCheckbox.checked = showSearchModeToggle;
+        showToggleCheckbox.addEventListener('change', (e) => {
+          showSearchModeToggle = e.target.checked;
+          localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle);
+          updateSearchModeUI();
+        });
+      }
+
+      const ignoreImagesCheckbox = document.getElementById('ignoreDocImagesCheckbox');
+      if (ignoreImagesCheckbox) {
+        ignoreImagesCheckbox.checked = ignoreDocImages;
+        ignoreImagesCheckbox.addEventListener('change', (e) => {
+          ignoreDocImages = e.target.checked;
+          localStorage.setItem('APTE_IGNORE_DOC_IMAGES', ignoreDocImages);
+          loadMarkdownFiles();
+        });
+      }
+
+      // API Provider & Key Save/Clear
+      const providerSelect = document.getElementById('apiProviderSelect');
+      if (providerSelect) {
+        providerSelect.addEventListener('change', (e) => {
+          localStorage.setItem('APTE_API_PROVIDER', e.target.value);
+          document.getElementById('geminiApiKeyInput').value = '';
+          updateEngineStatusUI();
+        });
+      }
+
+      const saveKeyBtn = document.getElementById('saveApiKeyBtn');
+      if (saveKeyBtn) {
+        saveKeyBtn.addEventListener('click', () => {
+          const val = document.getElementById('geminiApiKeyInput').value.trim();
+          if (val) {
+            localStorage.setItem('APTE_API_KEY', val);
+            document.getElementById('geminiApiKeyInput').value = '';
+            const feedback = document.getElementById('apiKeyFeedback');
+            if (feedback) {
+              feedback.textContent = "✓ Schlüssel gespeichert";
+              feedback.className = "text-[11px] font-medium text-emerald-600 block";
+              setTimeout(() => feedback.classList.add('hidden'), 3000);
+            }
+            updateEngineStatusUI();
+          }
+        });
+      }
+
+      const clearKeyBtn = document.getElementById('clearApiKeyBtn');
+      if (clearKeyBtn) {
+        clearKeyBtn.addEventListener('click', () => {
+          localStorage.removeItem('APTE_API_KEY');
+          document.getElementById('geminiApiKeyInput').value = '';
           const feedback = document.getElementById('apiKeyFeedback');
           if (feedback) {
-            feedback.textContent = '✓ Schlüssel gespeichert!';
-            feedback.className = 'text-[11px] font-semibold text-emerald-600 mt-1 block';
-            setTimeout(() => feedback.className = 'hidden', 3000);
+            feedback.textContent = "Schlüssel zurückgesetzt";
+            feedback.className = "text-[11px] font-medium text-amber-600 block";
+            setTimeout(() => feedback.classList.add('hidden'), 3000);
           }
-        }
-        updateEngineStatusUI();
-      });
-    }
-
-    if (clearApiKeyBtn) {
-      clearApiKeyBtn.addEventListener('click', () => {
-        localStorage.removeItem('APTE_API_KEY');
-        if (geminiApiKeyInput) geminiApiKeyInput.value = '';
-        updateEngineStatusUI();
-      });
-    }
-
-    if (reloadMdBtn) {
-      reloadMdBtn.addEventListener('click', () => {
-        loadMarkdownFiles();
-      });
-    }
-
-    // Clear Chat
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    if (clearChatBtn) {
-      clearChatBtn.addEventListener('click', () => {
-        chatHistory = [];
-        const container = document.getElementById('messagesContainer');
-        if (container) {
-          container.innerHTML = initialWelcomeHtml;
-        }
-        updateSearchModeUI();
-      });
-    }
-
-    // Image Zoom Modal close on click
-    const imageZoomModal = document.getElementById('imageZoomModal');
-    if (imageZoomModal) {
-      imageZoomModal.addEventListener('click', () => {
-        imageZoomModal.classList.add('hidden');
-      });
-    }
-
-    // DOM Ready Initialization
-    window.addEventListener('DOMContentLoaded', () => {
-      const welcomeCard = document.getElementById('welcomeCard');
-      if (welcomeCard) {
-        initialWelcomeHtml = welcomeCard.outerHTML;
+          updateEngineStatusUI();
+        });
       }
 
-      const savedKey = localStorage.getItem('APTE_API_KEY');
-      if (savedKey && geminiApiKeyInput) {
-        geminiApiKeyInput.value = savedKey;
+      const reloadMdBtn = document.getElementById('reloadMdBtn');
+      if (reloadMdBtn) {
+        reloadMdBtn.addEventListener('click', () => {
+          loadMarkdownFiles();
+        });
       }
-
-      updateEngineStatusUI();
-      updateSearchModeVisibility();
-      loadMarkdownFiles();
     });
   </script>
 </body>
