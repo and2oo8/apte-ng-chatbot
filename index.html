@@ -1162,13 +1162,16 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
       if (title) title.textContent = "Lade Wissensdatenbank...";
 
-      // Nur noch v13-Dateinamen zulassen (alte Dateinamen wie apte_ng_anleitung_teil_1.md vollständig entfernt)
-      const filePairs = [
-        ['APTE-NG-Anleitung-v13-Teil1.md', 'APTE-NG-Anleitung-v13-Teil2.md'],
-        ['apte-ng-anleitung-v13-teil1.md', 'apte-ng-anleitung-v13-teil2.md'],
-        ['APTE-NG-Handbuch-v13-Teil1.md', 'APTE-NG-Handbuch-v13-Teil2.md'],
-        ['apte-ng-handbuch-v13-teil1.md', 'apte-ng-handbuch-v13-teil2.md']
-      ];
+      // Unterstützung für alle 7 gesplitteten Handbuch-Teile (Teil1.md bis Teil7.md)
+      const partFilesToTry = [];
+      for (let i = 1; i <= 7; i++) {
+        partFilesToTry.push([
+          `APTE-NG-Anleitung-v13-Teil${i}.md`,
+          `apte-ng-anleitung-v13-teil${i}.md`,
+          `APTE-NG-Handbuch-v13-Teil${i}.md`,
+          `apte-ng-handbuch-v13-teil${i}.md`
+        ]);
+      }
 
       // Dateigruppen mit geläufigen Namens- und Schreibweisen-Varianten für maximale Lade-Sicherheit
       const extraFileGroups = [
@@ -1181,24 +1184,22 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
       globalImageRegistry = {}; // Bildspeicher beim Laden zurücksetzen
       globalImageCounter = 1;
 
-      // 1. Haupt-Handbuchdateien laden (mit striktem Cache-Busting & Chunk-Validierung)
-      for (const pair of filePairs) {
-        try {
-          const responses = await Promise.all(pair.map(file => fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' })));
-          if (responses.every(r => r.ok)) {
-            const texts = await Promise.all(responses.map(r => r.text()));
-            let pairChunks = [];
-            texts.forEach((text, idx) => {
-              pairChunks.push(...parseMarkdownToChunks(text, pair[idx]));
-            });
-            // Nur abbrechen, wenn auch WIRKLICH Chunks extrahiert wurden (verhindert 404-HTML-Redirects & leere Treffer)
-            if (pairChunks.length > 0) {
-              loadedChunks.push(...pairChunks);
-              loadedFileNames = [...pair];
-              break;
+      // 1. Handbuch-Teile (Teil 1 bis Teil 7) sequentiell laden
+      for (const variants of partFilesToTry) {
+        for (const file of variants) {
+          try {
+            const res = await fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' });
+            if (res.ok) {
+              const text = await res.text();
+              const chunks = parseMarkdownToChunks(text, file);
+              if (chunks.length > 0) {
+                loadedChunks.push(...chunks);
+                loadedFileNames.push(file);
+                break; // Nächsten Teil (Teil i+1) laden
+              }
             }
-          }
-        } catch (err) {}
+          } catch (err) {}
+        }
       }
 
       // 2. Zusätzliche Wissensdateien laden (mit striktem Cache-Busting & Validation)
