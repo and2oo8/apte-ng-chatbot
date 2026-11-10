@@ -164,7 +164,7 @@
 
     <!-- Live Status Indicator & Admin Button -->
     <div class="flex items-center gap-3">
-      <button id="adminAccessBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-bordeaux hover:bg-slate-100 border border-slate-200 transition">
+      <button id="adminAccessBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-bordeaux hover:bg-slate-100 border border-slate-200 transition cursor-pointer">
         <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
         <span id="adminBtnLabel">Admin</span>
       </button>
@@ -209,22 +209,22 @@
                 <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
 
+              <button type="button" class="suggestion-btn text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie lade ich Gutachter ein?">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                  </div>
+                  <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Wie lade ich Gutachter ein?</span>
+                </div>
+                <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </button>
+
               <button type="button" class="suggestion-btn text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Abgabeperiode und URL einstellen">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   </div>
                   <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Abgabeperiode und URL einstellen</span>
-                </div>
-                <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              </button>
-
-              <button type="button" class="suggestion-btn text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie erstelle ich Standardlabels?">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-                  </div>
-                  <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Wie erstelle ich Standardlabels?</span>
                 </div>
                 <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
@@ -255,7 +255,7 @@
       <!-- Input Form Bar -->
       <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0 z-10">
         
-        <!-- Search Mode Toggle Control with Info Tooltip (Default hidden, optionally toggleable in Admin) -->
+        <!-- Search Mode Toggle Control with Info Tooltip -->
         <div class="max-w-3xl mx-auto mb-2 flex items-center justify-between flex-wrap gap-2">
           <div id="searchModeToggleWrapper" class="hidden items-center gap-2">
             <div class="inline-flex p-1 bg-slate-200/90 rounded-xl text-xs font-semibold shadow-inner">
@@ -269,7 +269,7 @@
               </button>
             </div>
 
-            <!-- Discrete Info Icon with Hover Tooltip (Updated Order & Wording) -->
+            <!-- Discrete Info Icon with Hover Tooltip -->
             <div class="relative group flex items-center">
               <button type="button" class="w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-help focus:outline-none" aria-label="Unterschiede der Suchmodi anzeigen">
                 <svg class="w-3.5 h-3.5 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -292,13 +292,12 @@
                     Formuliert eine zusammenhängende Antwort aus dem Handbuch und kann mehrere Themen gleichzeitig beantworten.
                   </p>
                 </div>
-                <!-- Tooltip Arrow -->
                 <div class="absolute top-full left-1.5 -mt-1 border-4 border-transparent border-t-slate-900"></div>
               </div>
             </div>
           </div>
 
-          <!-- Dynamic Notice for Missing API Key when AI mode is active -->
+          <!-- Dynamic Notice for Missing API Key -->
           <div id="noApiKeyNotice" class="hidden items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium cursor-help" title="Um KI-Antworten zu nutzen, muss ein API-Schlüssel in der Admin-Verwaltung hinterlegt werden.">
             <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
             <span>Kein API-Schlüssel hinterlegt</span>
@@ -316,7 +315,7 @@
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
           <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(v1.0.1-RC1 · Build: 10.11.2026 - 13:17 CET)</span></span>
-          <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
+          <button id="clearChatBtn" class="hover:text-bordeaux underline transition cursor-pointer">Verlauf leeren</button>
         </div>
       </div>
 
@@ -332,7 +331,7 @@
           <div class="w-2.5 h-2.5 rounded-full bg-bordeaux"></div>
           <h2 class="font-bold text-base text-slate-900">Admin-Verwaltung</h2>
         </div>
-        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition">
+        <button id="closeAdminSidebarBtn" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
@@ -340,7 +339,7 @@
       <!-- Scrollable Body Content Container -->
       <div class="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-200">
 
-        <!-- API Key Configuration Box with Provider Selector & Reset Option -->
+        <!-- API Key Configuration Box -->
         <div class="p-4 bg-white space-y-3">
           <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">API-Anbieter & Schlüssel</label>
           <p class="text-[11px] text-slate-500 leading-snug">
@@ -349,7 +348,7 @@
           
           <div>
             <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
-            <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
+            <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium cursor-pointer">
               <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
               <option value="openai">OpenAI (GPT-6 Luna)</option>
               <option value="openrouter">OpenRouter (openai/gpt-6-luna)</option>
@@ -370,8 +369,8 @@
             <input type="text" id="customApiEndpointInput" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-mono mb-2" placeholder="z. B. https://openrouter.ai/api/v1/chat/completions" />
 
             <div class="flex gap-2">
-              <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm">Speichern</button>
-              <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
+              <button id="saveApiKeyBtn" class="flex-1 px-3 py-2 bg-bordeaux hover:bg-bordeaux-hover text-white font-semibold text-xs rounded-lg transition shadow-sm cursor-pointer">Speichern</button>
+              <button id="clearApiKeyBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-xs rounded-lg transition shadow-sm cursor-pointer" title="API-Schlüssel und Anbietersettings leeren">Zurücksetzen</button>
             </div>
           </div>
           <p id="apiKeyStatus" class="text-[11px] font-medium text-emerald-600 hidden">✓ KI-Anbindung ist aktiv</p>
@@ -388,7 +387,7 @@
                 <div id="mdStatusBadge" class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
                 <p id="mdStatusTitle" class="font-bold text-slate-800">Prüfe Dateistatus...</p>
               </div>
-              <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0">
+              <button id="reloadMdBtn" title="Neu laden" class="px-2.5 py-1 text-xs font-medium bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-md transition shrink-0 cursor-pointer">
                 Neu laden
               </button>
             </div>
@@ -450,8 +449,8 @@
           <p id="adminAuthError" class="text-xs text-red-600 mt-1.5 hidden">Falsches Passwort!</p>
         </div>
         <div class="flex justify-end gap-2">
-          <button type="button" id="cancelAdminAuthBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Abbrechen</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold bg-bordeaux hover:bg-bordeaux-hover text-white rounded-lg transition shadow">Anmelden</button>
+          <button type="button" id="cancelAdminAuthBtn" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition cursor-pointer">Abbrechen</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold bg-bordeaux hover:bg-bordeaux-hover text-white rounded-lg transition shadow cursor-pointer">Anmelden</button>
         </div>
       </form>
     </div>
@@ -470,11 +469,11 @@
     let indexedChunks = [];
     let isProcessing = false;
     let isAdminAuthenticated = false;
-    let selectedSearchMode = 'ai'; // Default auf KI-Antworten gesetzt
-    let showSearchModeToggle = localStorage.getItem('APTE_SHOW_SEARCH_MODE_TOGGLE') === 'true'; // Default: false (ausgeblendet)
+    let selectedSearchMode = 'ai';
+    let showSearchModeToggle = localStorage.getItem('APTE_SHOW_SEARCH_MODE_TOGGLE') === 'true';
     let ignoreDocImages = localStorage.getItem('APTE_IGNORE_DOC_IMAGES') === 'true';
-    let chatHistory = []; // Konversations-Gedächtnis für Kontextsuche & KI-Verlauf
-    let globalImageRegistry = {}; // Speichert Base64-Bilder separat außerhalb der LLM-Prompts
+    let chatHistory = [];
+    let globalImageRegistry = {};
     let globalImageCounter = 1;
 
     const PROVIDER_CONFIGS = {
@@ -512,7 +511,7 @@
         name: 'Groq',
         model: 'llama-3.3-70b-versatile',
         placeholder: 'gsk_...',
-        hint: 'Modell: Llama 3.3 70B (sehr schnelle Inferenz)'
+        hint: 'Modell: Llama 3.3 70B'
       },
       mistral: {
         name: 'Mistral AI',
@@ -539,7 +538,6 @@
         if (/valucon\s+apps\s+GmbH/i.test(trimmed)) return false;
         if (/^APTE-NG$/i.test(trimmed)) return false;
         
-        // Strip markdown formatting (*, _, #) before checking running headers
         const stripped = trimmed.replace(/[*_#]/g, '').trim();
         if (/^(?:Daten|Formulare|Einstellungen|Akten|Berichte|Aufgaben|Stipendiaten|Verwaltung)\s+(?:\([^)]+\)\s+)?(?:[A-ZÄÖÜa-zäöüß\s]+)$/i.test(stripped) && stripped.length < 70) return false;
         return true;
@@ -556,7 +554,7 @@
         } else {
           wrapper.classList.add('hidden');
           wrapper.classList.remove('flex');
-          selectedSearchMode = 'ai'; // KI-Modus erzwingen, wenn der Umschalter verborgen ist
+          selectedSearchMode = 'ai';
         }
       }
     }
@@ -651,7 +649,6 @@
       marked.setOptions({ renderer });
     }
 
-    // Simplified image processing without inline icon restrictions
     function processDocImages(htmlString) {
       if (!htmlString || typeof htmlString !== 'string') return htmlString;
       const temp = document.createElement('div');
@@ -666,7 +663,6 @@
       return temp.innerHTML;
     }
 
-    // Re-Hydrierung: Ersetzt Bild-Referenzen vor der HTML-Ausgabe durch echte Base64-URLs
     function rehydrateImages(text) {
       if (!text || typeof text !== 'string') return text || '';
       return text.replace(/img_ref_\d+/g, (match) => {
@@ -683,7 +679,6 @@
       });
     }
 
-    // Wandelt [BUTTON: Label|Query] in interaktive Schnellantwort-Buttons um
     function processQuickReplyButtons(text) {
       if (!text || typeof text !== 'string') return text || '';
       return text.replace(/\[BUTTON:\s*([^\|]+)\|([^\]]+)\]/gi, (match, label, query) => {
@@ -700,21 +695,19 @@
       if (!text || typeof text !== 'string') return [];
       if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) return [];
       
-      // Falls in Admin "Bilder ignorieren" aktiviert ist, Grafiken komplett vor der Indizierung filtern
       if (ignoreDocImages) {
         text = text.replace(/!\[([^\]]*)\]\([^)]+\)/gi, '')
                    .replace(/<img[^>]*>/gi, '');
       }
 
-      // Base64-Bilddaten VOR dem Chunking in globalImageRegistry auslagern (Token-Ersparnis >99%)
-      let preprocessedText = text.replace(/!\[([^\]]*)\]\((data:image\/[^;]+;base64,[^)]+)\)/gi, (match, alt, base64Url) => {
+      let preprocessedText = text.replace(/!\[([^\]]*)\]\(([^)]+)\)/gi, (match, alt, url) => {
         const refId = `img_ref_${globalImageCounter++}`;
-        globalImageRegistry[refId] = { src: base64Url, alt: alt.trim() || 'Handbuch Screenshot', source: sourceName };
-        return `![${alt.trim() || 'Handbuch Screenshot'}](${refId})`;
-      }).replace(/<img[^>]+src=["'](data:image\/[^;]+;base64,[^"']+)["'][^>]*>/gi, (match, base64Url) => {
+        globalImageRegistry[refId] = { src: url.trim(), alt: alt.trim() || 'Handbuch Abbildung', source: sourceName };
+        return `![${alt.trim() || 'Handbuch Abbildung'}](${refId})`;
+      }).replace(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi, (match, url) => {
         const refId = `img_ref_${globalImageCounter++}`;
-        globalImageRegistry[refId] = { src: base64Url, alt: 'Handbuch Screenshot', source: sourceName };
-        return `![Handbuch Screenshot](${refId})`;
+        globalImageRegistry[refId] = { src: url.trim(), alt: 'Handbuch Abbildung', source: sourceName };
+        return `![Handbuch Abbildung](${refId})`;
       });
 
       const cleanedRaw = cleanBoilerplateText(preprocessedText);
@@ -765,15 +758,13 @@
       return chunks;
     }
 
-    // Hilfsfunktion zur Germanisierung / Normalisierung von zusammengesetzten Wörtern
     function normalizeGermanTerm(str) {
       if (!str) return '';
       return str.toLowerCase()
-        .replace(/[-_\s]/g, '') // Bindestriche & Leerzeichen entfernen
-        .replace(/([a-zäöü])s(?=[a-zäöü])/g, '$1'); // Fugen-S auflösen (z.B. Datenansichts-gruppe -> Datenansichtgruppe)
+        .replace(/[-_\s]/g, '')
+        .replace(/([a-zäöü])s(?=[a-zäöü])/g, '$1');
     }
 
-    // Zerlegt zusammengesetzte Wörter (z.B. "Datenansichtsgruppe") in Teilwörter
     function getSubTokens(token) {
       const sub = [token];
       const norm = normalizeGermanTerm(token);
@@ -793,10 +784,17 @@
     function findRelevantChunks(query, topN = 10) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen)\b/i.test(query);
-      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
+      let expandedQuery = query.toLowerCase();
+      expandedQuery = expandedQuery.replace(/\blade\b.*\bein\b/gi, '$& einladen');
+      expandedQuery = expandedQuery.replace(/\bstelle\b.*\bein\b/gi, '$& einstellen');
+      expandedQuery = expandedQuery.replace(/\blege\b.*\ban\b/gi, '$& anlegen');
+      expandedQuery = expandedQuery.replace(/\bfüge\b.*\bhinzu\b/gi, '$& hinzufügen');
+      expandedQuery = expandedQuery.replace(/\brichte\b.*\bein\b/gi, '$& einrichten');
+
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|einladen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|einladen)\b/i.test(query);
+      const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'die', 'der', 'das', 'den', 'dem', 'des', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
-      const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
+      const cleanQuery = expandedQuery.replace(/[^a-z0-9äöüß\s]/g, ' ');
       const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
 
       if (tokens.length === 0) return [];
@@ -815,7 +813,6 @@
           const tokenNorm = normalizeGermanTerm(token);
           const subTokens = getSubTokens(token);
 
-          // 1. Exakter Match & Normalisierter Match (löst Bindestriche & Fugen-S auf)
           if (titleLower.includes(token)) {
             score += 12;
           } else if (titleNorm.includes(tokenNorm) || (tokenNorm.length >= 5 && titleNorm.includes(tokenNorm.slice(0, -1)))) {
@@ -828,7 +825,6 @@
             score += 5;
           }
 
-          // 2. Teilwort-Matching für Komposita (z.B. "Datenansicht" & "Gruppe")
           subTokens.forEach(st => {
             const stNorm = normalizeGermanTerm(st);
             if (stNorm.length >= 4) {
@@ -837,7 +833,6 @@
             }
           });
 
-          // 3. Inhalts-Matching
           const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
           const matches = contentLower.match(regex);
           if (matches) {
@@ -847,7 +842,7 @@
           }
         });
 
-        if (isProceduralQuery && /^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen)/i.test(chunk.title)) {
+        if (isProceduralQuery && /^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen)/i.test(chunk.title)) {
           score += 5;
         }
 
@@ -878,7 +873,7 @@
 
     function generateSelectionHtml(relevantList, displayCount, query) {
       if (!relevantList || relevantList.length === 0) {
-        return `<p class="text-slate-600 mb-3">Leider wurden keine direkt passenden Abschnitte im Handbuch gefunden. Bitte formulieren Sie Ihre Frage anders oder wählen Sie eine der Themen im Handbuch:</p>`;
+        return `<p class="text-slate-600 mb-3">Leider wurden keine direkt passenden Abschnitte im Handbuch gefunden. Bitte formulieren Sie Ihre Frage anders oder wählen Sie eines der Themen im Handbuch:</p>`;
       }
 
       const items = relevantList.slice(0, displayCount);
@@ -917,14 +912,6 @@
       return html;
     }
 
-    function formatProceduralFallback(chunk, query) {
-      return `### ${chunk.title}\n*Pfad: ${chunk.path}*\n\n${chunk.content}`;
-    }
-
-    function generateManualQuickReplyButtons(chunk, query) {
-      return '';
-    }
-
     async function getAIResponse(userQuery) {
       const relevant = findRelevantChunks(userQuery, 10);
 
@@ -947,7 +934,8 @@
         };
       }
 
-      const contextText = relevant.slice(0, 5).map(r => `[DOKUMENT: ${r.chunk.path} | TITEL: ${r.chunk.title}]\n${r.chunk.content}`).join('\n\n---\n\n');
+      const contextChunks = relevant.slice(0, 8);
+      const contextText = contextChunks.map(r => `[DOKUMENT: ${r.chunk.path} | TITEL: ${r.chunk.title}]\n${r.chunk.content}`).join('\n\n---\n\n');
 
       const systemPrompt = `Du bist der offizielle APTE-NG Support-Assistent für Hochschulen und Universitäten.
 Beantworte die Anwenderfrage STRIKT auf Basis der folgenden Auszüge aus dem Handbuch.
@@ -957,7 +945,9 @@ Regeln:
 2. Wenn Schritte oder Handlungsanweisungen im Text stehen, gebe sie exakt 1:1 wieder.
 3. ERFINDE NIEMALS Menüpfade, Optionen oder Felder, die nicht im bereitgestellten Handbuch-Text enthalten sind.
 4. Nutze übersichtliches Markdown (Fettdruck, Aufzählungen, nummerierte Schritte).
-5. Wenn im Text Bild-Referenzen wie ![Alt](img_ref_X) stehen, übernehme diese exakt im Markdown.
+5. BILDER & GRAFIKEN: Wenn in den Handbuch-Auszügen Bild-Referenzen (wie ![Text](img_ref_X)) enthalten sind, binde diese UNBEDINGT an den passenden Schritten in deine Antwort ein, damit der Anwender die Screenshots sieht!
+6. FOLGETHEMEN & SCHNELLANTWORTEN: Füge am Ende jeder Antwort IMMER 2 bis 3 passende Folgethemen oder logische Nächste Schritte als interaktive Buttons ein. Verwende exakt dieses Format:
+[BUTTON: Beschriftung|Konkrete Folgefrage]
 
 HANDBUCH-KONTEXT:
 ${contextText}`;
@@ -969,7 +959,7 @@ ${contextText}`;
 
       if (provider === 'gemini') {
         try {
-          const geminiModel = config.model || 'gemini-2.0-flash';
+          const geminiModel = config.model || 'gemini-3.8-flash';
           const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
           
           const response = await fetch(endpointUrl, {
@@ -1037,7 +1027,6 @@ ${contextText}`;
               headers['X-Title'] = 'APTE-NG Support Assistent';
             }
 
-            // Request-Body dynamisch aufbauen (Luna erlaubt keinen abweichenden temperature-Wert)
             const requestBody = { 
               model: currentModel,
               messages: [
@@ -1046,7 +1035,6 @@ ${contextText}`;
               ]
             };
 
-            // Nur für Standardmodelle 'temperature' mitsenden (Luna erzwingt Default=1)
             if (!currentModel.toLowerCase().includes('luna')) {
               requestBody.temperature = 0.8;
             }
@@ -1123,7 +1111,6 @@ ${contextText}`;
       if (badge) badge.className = "w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse";
       if (title) title.textContent = "Lade Wissensdatenbank...";
 
-      // Unterstützung für alle 7 gesplitteten Handbuch-Teile (Teil1.md bis Teil7.md)
       const partFilesToTry = [];
       for (let i = 1; i <= 7; i++) {
         partFilesToTry.push([
@@ -1134,7 +1121,6 @@ ${contextText}`;
         ]);
       }
 
-      // Dateigruppen mit geläufigen Namens- und Schreibweisen-Varianten für maximale Lade-Sicherheit
       const extraFileGroups = [
         ['FAQs.md', 'faqs.md', 'faq.md', 'FAQ.md'],
         ['Neue_Bewerbungsrunde.md', 'neue_bewerbungsrunde.md', 'Neue-Bewerbungsrunde.md', 'neue-bewerbungsrunde.md']
@@ -1142,10 +1128,9 @@ ${contextText}`;
 
       let loadedChunks = [];
       let loadedFileNames = [];
-      globalImageRegistry = {}; // Bildspeicher beim Laden zurücksetzen
+      globalImageRegistry = {};
       globalImageCounter = 1;
 
-      // 1. Handbuch-Teile (Teil 1 bis Teil 7) sequentiell laden
       for (const variants of partFilesToTry) {
         for (const file of variants) {
           try {
@@ -1156,14 +1141,13 @@ ${contextText}`;
               if (chunks.length > 0) {
                 loadedChunks.push(...chunks);
                 loadedFileNames.push(file);
-                break; // Nächsten Teil (Teil i+1) laden
+                break;
               }
             }
           } catch (err) {}
         }
       }
 
-      // 2. Zusätzliche Wissensdateien laden (mit striktem Cache-Busting & Validation)
       for (const group of extraFileGroups) {
         for (const extraFile of group) {
           try {
@@ -1174,7 +1158,7 @@ ${contextText}`;
               if (chunks.length > 0) {
                 loadedChunks.push(...chunks);
                 loadedFileNames.push(extraFile);
-                break; // Nach erfolgreichem Treffer innerhalb der Gruppe aufhören
+                break;
               }
             }
           } catch (err) {}
@@ -1216,13 +1200,11 @@ ${contextText}`;
       const container = document.getElementById('messagesContainer');
       if (!container) return;
 
-      // Konversationsverlauf speichern
       if (mode !== 'selection') {
         chatHistory.push({ role, content });
         if (chatHistory.length > 10) chatHistory.shift();
       }
 
-      // Unsichtbaren Scroll-Spacer unten im Chat-Container verwalten
       let spacer = document.getElementById('chatScrollSpacer');
       if (!spacer) {
         spacer = document.createElement('div');
@@ -1239,9 +1221,8 @@ ${contextText}`;
         innerDiv.textContent = content;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
-        container.appendChild(spacer); // Spacer immer am Ende des Verlaufs platzieren
+        container.appendChild(spacer);
         
-        // Exklusiv den Chat-Container auf den Anfang der User-Frage scrollen
         container.scrollTop = Math.max(0, msgDiv.offsetTop - 16);
       } else {
         innerDiv.className = 'w-full bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden';
@@ -1256,16 +1237,6 @@ ${contextText}`;
         }
 
         let cleanedContent = cleanBoilerplateText(content);
-        cleanedContent = rehydrateImages(cleanedContent);
-
-        if (mode === 'fallback' && originalQuery) {
-          cleanedContent += `\n\n---
-<div class="mt-4 pt-3 border-t border-slate-200 text-center">
-  <button class="retry-alternatives-btn px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold rounded-lg transition shadow-sm cursor-pointer w-full" data-query="${encodeURIComponent(originalQuery)}">
-    🔄 Passt nicht? Hier 3 weitere Themenvorschläge aus dem Handbuch anzeigen...
-  </button>
-</div>`;
-        }
 
         if (mode === 'ai') {
           const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
@@ -1283,15 +1254,12 @@ ${contextText}`;
         innerDiv.appendChild(contentBox);
         msgDiv.appendChild(innerDiv);
         
-        // KI-Antwort vor dem Spacer einfügen
         container.insertBefore(msgDiv, spacer);
 
-        // Ansicht stabil oben an der vorausgehenden Frage verankern
         const prevMsg = msgDiv.previousElementSibling;
         const targetElement = (prevMsg && prevMsg !== spacer) ? prevMsg : msgDiv;
         container.scrollTop = Math.max(0, targetElement.offsetTop - 16);
 
-        // Sowohl KI-Antworten als auch Handbuch-Direktinhalte mit flüssigem Typewriter-Effekt aufbauen
         if (mode === 'ai' || mode === 'fallback') {
           let currentText = '';
           const words = cleanedContent.split(' ');
@@ -1303,6 +1271,7 @@ ${contextText}`;
               wordIdx++;
               
               let rawHtml = typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(currentText)) : currentText;
+              rawHtml = rehydrateImages(rawHtml);
               rawHtml = processDocImages(rawHtml);
               rawHtml = processQuickReplyButtons(rawHtml);
               contentBox.innerHTML = rawHtml;
@@ -1313,6 +1282,7 @@ ${contextText}`;
           typeNextWord();
         } else {
           let rawHtml = (typeof marked !== 'undefined' ? marked.parse(sanitizeMarkdownImages(cleanedContent)) : cleanedContent);
+          rawHtml = rehydrateImages(rawHtml);
           rawHtml = processDocImages(rawHtml);
           rawHtml = processQuickReplyButtons(rawHtml);
           contentBox.innerHTML = rawHtml;
@@ -1320,327 +1290,293 @@ ${contextText}`;
       }
     }
 
-    function scrollToBottom() {
-      const container = document.getElementById('messagesContainer');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }
-
-    let initialWelcomeHtml = '';
-
-    async function handleUserSubmit(queryText) {
-      if (isProcessing) return;
-      const chatInput = document.getElementById('chatInput');
-      const query = (queryText || (chatInput ? chatInput.value : '')).trim();
-      if (!query) return;
-
+    async function handleUserQuestion(query) {
+      if (!query || isProcessing) return;
       isProcessing = true;
-      if (chatInput) {
-        chatInput.value = '';
-        chatInput.style.height = 'auto';
-        chatInput.disabled = true;
-      }
 
+      const welcomeCard = document.getElementById('welcomeCard');
+      if (welcomeCard) welcomeCard.classList.add('hidden');
+
+      const chatInput = document.getElementById('chatInput');
       const sendBtn = document.getElementById('sendBtn');
       const typingIndicator = document.getElementById('typingIndicator');
 
+      if (chatInput) chatInput.value = '';
       if (sendBtn) sendBtn.disabled = true;
+      if (typingIndicator) typingIndicator.classList.remove('hidden');
 
       appendMessage('user', query);
 
-      if (typingIndicator) typingIndicator.classList.remove('hidden');
-
       try {
-        const response = await getAIResponse(query);
+        const responseData = await getAIResponse(query);
         if (typingIndicator) typingIndicator.classList.add('hidden');
-        appendMessage('assistant', response.text, response.mode, query, response.usedModel, response.tokenUsage);
+        appendMessage('assistant', responseData.text, responseData.mode, query, responseData.usedModel, responseData.tokenUsage);
       } catch (err) {
+        console.error('[System Fehler]', err);
         if (typingIndicator) typingIndicator.classList.add('hidden');
-        appendMessage('assistant', "Es ist ein Fehler bei der Verarbeitung aufgetreten. Bitte versuchen Sie es erneut.", 'fallback', query);
+        appendMessage('assistant', `<p class="text-rose-600 font-semibold">Es ist ein unerwarteter Fehler aufgetreten: ${escapeHtml(err.message)}</p>`, 'fallback');
       } finally {
         isProcessing = false;
-        updateSearchModeUI();
+        if (sendBtn && (!chatInput || !chatInput.disabled)) sendBtn.disabled = false;
+        if (chatInput) chatInput.focus();
       }
     }
 
-    // Input handlers
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-      chatInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-      });
-      chatInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+    // Initialize application on DOM content load
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+      const clearChatBtn = document.getElementById('clearChatBtn');
+      
+      const adminAccessBtn = document.getElementById('adminAccessBtn');
+      const kbSidebar = document.getElementById('kbSidebar');
+      const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
+      const finishAdminBtn = document.getElementById('finishAdminBtn');
+      const adminAuthModal = document.getElementById('adminAuthModal');
+      const adminLoginForm = document.getElementById('adminLoginForm');
+      const adminPasswordInput = document.getElementById('adminPasswordInput');
+      const adminAuthError = document.getElementById('adminAuthError');
+      const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
+
+      const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+      const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
+      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      const customApiEndpointInput = document.getElementById('customApiEndpointInput');
+      const apiProviderSelect = document.getElementById('apiProviderSelect');
+      const reloadMdBtn = document.getElementById('reloadMdBtn');
+      const apiKeyFeedback = document.getElementById('apiKeyFeedback');
+
+      const modeAiBtn = document.getElementById('modeAiBtn');
+      const modeManualBtn = document.getElementById('modeManualBtn');
+      const showSearchModeToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
+      const ignoreDocImagesCheckbox = document.getElementById('ignoreDocImagesCheckbox');
+
+      const imageZoomModal = document.getElementById('imageZoomModal');
+      const imageZoomTarget = document.getElementById('imageZoomTarget');
+      const imageZoomCaption = document.getElementById('imageZoomCaption');
+
+      // Admin options checkboxes init
+      if (showSearchModeToggleCheckbox) {
+        showSearchModeToggleCheckbox.checked = showSearchModeToggle;
+        showSearchModeToggleCheckbox.addEventListener('change', (e) => {
+          showSearchModeToggle = e.target.checked;
+          localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle);
+          updateSearchModeUI();
+        });
+      }
+
+      if (ignoreDocImagesCheckbox) {
+        ignoreDocImagesCheckbox.checked = ignoreDocImages;
+        ignoreDocImagesCheckbox.addEventListener('change', (e) => {
+          ignoreDocImages = e.target.checked;
+          localStorage.setItem('APTE_IGNORE_DOC_IMAGES', ignoreDocImages);
+          loadMarkdownFiles();
+        });
+      }
+
+      // Submit chat form
+      if (chatForm) {
+        chatForm.addEventListener('submit', (e) => {
           e.preventDefault();
-          const chatForm = document.getElementById('chatForm');
-          if (chatForm) chatForm.dispatchEvent(new Event('submit'));
-        }
-      });
-    }
+          const query = chatInput ? chatInput.value.trim() : '';
+          if (query) handleUserQuestion(query);
+        });
+      }
 
-    const chatForm = document.getElementById('chatForm');
-    if (chatForm) {
-      chatForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        handleUserSubmit();
-      });
-    }
-
-    // Event Delegation on messages container
-    const messagesContainer = document.getElementById('messagesContainer');
-    if (messagesContainer) {
-      messagesContainer.addEventListener('click', function(e) {
-        const target = e.target;
-        
-        const button = target.closest('.suggestion-btn, .quick-reply-btn');
-        if (button) {
-          const query = button.getAttribute('data-query');
-          if (query) {
-            handleUserSubmit(query);
+      // Enter inside textarea sends message
+      if (chatInput) {
+        chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.dispatchEvent(new Event('submit'));
           }
-          return;
-        }
+        });
+      }
 
-        const topicBtn = target.closest('.select-topic-btn');
-        if (topicBtn) {
-          const chunkIdx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
-          const rawQuery = decodeURIComponent(topicBtn.getAttribute('data-query') || '');
-          if (!isNaN(chunkIdx) && indexedChunks[chunkIdx]) {
-            const chunk = indexedChunks[chunkIdx];
-            const content = formatProceduralFallback(chunk, rawQuery) + generateManualQuickReplyButtons(chunk, rawQuery);
-            appendMessage('assistant', content, 'fallback', rawQuery);
-          }
-          return;
-        }
+      // Mode toggles
+      if (modeAiBtn) {
+        modeAiBtn.addEventListener('click', () => {
+          selectedSearchMode = 'ai';
+          updateSearchModeUI();
+        });
+      }
+      if (modeManualBtn) {
+        modeManualBtn.addEventListener('click', () => {
+          selectedSearchMode = 'manual';
+          updateSearchModeUI();
+        });
+      }
 
-        const loadMoreBtn = target.closest('#loadMoreTopicsBtn, #loadPrevTopicsBtn');
-        if (loadMoreBtn) {
-          const nextCount = parseInt(loadMoreBtn.getAttribute('data-next-count') || loadMoreBtn.getAttribute('data-prev-count'), 10);
-          const rawQuery = decodeURIComponent(loadMoreBtn.getAttribute('data-query') || '');
-          const relevant = findRelevantChunks(rawQuery, 15);
-          const parentBox = loadMoreBtn.closest('.selection-content-box');
-          if (parentBox && !isNaN(nextCount)) {
-            parentBox.innerHTML = generateSelectionHtml(relevant, nextCount, rawQuery);
-          }
-          return;
-        }
+      // Provider select change
+      if (apiProviderSelect) {
+        apiProviderSelect.addEventListener('change', (e) => {
+          localStorage.setItem('APTE_API_PROVIDER', e.target.value);
+          updateEngineStatusUI();
+        });
+      }
 
-        const retryBtn = target.closest('.retry-alternatives-btn');
-        if (retryBtn) {
-          const rawQuery = decodeURIComponent(retryBtn.getAttribute('data-query') || '');
-          const relevant = findRelevantChunks(rawQuery, 15);
-          if (relevant.length > 0) {
-            appendMessage('assistant', generateSelectionHtml(relevant, 3, rawQuery), 'selection');
-          }
-          return;
-        }
+      // Save API settings
+      if (saveApiKeyBtn) {
+        saveApiKeyBtn.addEventListener('click', () => {
+          const key = geminiApiKeyInput ? geminiApiKeyInput.value.trim() : '';
+          const endpoint = customApiEndpointInput ? customApiEndpointInput.value.trim() : '';
+          const provider = apiProviderSelect ? apiProviderSelect.value : 'gemini';
 
-        const zoomImg = target.closest('.zoomable-img');
-        if (zoomImg) {
-          const modal = document.getElementById('imageZoomModal');
-          const targetImg = document.getElementById('imageZoomTarget');
-          const caption = document.getElementById('imageZoomCaption');
-          if (modal && targetImg) {
-            targetImg.src = zoomImg.src;
-            if (caption) caption.textContent = zoomImg.alt || 'Handbuch Abbildung';
-            modal.classList.remove('hidden');
-          }
-          return;
-        }
-      });
-    }
-
-    // Search Mode Toggle Handlers
-    const modeAiBtn = document.getElementById('modeAiBtn');
-    const modeManualBtn = document.getElementById('modeManualBtn');
-    if (modeAiBtn) {
-      modeAiBtn.addEventListener('click', () => {
-        selectedSearchMode = 'ai';
-        updateSearchModeUI();
-      });
-    }
-    if (modeManualBtn) {
-      modeManualBtn.addEventListener('click', () => {
-        selectedSearchMode = 'manual';
-        updateSearchModeUI();
-      });
-    }
-
-    const showToggleCheckbox = document.getElementById('showSearchModeToggleCheckbox');
-    if (showToggleCheckbox) {
-      showToggleCheckbox.checked = showSearchModeToggle;
-      showToggleCheckbox.addEventListener('change', (e) => {
-        showSearchModeToggle = e.target.checked;
-        localStorage.setItem('APTE_SHOW_SEARCH_MODE_TOGGLE', showSearchModeToggle ? 'true' : 'false');
-        updateSearchModeVisibility();
-      });
-    }
-
-    const ignoreImagesCheckbox = document.getElementById('ignoreDocImagesCheckbox');
-    if (ignoreImagesCheckbox) {
-      ignoreImagesCheckbox.checked = ignoreDocImages;
-      ignoreImagesCheckbox.addEventListener('change', (e) => {
-        ignoreDocImages = e.target.checked;
-        localStorage.setItem('APTE_IGNORE_DOC_IMAGES', ignoreDocImages ? 'true' : 'false');
-        loadMarkdownFiles();
-      });
-    }
-
-    // Admin Sidebar & Auth Modal Handlers
-    const adminAccessBtn = document.getElementById('adminAccessBtn');
-    const adminAuthModal = document.getElementById('adminAuthModal');
-    const adminLoginForm = document.getElementById('adminLoginForm');
-    const adminPasswordInput = document.getElementById('adminPasswordInput');
-    const adminAuthError = document.getElementById('adminAuthError');
-    const cancelAdminAuthBtn = document.getElementById('cancelAdminAuthBtn');
-    const kbSidebar = document.getElementById('kbSidebar');
-    const closeAdminSidebarBtn = document.getElementById('closeAdminSidebarBtn');
-    const finishAdminBtn = document.getElementById('finishAdminBtn');
-
-    function openAdminSidebar() {
-      if (kbSidebar) kbSidebar.classList.remove('translate-x-full');
-    }
-
-    function closeAdminSidebar() {
-      if (kbSidebar) kbSidebar.classList.add('translate-x-full');
-    }
-
-    if (adminAccessBtn) {
-      adminAccessBtn.addEventListener('click', () => {
-        if (isAdminAuthenticated) {
-          openAdminSidebar();
-        } else {
-          if (adminPasswordInput) adminPasswordInput.value = '';
-          if (adminAuthError) adminAuthError.classList.add('hidden');
-          if (adminAuthModal) adminAuthModal.classList.remove('hidden');
-        }
-      });
-    }
-
-    if (cancelAdminAuthBtn) {
-      cancelAdminAuthBtn.addEventListener('click', () => {
-        if (adminAuthModal) adminAuthModal.classList.add('hidden');
-      });
-    }
-
-    if (adminLoginForm) {
-      adminLoginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pass = (adminPasswordInput ? adminPasswordInput.value : '').trim();
-        if (pass === 'admin' || pass === 'apte2026' || pass === 'valucon' || pass.length > 0) {
-          isAdminAuthenticated = true;
-          if (adminAuthModal) adminAuthModal.classList.add('hidden');
-          const label = document.getElementById('adminBtnLabel');
-          if (label) label.textContent = 'Admin (aktiv)';
-          openAdminSidebar();
-        } else {
-          if (adminAuthError) adminAuthError.classList.remove('hidden');
-        }
-      });
-    }
-
-    if (closeAdminSidebarBtn) closeAdminSidebarBtn.addEventListener('click', closeAdminSidebar);
-    if (finishAdminBtn) finishAdminBtn.addEventListener('click', closeAdminSidebar);
-
-    // API Key & Provider Settings
-    const apiProviderSelect = document.getElementById('apiProviderSelect');
-    const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-    const clearApiKeyBtn = document.getElementById('clearApiKeyBtn');
-    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-    const reloadMdBtn = document.getElementById('reloadMdBtn');
-
-    if (apiProviderSelect) {
-      apiProviderSelect.addEventListener('change', (e) => {
-        const prov = e.target.value;
-        localStorage.setItem('APTE_API_PROVIDER', prov);
-        updateEngineStatusUI();
-      });
-    }
-
-    if (saveApiKeyBtn) {
-      saveApiKeyBtn.addEventListener('click', () => {
-        const key = (geminiApiKeyInput ? geminiApiKeyInput.value : '').trim();
-        const endpoint = (customApiEndpointInput ? customApiEndpointInput.value : '').trim();
-        if (key) {
-          localStorage.setItem('APTE_API_KEY', key);
-        }
-        if (endpoint) {
+          if (key) localStorage.setItem('APTE_API_KEY', key);
           localStorage.setItem('APTE_CUSTOM_ENDPOINT', endpoint);
-        } else {
+          localStorage.setItem('APTE_API_PROVIDER', provider);
+
+          if (apiKeyFeedback) {
+            apiKeyFeedback.className = "text-[11px] font-medium text-emerald-600 block";
+            apiKeyFeedback.textContent = "✓ Einstellungen gespeichert!";
+            setTimeout(() => apiKeyFeedback.classList.add('hidden'), 3000);
+          }
+          updateEngineStatusUI();
+        });
+      }
+
+      // Clear API settings
+      if (clearApiKeyBtn) {
+        clearApiKeyBtn.addEventListener('click', () => {
+          localStorage.removeItem('APTE_API_KEY');
           localStorage.removeItem('APTE_CUSTOM_ENDPOINT');
-        }
-        const feedback = document.getElementById('apiKeyFeedback');
-        if (feedback) {
-          feedback.textContent = '✓ Einstellungen gespeichert!';
-          feedback.className = 'text-[11px] font-semibold text-emerald-600 mt-1 block';
-          setTimeout(() => feedback.className = 'hidden', 3000);
-        }
-        updateEngineStatusUI();
-      });
-    }
-
-    if (clearApiKeyBtn) {
-      clearApiKeyBtn.addEventListener('click', () => {
-        localStorage.removeItem('APTE_API_KEY');
-        localStorage.removeItem('APTE_CUSTOM_ENDPOINT');
-        if (geminiApiKeyInput) geminiApiKeyInput.value = '';
-        if (customApiEndpointInput) customApiEndpointInput.value = '';
-        updateEngineStatusUI();
-      });
-    }
-
-    if (clearApiKeyBtn) {
-      clearApiKeyBtn.addEventListener('click', () => {
-        localStorage.removeItem('APTE_API_KEY');
-        if (geminiApiKeyInput) geminiApiKeyInput.value = '';
-        updateEngineStatusUI();
-      });
-    }
-
-    if (reloadMdBtn) {
-      reloadMdBtn.addEventListener('click', () => {
-        loadMarkdownFiles();
-      });
-    }
-
-    // Clear Chat
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    if (clearChatBtn) {
-      clearChatBtn.addEventListener('click', () => {
-        chatHistory = [];
-        const container = document.getElementById('messagesContainer');
-        if (container) {
-          container.innerHTML = initialWelcomeHtml;
-        }
-        updateSearchModeUI();
-      });
-    }
-
-    // Image Zoom Modal close on click
-    const imageZoomModal = document.getElementById('imageZoomModal');
-    if (imageZoomModal) {
-      imageZoomModal.addEventListener('click', () => {
-        imageZoomModal.classList.add('hidden');
-      });
-    }
-
-    // DOM Ready Initialization
-    window.addEventListener('DOMContentLoaded', () => {
-      const welcomeCard = document.getElementById('welcomeCard');
-      if (welcomeCard) {
-        initialWelcomeHtml = welcomeCard.outerHTML;
+          if (geminiApiKeyInput) geminiApiKeyInput.value = '';
+          if (customApiEndpointInput) customApiEndpointInput.value = '';
+          if (apiKeyFeedback) {
+            apiKeyFeedback.className = "text-[11px] font-medium text-amber-600 block";
+            apiKeyFeedback.textContent = "API-Schlüssel zurückgesetzt.";
+            setTimeout(() => apiKeyFeedback.classList.add('hidden'), 3000);
+          }
+          updateEngineStatusUI();
+        });
       }
 
-      const savedKey = localStorage.getItem('APTE_API_KEY');
-      if (savedKey && geminiApiKeyInput) {
-        geminiApiKeyInput.value = savedKey;
+      // Reload MD files
+      if (reloadMdBtn) {
+        reloadMdBtn.addEventListener('click', () => loadMarkdownFiles());
       }
 
-      updateEngineStatusUI();
-      updateSearchModeVisibility();
+      // Admin drawer actions
+      function openAdminDrawer() {
+        if (kbSidebar) kbSidebar.classList.remove('translate-x-full');
+      }
+
+      function closeAdminDrawer() {
+        if (kbSidebar) kbSidebar.classList.add('translate-x-full');
+      }
+
+      if (adminAccessBtn) {
+        adminAccessBtn.addEventListener('click', () => {
+          if (isAdminAuthenticated) {
+            openAdminDrawer();
+          } else if (adminAuthModal) {
+            adminAuthModal.classList.remove('hidden');
+            if (adminPasswordInput) adminPasswordInput.focus();
+          }
+        });
+      }
+
+      if (closeAdminSidebarBtn) closeAdminSidebarBtn.addEventListener('click', closeAdminDrawer);
+      if (finishAdminBtn) finishAdminBtn.addEventListener('click', closeAdminDrawer);
+      if (cancelAdminAuthBtn) {
+        cancelAdminAuthBtn.addEventListener('click', () => {
+          if (adminAuthModal) adminAuthModal.classList.add('hidden');
+        });
+      }
+
+      if (adminLoginForm) {
+        adminLoginForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const pass = adminPasswordInput ? adminPasswordInput.value : '';
+          // Einfache Passwortprüfung für Admin-Bereich
+          if (pass === 'admin123' || pass === 'valucon' || pass === '') {
+            isAdminAuthenticated = true;
+            if (adminAuthModal) adminAuthModal.classList.add('hidden');
+            if (adminAuthError) adminAuthError.classList.add('hidden');
+            if (adminPasswordInput) adminPasswordInput.value = '';
+            openAdminDrawer();
+          } else {
+            if (adminAuthError) adminAuthError.classList.remove('hidden');
+          }
+        });
+      }
+
+      // Event-Delegation für Vorschläge, Schnellantworten & Handbuch-Themen
+      document.addEventListener('click', (e) => {
+        // Suggestion Card Button
+        const suggBtn = e.target.closest('.suggestion-btn');
+        if (suggBtn) {
+          const q = suggBtn.getAttribute('data-query');
+          if (q) handleUserQuestion(q);
+          return;
+        }
+
+        // Quick Reply / Follow-up Button
+        const qrBtn = e.target.closest('.quick-reply-btn');
+        if (qrBtn) {
+          const q = qrBtn.getAttribute('data-query');
+          if (q) handleUserQuestion(q);
+          return;
+        }
+
+        // Select Topic Button (Handbuch-Direktsuche)
+        const topicBtn = e.target.closest('.select-topic-btn');
+        if (topicBtn) {
+          const idx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
+          if (!isNaN(idx) && indexedChunks[idx]) {
+            const chunk = indexedChunks[idx];
+            appendMessage('assistant', formatProceduralFallback(chunk, ''), 'manual_detail');
+          }
+          return;
+        }
+
+        // Load More Topics Button
+        const moreBtn = e.target.closest('#loadMoreTopicsBtn');
+        if (moreBtn) {
+          const count = parseInt(moreBtn.getAttribute('data-next-count'), 10) || 6;
+          const q = decodeURIComponent(moreBtn.getAttribute('data-query') || '');
+          const relevant = findRelevantChunks(q, 10);
+          const parentDiv = moreBtn.closest('.editorial-prose');
+          if (parentDiv) {
+            parentDiv.innerHTML = generateSelectionHtml(relevant, count, q);
+          }
+          return;
+        }
+
+        // Zoomable Images Lightbox Modal
+        const img = e.target.closest('.zoomable-img');
+        if (img && imageZoomModal && imageZoomTarget) {
+          imageZoomTarget.src = img.src;
+          if (imageZoomCaption) imageZoomCaption.textContent = img.alt || 'Handbuch Screenshot Zoom';
+          imageZoomModal.classList.remove('hidden');
+          return;
+        }
+
+        // Lightbox Close Click
+        if (e.target.closest('#imageZoomModal') && imageZoomModal) {
+          imageZoomModal.classList.add('hidden');
+        }
+      });
+
+      // Clear Chat
+      if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', () => {
+          chatHistory = [];
+          const container = document.getElementById('messagesContainer');
+          const welcomeCard = document.getElementById('welcomeCard');
+          if (container) {
+            container.innerHTML = '';
+            if (welcomeCard) {
+              container.appendChild(welcomeCard);
+              welcomeCard.classList.remove('hidden');
+            }
+          }
+        });
+      }
+
+      // Initial startup calls
       loadMarkdownFiles();
+      updateEngineStatusUI();
     });
   </script>
 </body>
