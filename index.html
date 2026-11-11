@@ -840,29 +840,29 @@
           const subTokens = getSubTokens(token);
 
           if (titleLower.includes(token)) {
-            score += 12;
+            score += 15;
           } else if (titleNorm.includes(tokenNorm) || (tokenNorm.length >= 5 && titleNorm.includes(tokenNorm.slice(0, -1)))) {
-            score += 10;
+            score += 12;
           }
 
           if (pathLower.includes(token)) {
-            score += 6;
+            score += 8;
           } else if (pathNorm.includes(tokenNorm)) {
-            score += 5;
+            score += 6;
           }
 
           subTokens.forEach(st => {
             const stNorm = normalizeGermanTerm(st);
             if (stNorm.length >= 4) {
-              if (titleNorm.includes(stNorm)) score += 4;
-              if (pathNorm.includes(stNorm)) score += 2;
+              if (titleNorm.includes(stNorm)) score += 5;
+              if (pathNorm.includes(stNorm)) score += 3;
             }
           });
 
           const regex = new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
           const matches = contentLower.match(regex);
           if (matches) {
-            score += Math.min(matches.length, 6) * 2;
+            score += Math.min(matches.length, 8) * 2;
           } else if (contentNorm.includes(tokenNorm)) {
             score += 4;
           }
@@ -874,10 +874,10 @@
             score += 10;
           }
           if (/1\.\s+.*2\.\s+/.test(chunk.content) || /vorgehensweise|gehen sie wie folgt vor|schritt-für-schritt/i.test(chunk.content)) {
-            score += 15;
+            score += 18;
           }
           if (/^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen|einrichten|anlegen)/i.test(chunk.title)) {
-            score += 8;
+            score += 10;
           }
         }
 
@@ -964,7 +964,8 @@
         }
       }
 
-      const relevant = findRelevantChunks(searchTargetQuery, 10);
+      // Tiefere Suche: Top 20 Kandidaten vorfiltern
+      const relevant = findRelevantChunks(searchTargetQuery, 20);
 
       if (selectedSearchMode === 'manual') {
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
@@ -985,7 +986,8 @@
         };
       }
 
-      const contextChunks = relevant.slice(0, 8);
+      // Erweitertes Kontextfenster: 14 Chunks statt 8 an die KI übergeben
+      const contextChunks = relevant.slice(0, 14);
       const contextText = contextChunks.map(r => `[DOKUMENT: ${r.chunk.path} | TITEL: ${r.chunk.title}]\n${r.chunk.content}`).join('\n\n---\n\n');
 
       const systemPrompt = `Du bist der offizielle APTE-NG Support-Assistent für Hochschulen und Universitäten.
