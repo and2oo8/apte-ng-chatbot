@@ -724,10 +724,14 @@
         const line = lines[i];
         const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         const faqMatch = isFaqSource && line.match(/^[-*]?\s*(?:\*\*|\#\#?\s*)?(?:Q|Frage|\d+\.)[:\s]+([^*#\n]+)/i);
+        const boldHeaderMatch = !headingMatch && !faqMatch && line.trim().match(/^\*\*([^*]{3,60})\*\*$/);
 
-        if (headingMatch || faqMatch) {
+        if (headingMatch || faqMatch || boldHeaderMatch) {
           const level = headingMatch ? headingMatch[1].length : 3;
-          const titleText = headingMatch ? headingMatch[2].replace(/[*_]/g, '').trim() : faqMatch[1].replace(/[*_]/g, '').trim();
+          let titleText = '';
+          if (headingMatch) titleText = headingMatch[2].replace(/[*_]/g, '').trim();
+          else if (faqMatch) titleText = faqMatch[1].replace(/[*_]/g, '').trim();
+          else if (boldHeaderMatch) titleText = boldHeaderMatch[1].trim();
 
           if (currentContent.length > 0) {
             const bodyText = cleanBoilerplateText(currentContent.join('\n'));
@@ -785,13 +789,35 @@
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
       let expandedQuery = query.toLowerCase();
+
+      // 1. Verb-Separation & Conversational Patterns
       expandedQuery = expandedQuery.replace(/\blade\b.*\bein\b/gi, '$& einladen');
       expandedQuery = expandedQuery.replace(/\bstelle\b.*\bein\b/gi, '$& einstellen');
       expandedQuery = expandedQuery.replace(/\blege\b.*\ban\b/gi, '$& anlegen');
       expandedQuery = expandedQuery.replace(/\bfüge\b.*\bhinzu\b/gi, '$& hinzufügen');
       expandedQuery = expandedQuery.replace(/\brichte\b.*\bein\b/gi, '$& einrichten');
 
-      const isProceduralQuery = /^(wie|wo|schritte|welche schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|einladen|einrichten)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|einladen|einrichten|konfigurieren|schritte)\b/i.test(query);
+      // 2. Core Synonym Mapping (erstellen <-> anlegen, mitarbeiter <-> mitarbeitende)
+      if (/\b(erstelle|erstellen|erstellung|erzeuge|erzeugen)\b/i.test(expandedQuery)) {
+        expandedQuery += ' anlegen anzulegen anlege neu';
+      }
+      if (/\b(anlegen|anzulegen|anlege)\b/i.test(expandedQuery)) {
+        expandedQuery += ' erstellen erstelle erstellung neu';
+      }
+      if (/\b(mitarbeiter|mitarbeitern|mitarbeitende|mitarbeitender)\b/i.test(expandedQuery)) {
+        expandedQuery += ' mitarbeitende mitarbeiter benutzer personen gutachter';
+      }
+      if (/\b(gutachter|gutachtern|gutachtende|gutachterin)\b/i.test(expandedQuery)) {
+        expandedQuery += ' gutachter gutachtende mitarbeitende benutzer kommission';
+      }
+      if (/\b(einladen|einladung|eingeladen|lade)\b/i.test(expandedQuery)) {
+        expandedQuery += ' einladen lade einladung';
+      }
+      if (/\b(bearbeiten|ändern|anpassen)\b/i.test(expandedQuery)) {
+        expandedQuery += ' bearbeiten konfigurieren einstellen';
+      }
+
+      const isProceduralQuery = /^(wie|wo|schritte|welche schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|einladen|einrichten|mitarbeiter|gutachter|fb-gruppe)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|einladen|einrichten|konfigurieren|schritte|mitarbeiter|gutachter|fb-gruppe)\b/i.test(query);
       const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'die', 'der', 'das', 'den', 'dem', 'des', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
       const cleanQuery = expandedQuery.replace(/[^a-z0-9äöüß\s]/g, ' ');
@@ -850,7 +876,7 @@
           if (/1\.\s+.*2\.\s+/.test(chunk.content) || /vorgehensweise|gehen sie wie folgt vor|schritt-für-schritt/i.test(chunk.content)) {
             score += 15;
           }
-          if (/^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen|einrichten)/i.test(chunk.title)) {
+          if (/^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen|einrichten|anlegen)/i.test(chunk.title)) {
             score += 8;
           }
         }
@@ -967,8 +993,8 @@ Beantworte die Anwenderfrage STRIKT auf Basis der folgenden Auszüge aus dem Han
 
 REGELN FÜR ANTWORTEN:
 1. BEGRÜSSUNGEN VERBOTEN: Sei präzise, sachlich und direkt. Einleitende Höflichkeitsfloskeln wie "Guten Tag!", "Gerne helfe ich Ihnen", "Es freut mich..." SIND STRIKT VERBOTEN. Steige DIREKT beim Thema ein.
-2. DETAIL- UND SCHRITT-FÜR-SCHRITT-PFLICHT: Wenn nach Anleitungen, Schritten, der Konfiguration oder Einrichtung gefragt wird, gib die Handlungsanweisungen VOLLSTÄNDIG und im Detail (mit allen einzelnen Punkten 1., 2., 3., ...) wieder. Fasse konkrete Handlungsanweisungen NICHT zusammen und unterschlage KEINE Schritte. Falls ein Kapitel sowohl einen zusammenfassenden Einleitungssatz als auch eine nummerierte Vorgehensweise enthält, stütze dich NIEMALS nur auf die Einleitung, sondern gib stets die vollständige nummerierte Schritt-für-Schritt-Anleitung (alle Hauptschritte 1. bis 6. inklusive aller Unterpunkte) wieder!
-3. ERFINDE NIEMALS Menüpfade, Optionen oder Felder, die nicht im bereitgestellten Handbuch-Text enthalten sind.
+2. DETAIL- UND SCHRITT-FÜR-SCHRITT-PFLICHT & SYNONYM-EINBEZIEHUNG: Wenn nach Anleitungen, Schritten, der Konfiguration oder Einrichtung gefragt wird, gib die Handlungsanweisungen VOLLSTÄNDIG und im Detail (mit allen einzelnen Punkten 1., 2., 3., ...) wieder. Fasse konkrete Handlungsanweisungen NICHT zusammen und unterschlage KEINE Schritte. Beachte dabei ausdrücklich, dass Begriffe wie "erstellen" und "anlegen", "hinzufügen" und "zuordnen" sowie "Mitarbeiter", "Mitarbeitende", "Benutzer" und "Gutachter" im APTE-NG System absolut synonym verwendet werden!
+3. ERFINDE NIEMALS Menüpfade, Optionen oder Felder, die nicht im bereitgestellten Handbuch-Text enthalten sind. Behaupte NIEMALS, dass ein Kapitel nicht vorhanden sei, wenn im bereitgestellten Handbuch-Text Abschnitte wie "FB-Gruppe anlegen" oder "Mitarbeitende einladen" vorhanden sind.
 4. FORMATIERUNG: Nutze übersichtliches Markdown (Fettdruck, Aufzählungen, nummerierte Schritte, fette Schaltflächen in Anführungszeichen z. B. **"Speichern"**).
 5. SCREENSHOTS & GRAFIKEN (MANDATORISCH): Binde ALLE in den Handbuch-Auszügen enthaltenen Bild-Referenzen (Format: ![Beschriftung](img_ref_X)) ZWINGEND an den jeweils passenden Handlungsschritten in deine Antwort ein, damit dem Nutzer die Screenshots angezeigt werden!
 6. FOLGETHEMEN & SCHNELLANTWORTEN: Füge am Ende jeder Antwort IMMER 2 bis 3 passende Folgethemen oder logische Nächste Schritte als interaktive Buttons ein. Verwende exakt dieses Format:
