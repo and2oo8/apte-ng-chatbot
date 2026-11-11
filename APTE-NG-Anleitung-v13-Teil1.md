@@ -67,60 +67,60 @@ Version 2026-09
 | Interne Kommunikation | 369 |
 | Dokumentenmanager | 378 |
 | Gutachterfunktionen | 396 |
-| Dateneingabe durch externe Personen (Referenzmodul) | 419 |
-| **Aufgaben** | **426** |
-| Aufbau der Hauptübersicht | 426 |
+| Dateneingabe durch externe Personen (Referenzmodul) | 421 |
+| **Aufgaben** | **428** |
+| Aufbau der Hauptübersicht | 428 |
 |  |  |
-| Erstellen von Aufgaben | 426 |
-| Konfiguration im Erstellungsfenster | 428 |
-| Aufgaben-Vorlagen einrichten | 431 |
-| Aufgaben aus Vorlagen erstellen | 435 |
-| **Berichte** | **439** |
-| Die vier Kernbereiche im Überblick | 439 |
-| Berichtsfelder und Excel-Berichte | 440 |
-| Webreports | 447 |
-| Berichtsvariablen | 451 |
-| **Akten (DSTIP)** | **453** |
-| Akteure verwalten | 454 |
-| Buchungen verwalten | 504 |
-| Labels (Akten) | 516 |
-| Matching-Funktion | 529 |
-| Nachrichten (Akten) | 541 |
-| Dokumente im Aktenprogramm | 553 |
-| Statistik-relevante Daten fortschreiben | 562 |
-| Statistikmeldung erstellen | 568 |
-| Dubletten/doppelte Akten bereinigen | 573 |
-| Akten filtern und suchen (Expertensuche) | 578 |
-| Aktivitätenprotokoll (Akten) | 582 |
-| **Aktenverwaltung & CRM** | **585** |
-| Kernfunktionen im Überblick | 585 |
-| Flexibilität und Skalierbarkeit | 585 |
-| Akteure | 587 |
-| Beziehungsmanagement | 601 |
-| Management Summaries | 602 |
-| [**Einstellungen**](#einstellungen) | [**606**](#einstellungen) |
-| Mitarbeitende | 607 |
-| Branding | 614 |
-| Einrichtungen und Organisationseinheiten | 618 |
-| Dashboardelemente/Startmaske erstellen | 623 |
+| Erstellen von Aufgaben | 428 |
+| Konfiguration im Erstellungsfenster | 430 |
+| Aufgaben-Vorlagen einrichten | 433 |
+| Aufgaben aus Vorlagen erstellen | 437 |
+| **Berichte** | **441** |
+| Die vier Kernbereiche im Überblick | 441 |
+| Berichtsfelder und Excel-Berichte | 442 |
+| Webreports | 449 |
+| Berichtsvariablen | 453 |
+| **Akten (DSTIP)** | **455** |
+| Akteure verwalten | 456 |
+| Buchungen verwalten | 506 |
+| Labels (Akten) | 518 |
+| Matching-Funktion | 531 |
+| Nachrichten (Akten) | 543 |
+| Dokumente im Aktenprogramm | 555 |
+| Statistik-relevante Daten fortschreiben | 564 |
+| Statistikmeldung erstellen | 570 |
+| Dubletten/doppelte Akten bereinigen | 575 |
+| Akten filtern und suchen (Expertensuche) | 580 |
+| Aktivitätenprotokoll (Akten) | 584 |
+| **Aktenverwaltung & CRM** | **587** |
+| Kernfunktionen im Überblick | 587 |
+| Flexibilität und Skalierbarkeit | 587 |
+| Akteure | 589 |
+| Beziehungsmanagement | 603 |
+| Management Summaries | 604 |
+| [**Einstellungen**](#einstellungen) | [**608**](#einstellungen) |
+| Mitarbeitende | 609 |
+| Branding | 615 |
+| Einrichtungen und Organisationseinheiten | 619 |
+| Dashboardelemente/Startmaske erstellen | 624 |
 |  |  |
-| Einwilligungen | 627 |
-| DSGVO | 632 |
-| **Übergreifende Standards** | **633** |
-| Rollen/Rechte | 634 |
-| Prüfen von Gruppenmitgliedschaften und Berechtigungen | 636 |
-| Nachrichtenarten | 639 |
-| Variablen in Nachrichten verwenden | 640 |
-| Formeln und Berechnungen | 642 |
-| Individuelle E-Mail-Absenderadressen | 653 |
-| Informationen für Anwender des Altsystems | 659 |
-| Musterformular | 663 |
-| **Datenschutz, Löschkonzepte und Datenbereinigung** | **680** |
-| Überblick: Welches Verfahren passt zu Ihrem Anwendungsfall? | 680 |
-| Anonymisieren von Datensätzen | 681 |
-| Anonymisieren in der Aktenverwaltung | 685 |
-| Automatisches Löschen von Accounts | 690 |
-| Löschregeln und DSGVO-Fristen | 692 |
+| Einwilligungen | 628 |
+| DSGVO | 633 |
+| **Übergreifende Standards** | **634** |
+| Rollen/Rechte | 635 |
+| Prüfen von Gruppenmitgliedschaften und Berechtigungen | 637 |
+| Nachrichtenarten | 640 |
+| Variablen in Nachrichten verwenden | 641 |
+| Formeln und Berechnungen | 643 |
+| Individuelle E-Mail-Absenderadressen | 654 |
+| Informationen für Anwender des Altsystems | 660 |
+| Musterformular | 664 |
+| **Datenschutz, Löschkonzepte und Datenbereinigung** | **681** |
+| Überblick: Welches Verfahren passt zu Ihrem Anwendungsfall? | 681 |
+| Anonymisieren von Datensätzen | 682 |
+| Anonymisieren in der Aktenverwaltung | 686 |
+| Automatisches Löschen von Accounts | 691 |
+| Löschregeln und DSGVO-Fristen | 693 |
 
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAnCAYAAACSamGGAAAEI0lEQVR4XuWYW0xURxzGxxsxNdL4UlIMJsY+9E1tKDGxxgRrI2mMPpQ2Jk1NfKhKa5DGylqxClojiDReErRQYku7aTVeobsYagDtRg2J2OpCWZRLai3iBaEKyLL79T9z2LOH/6xpC3uWJv2SLzNnzsz/++3smQNZIf4PglfEoUmsRaPwkGGxh+6tk/f5mpgJzWImAdxlYJEt59F8XsNW0c41q/DAbgD7hl2ow+n28Vq2iIKG0PGSBc7i4B4OpbtJDPGaURWF3EHLizqc1Rwqkr3iN147KqId+EgFcCire97VgZ5lqsczxixV+MEKHSzk7nQd5G/MM8ak4VcMHZTPdLjgXsD3vAbwj0yvKJ41aplFOaB/ux78L82zRi2zKIcMjfceo2dsIvDrVOqfNsbk9eMqDYqbZ41aZtEn68OArUnG2L1co71fQI/DY6Pf9Qnw51mj3/ONBmYvZNMkA7A/MxzUd2m4vRyG7K8HBrxG/1GZBmYvZCTf3Wy03cVQCvV7nHSgZgBtC/U1NkH6eXHTN+cA7YvJr9FXTqe/JZHGXjbgug/o80faz7NGLVwXCRECwg4+pUNDryFfAjDYQY/FZLqON/p8rtWtIoFnjUlagNX+2wQWNww8aLS33zGeUz7XYp4xZuGGWM1DpAM3BH53zSa4ATrpO4FOOlTtqQT+B37Ki9fmm24Sq3lGVETFB3lYxzHL9c1ZRts8TbVdboG+KxEAqQ6vHTXRs5nMA3sv0D/nhzUI5Qs5tNO/6OOyDq8dVVHIAA99+CMBbZ0wYqxyncBgQwRAWs9r2qIIwWh1Wq69+v2QeS3bhEbata6l9JqZYobX54dBei/qcLGHbEuy/A1PVOHnNupAkcxr2SYVGNgVBvXFo3LtSJgH1ToguYvXsk3yHdddI9DiTkP/vc2ozZ6OcxkCdRvDdq0XqP5QoILgqzZMgJxPkG/yWrZpx8ma63kna1FUdgge5yr4yhfgTmkiHn31gumK7CQ1Lu/LeXK+XMdr2SoZetmTDndNJs6cd6DUdRhfuEpMy7FLnrdxq/5VdDbMUZC8hu2SodJVtRvg98Yh4J1MnoRg40TVDnmn4P61JBS7jqp54wKZe6KmMBT+LOccP4+PnVWq73C6V/EaMdFcRz6sTt5aiCW7i/HW/q+RUXYaju+rx28XQ5LhBxtacejnduXcU3UKKLO8Emn5JUjZVoR5xgfo42tjJgLoCO3igk8/R0pOERbu2I/lhV8i4+hZy1dfF+BrY6a8U7VtO89cNHfywNVbCiqr/AesOXIcaQUlmL+lACuLSlP42piKP5fSi/IO4r3i77DpWzfogOH9IxXP8XUx1dzs/CCHHGG6z9eMixatTO9N/sCBV7K2Y96mXaqV13Kczx1Xvf7GsqzU1NROMmS7ZOmy6P+091/WX8QxrQAzKUmCAAAAAElFTkSuQmCC)
 
@@ -1505,7 +1505,7 @@ Vor dem Verringern der Spaltenanzahl müssen alle Felder aus den Spalten gelösc
 
 <div></div>
 
-    1. **In Feldpool verschieben**: Für das Ablegen des Feldes im Feldpool zum späteren Wiederverwenden an anderer Stelle, siehe Kapitel [Felder wiederverwenden (Feldpool)](#felder-wiederverwenden-feldpool)
+1. **In Feldpool verschieben**: Für das Ablegen des Feldes im Feldpool zum späteren Wiederverwenden an anderer Stelle, siehe Kapitel [Felder wiederverwenden (Feldpool)](#felder-wiederverwenden-feldpool)
 
 3. Klicken Sie in der Feldzeile auf die Schaltfläche **“Feldzeile ändern”**
 
@@ -1625,10 +1625,10 @@ valucon apps GmbH
 
 _Beispielkonfiguration einer Tabelle:_
 
-    - Spalten = 3
-    - Zeilen = 5
-    - Zeilen, die sofort erscheinen = 3
-    - Zeilen, die pro Schritt zusätzlich erscheinen = 1
+- Spalten = 3
+- Zeilen = 5
+- Zeilen, die sofort erscheinen = 3
+- Zeilen, die pro Schritt zusätzlich erscheinen = 1
 
 _Der Formularausfüllende sieht drei Zeilen, die er ausfüllen kann. Durch Klicken auf das "+" am Ende der Tabelle wird bei Bedarf eine weitere Zeile hinzugefügt._
 
@@ -1665,8 +1665,8 @@ Mithilfe der Funktion **“Tabelle automatisch mit Formularfeldern befüllen”*
 
 Die Anwendung nutzt grundsätzlich die **unterste Zeile** einer Tabelle als Referenz für das automatische Befüllen.
 
-    - **Neuerstellung:** Erstellen Sie die Tabelle initial mit nur einer Zeile, um eine saubere Konfigurationsgrundlage zu gewährleisten
-    - **Erweiterung:** Bei bestehenden Tabellen werden die Feldkonfigurationen der aktuell untersten Zeile auf alle neu generierten Zeilen übertragen
+- **Neuerstellung:** Erstellen Sie die Tabelle initial mit nur einer Zeile, um eine saubere Konfigurationsgrundlage zu gewährleisten
+- **Erweiterung:** Bei bestehenden Tabellen werden die Feldkonfigurationen der aktuell untersten Zeile auf alle neu generierten Zeilen übertragen
 
 **Vorgehensweise**
 
@@ -2263,22 +2263,22 @@ valucon apps GmbH
 
 **Grundlegende Begriffe**
 
-    - **Signaturfeld:** Das Formularfeld, welches die digitale Unterschrift aufnimmt
-    - **Signierbare Felder:** Eine definierte Menge von Formularfeldern, deren Inhalt durch das Signieren festgeschrieben wird
-    - **Signatur:** Der verschlüsselte Datensatz inklusive Metadaten wie Zeitstempel sowie Vorname und Nachname des Unterzeichners zum Zeitpunkt des Signierens
+- **Signaturfeld:** Das Formularfeld, welches die digitale Unterschrift aufnimmt
+- **Signierbare Felder:** Eine definierte Menge von Formularfeldern, deren Inhalt durch das Signieren festgeschrieben wird
+- **Signatur:** Der verschlüsselte Datensatz inklusive Metadaten wie Zeitstempel sowie Vorname und Nachname des Unterzeichners zum Zeitpunkt des Signierens
 
 **Funktionsweise und Ablauf für Formularausfüllende** Nach dem Einrichten und Freigeben des Signaturfeldes steht dieses den Formularausfüllern zur Verfügung. Für das Ausfüllen gelten folgende Automatismen:
 
-    - **Voraussetzung:** Das Fenster für das Signieren lässt sich erst öffnen, sobald alle dem Signaturfeld zugeordneten **Pflichtfelder vollständig ausgefüllt** wurden. Optionale Felder dürfen beim Signieren leer bleiben.
-    - **Vorschau der Daten:** Vor dem Leisten der Unterschrift zeigt das System dem Ausfüllenden alle zu bestätigenden Angaben an (Inhalt der Unterschrift)
-    - **Eingabe der Identität:** Der Formularausfüllende gibt seinen Vornamen und Nachnamen an (bei angemeldeten Benutzern wird dieser automatisch aus dem Profil vorausgefüllt) und leistet dann direkt im Feld seine handschriftliche digitale Unterschrift
-    - **Auswirkung auf das Formular:** Nach dem Speichern versiegelt das System die gewählten Felder kryptografisch. Diese Felder sowie das Signaturfeld selbst sind anschließend für weitere Bearbeitungen gesperrt
-    - **Herunterladen der Signaturdetails:** Nach dem erfolgreichen Signieren erscheint am Signaturfeld die Schaltfläche **“Signaturdetails herunterladen”**. Das Klicken darauf generiert ein PDF-Dokument mit folgenden Angaben:
+- **Voraussetzung:** Das Fenster für das Signieren lässt sich erst öffnen, sobald alle dem Signaturfeld zugeordneten **Pflichtfelder vollständig ausgefüllt** wurden. Optionale Felder dürfen beim Signieren leer bleiben.
+- **Vorschau der Daten:** Vor dem Leisten der Unterschrift zeigt das System dem Ausfüllenden alle zu bestätigenden Angaben an (Inhalt der Unterschrift)
+- **Eingabe der Identität:** Der Formularausfüllende gibt seinen Vornamen und Nachnamen an (bei angemeldeten Benutzern wird dieser automatisch aus dem Profil vorausgefüllt) und leistet dann direkt im Feld seine handschriftliche digitale Unterschrift
+- **Auswirkung auf das Formular:** Nach dem Speichern versiegelt das System die gewählten Felder kryptografisch. Diese Felder sowie das Signaturfeld selbst sind anschließend für weitere Bearbeitungen gesperrt
+- **Herunterladen der Signaturdetails:** Nach dem erfolgreichen Signieren erscheint am Signaturfeld die Schaltfläche **“Signaturdetails herunterladen”**. Das Klicken darauf generiert ein PDF-Dokument mit folgenden Angaben:
 
-        - Name des Signaturfeldes sowie Name der unterzeichnenden Person
-        - Exakter Zeitstempel und Zeitzone der Unterschrift
-        - Aufschlüsselung der signierten Felder inklusive ihrer zugewiesenen Werte zum Zeitpunkt des Signierens
-        - Abbildung der visuellen Handschrift
+    - Name des Signaturfeldes sowie Name der unterzeichnenden Person
+    - Exakter Zeitstempel und Zeitzone der Unterschrift
+    - Aufschlüsselung der signierten Felder inklusive ihrer zugewiesenen Werte zum Zeitpunkt des Signierens
+    - Abbildung der visuellen Handschrift
 
 **Hinzufügen und Konfigurieren eines Signaturfeldes** Um ein Signaturfeld in ein Formular einzubinden, gehen Sie wie folgt vor:
 
@@ -2297,9 +2297,9 @@ valucon apps GmbH
 
 **Wichtige Regeln für die Konfiguration**
 
-    - Das Signieren im Formular setzt voraus, dass alle **als Pflichtfeld** deklarierten signierbaren Felder vom Anwender **vollständig ausgefüllt wurden**. Sind zugeordnete Felder als optional konfiguriert, ist das Signieren auch bei leeren Feldern möglich
-    - Pro Benutzerkonto ist genau eine aktive Unterschrift pro Signaturfeld zulässig
-    - Sobald die erste Unterschrift in einem Formular geleistet wurde, ist das Bearbeiten der Feldkonfiguration gesperrt
+- Das Signieren im Formular setzt voraus, dass alle **als Pflichtfeld** deklarierten signierbaren Felder vom Anwender **vollständig ausgefüllt wurden**. Sind zugeordnete Felder als optional konfiguriert, ist das Signieren auch bei leeren Feldern möglich
+- Pro Benutzerkonto ist genau eine aktive Unterschrift pro Signaturfeld zulässig
+- Sobald die erste Unterschrift in einem Formular geleistet wurde, ist das Bearbeiten der Feldkonfiguration gesperrt
 
 **Widerrufen einer Unterschrift** Formularausfüllende können geleistete Unterschriften nicht eigenständig löschen oder zurücknehmen. Wenn eine Unterschrift storniert werden muss, kann ein Administrator diese widerrufen.
 
@@ -2310,7 +2310,21 @@ Um eine Unterschrift zu widerrufen, gehen Sie wie folgt vor:
 
 Seite 95 Vervielfältigung und Weitergabe nur mit schriftlicher Zustimmung. APTE-NG valucon apps GmbH
 
+3. Bestätigen Sie die Sicherheitsabfrage **Ergebnis:** Das Signaturfeld wird zurückgesetzt. Die betroffene Person kann das Formular erneut ausfüllen und signieren. Widerrufene Signaturen bleiben zur Nachvollziehbarkeit im System gespeichert, sind für den Formularausfüllenden jedoch nicht mehr sichtbar.
+
+**Löschschutz und Verhalten beim Löschen** Aufgrund der rechtlichen Verbindlichkeit von digitalen Unterschriften gelten strenge Schutzregeln für das Entfernen von Daten:
+
+- Datensätze, die geleistete oder widerrufene Signaturen enthalten, können nicht über den regulären Löschweg entfernt werden
+- Beim Versuch, ein Formular oder einen Formularschritt mit enthaltenen Signaturen zu löschen, sperrt das System diese Aktion und bietet stattdessen die Schaltfläche **“Formular stattdessen ausblenden”** an
+- Das endgültige Entfernen von Datensätzen mit Signaturen ist ausschließlich über den DSGVO-Bereich des Formulars möglich, siehe Datenschutz, Löschkonzepte und Datenbereinigung
+
+APTE-NG Vervielfältigung und Weitergabe nur mit schriftlicher Zustimmung. Seite 96
+
+valucon apps GmbH
+
 ---
+
+[^803]: 37 München
 
 [^803]: 37 München
 

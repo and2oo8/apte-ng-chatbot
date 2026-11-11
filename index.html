@@ -725,13 +725,15 @@
         const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
         const faqMatch = isFaqSource && line.match(/^[-*]?\s*(?:\*\*|\#\#?\s*)?(?:Q|Frage|\d+\.)[:\s]+([^*#\n]+)/i);
         const boldHeaderMatch = !headingMatch && !faqMatch && line.trim().match(/^\*\*([^*]{3,60})\*\*$/);
+        const standaloneHeaderMatch = !headingMatch && !faqMatch && !boldHeaderMatch && line.trim().match(/^(?:[A-ZÄÖÜa-zäöü0-9-_\s]{3,60})\s+(?:anlegen|erstellen|einrichten|konfigurieren|einladen|zuordnen|geben|löschen|bearbeiten|ausführen)$/i);
 
-        if (headingMatch || faqMatch || boldHeaderMatch) {
+        if (headingMatch || faqMatch || boldHeaderMatch || standaloneHeaderMatch) {
           const level = headingMatch ? headingMatch[1].length : 3;
           let titleText = '';
           if (headingMatch) titleText = headingMatch[2].replace(/[*_]/g, '').trim();
           else if (faqMatch) titleText = faqMatch[1].replace(/[*_]/g, '').trim();
           else if (boldHeaderMatch) titleText = boldHeaderMatch[1].trim();
+          else if (standaloneHeaderMatch) titleText = standaloneHeaderMatch[0].trim();
 
           if (currentContent.length > 0) {
             const bodyText = cleanBoilerplateText(currentContent.join('\n'));
@@ -797,12 +799,13 @@
       expandedQuery = expandedQuery.replace(/\bfüge\b.*\bhinzu\b/gi, '$& hinzufügen');
       expandedQuery = expandedQuery.replace(/\brichte\b.*\bein\b/gi, '$& einrichten');
 
+      // Intent Detection
+      const isCreationQuery = /\b(erstelle|erstellen|erzeugung|anlegen|anzulegen|anlege|neue|neu)\b/i.test(expandedQuery);
+      const isViewingQuery = /\b(einsehen|prüfen|anzeigen|überprüfen|sichtbar)\b/i.test(expandedQuery);
+
       // 2. Core Synonym Mapping (erstellen <-> anlegen, mitarbeiter <-> mitarbeitende)
-      if (/\b(erstelle|erstellen|erstellung|erzeuge|erzeugen)\b/i.test(expandedQuery)) {
-        expandedQuery += ' anlegen anzulegen anlege neu';
-      }
-      if (/\b(anlegen|anzulegen|anlege)\b/i.test(expandedQuery)) {
-        expandedQuery += ' erstellen erstelle erstellung neu';
+      if (isCreationQuery) {
+        expandedQuery += ' anlegen anzulegen anlege erstellen erstelle neu erstellung';
       }
       if (/\b(mitarbeiter|mitarbeitern|mitarbeitende|mitarbeitender)\b/i.test(expandedQuery)) {
         expandedQuery += ' mitarbeitende mitarbeiter benutzer personen gutachter';
@@ -867,6 +870,19 @@
             score += 4;
           }
         });
+
+        // Intent-Matching: Wenn nach Erstellen/Anlegen gefragt wird
+        if (isCreationQuery && score > 0) {
+          if (titleLower.includes('anlegen') || titleLower.includes('erstellen') || contentLower.includes('anlegen') || contentLower.includes('erstellen')) {
+            score += 25;
+          }
+          if (/1\.\s+Öffnen|1\.\s+Geben|1\.\s+Klicken/i.test(chunk.content) || /anlegen|erstellen/i.test(chunk.title)) {
+            score += 20;
+          }
+          if (!isViewingQuery && (titleLower.includes('einsehen') || titleLower.includes('prüfen'))) {
+            score -= 20;
+          }
+        }
 
         // Bei Anleitungen Chunks mit konkreten Schritten und Screenshots bevorzugen
         if (isProceduralQuery && score > 0) {
@@ -987,7 +1003,20 @@
       }
 
       // Erweitertes Kontextfenster: 14 Chunks statt 8 an die KI übergeben
-      const contextChunks = relevant.slice(0, 14);
+      let contextChunks = relevant.slice(0, 14);
+
+      // Falls nach Erstellung/Anleitung gefragt wurde, Chunks mit konkreten Schrittfolgen (1., 2.) nach ganz oben sortieren
+      const isCreationOrProcedural = /erstellen|anlegen|einrichten|konfigurieren|einladen|wie\s+/i.test(userQuery);
+      if (isCreationOrProcedural) {
+        contextChunks.sort((a, b) => {
+          const aHasSteps = /1\.\s+/.test(a.chunk.content) || /anlegen|erstellen/i.test(a.chunk.title);
+          const bHasSteps = /1\.\s+/.test(b.chunk.content) || /anlegen|erstellen/i.test(b.chunk.title);
+          if (aHasSteps && !bHasSteps) return -1;
+          if (!aHasSteps && bHasSteps) return 1;
+          return 0;
+        });
+      }
+
       const contextText = contextChunks.map(r => `[DOKUMENT: ${r.chunk.path} | TITEL: ${r.chunk.title}]\n${r.chunk.content}`).join('\n\n---\n\n');
 
       const systemPrompt = `Du bist der offizielle APTE-NG Support-Assistent für Hochschulen und Universitäten.
