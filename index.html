@@ -780,9 +780,9 @@
     function findRelevantChunks(query, topN = 10) {
       if (!indexedChunks || indexedChunks.length === 0) return [];
 
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen)\b/i.test(query);
+      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|vorgehensweise|ablauf|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|mache|bearbeiten|löschen|einrichten|verwalten)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|mache|machen|gehe|gehen|konfigurieren|einstellen|einrichten|vorgehen|vorgehensweise|schritte|bearbeiten|löschen|verwalten)\b/i.test(query);
       const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'ein', 'die', 'der', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
-      
+
       const cleanQuery = query.toLowerCase().replace(/[^a-z0-9äöüß\s]/g, ' ');
       const tokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !stopWords.has(t));
 
@@ -839,6 +839,11 @@
         });
 
         if (isProceduralQuery && score > 0) {
+          if (titleLower.includes('vorgehensweise') || pathLower.includes('vorgehensweise')) {
+            score += 35;
+          } else if (contentLower.includes('vorgehensweise')) {
+            score += 20;
+          }
           const proceduralTriggers = ['vorgehensweise', 'gehen sie wie folgt vor', 'anleitung', 'schritt-für-schritt', 'konfiguration:', 'neuerstellung:', 'hinzufügen'];
           proceduralTriggers.forEach(trigger => { if (contentLower.includes(trigger)) score += 10; });
           if (/1\.\s+.*2\.\s+/.test(chunk.content) || /1\.\s+Öffnen/.test(chunk.content)) score += 15;
@@ -1008,7 +1013,7 @@ WICHTIGE VERHALTENSREGELN & QUALITÄTSKRITERIEN:
    - Nutze aktives semantisches Sprachverständnis für Synonyme ("einstellen" vs. "festlegen", "anlegen" vs. "erstellen").
 5. STRIKTE VOLLSTÄNDIGKEIT & WAHRHEITSGETREUE:
    - Gib bei Anleitungen JEDEN einzelnen Handlungsschritt (1., 2., 3., ...) VOLLSTÄNDIG und lückenlos an.
-   - Stütze dich auf den bereitgestellten Handbuch-Kontext.
+   - Stütze dich auf den bereitgestellten Handbuch-Kontext. Bevorzuge bei Fragen nach Handlungsabläufen ("Wie mache/erstelle/konfiguriere ich...", "Wie gehe ich vor...", etc.) primär und fokussiert die Abschnitte mit der Überschrift oder dem Inhalt "Vorgehensweise".
 6. SCREENSHOTS & GRAFIKEN (MANDATORISCH):
    - Platziere im Handbuch enthaltene Bild-Referenzen ![Beschriftung](img_ref_X) punktgenau beim jeweiligen Handlungsschritt.
 7. BUTTONS & SCHALTFLÄCHEN:
