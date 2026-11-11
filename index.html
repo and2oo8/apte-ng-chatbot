@@ -209,12 +209,12 @@
                 <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
 
-              <button type="button" class="suggestion-btn text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie lade ich Gutachter ein?">
+              <button type="button" class="suggestion-btn text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-bordeaux hover:bg-bordeaux-soft transition-all duration-150 group shadow-sm flex items-center justify-between cursor-pointer" data-query="Wie richte ich die Gutachtersicht ein?">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-bordeaux/10 text-slate-600 group-hover:text-bordeaux flex items-center justify-center shrink-0 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                   </div>
-                  <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Wie lade ich Gutachter ein?</span>
+                  <span class="text-xs font-bold text-slate-800 group-hover:text-bordeaux block leading-snug">Wie richte ich die Gutachtersicht ein?</span>
                 </div>
                 <svg class="w-4 h-4 text-slate-400 group-hover:text-bordeaux transition-transform group-hover:translate-x-0.5 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
@@ -314,7 +314,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(v1.0.1-RC1 · Build: 10.11.2026 - 15:25 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(v1.0.1-RC1 · Build: 11.11.2026 - 08:35 CET)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition cursor-pointer">Verlauf leeren</button>
         </div>
       </div>
@@ -791,7 +791,7 @@
       expandedQuery = expandedQuery.replace(/\bfüge\b.*\bhinzu\b/gi, '$& hinzufügen');
       expandedQuery = expandedQuery.replace(/\brichte\b.*\bein\b/gi, '$& einrichten');
 
-      const isProceduralQuery = /^(wie|wo|schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|einladen)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|einladen)\b/i.test(query);
+      const isProceduralQuery = /^(wie|wo|schritte|welche schritte|anleitung|so\s+|prozess|vorgehen|erstellen|konfigurieren|einstellen|hinzufügen|anlegen|einladen|einrichten)/i.test(query.trim()) || /\b(wie|wo|erstellen|hinzufügen|anlegen|einladen|einrichten|konfigurieren|schritte)\b/i.test(query);
       const stopWords = new Set(['wie', 'wo', 'was', 'wer', 'warum', 'welche', 'welcher', 'welches', 'stelle', 'ich', 'die', 'der', 'das', 'den', 'dem', 'des', 'eine', 'einen', 'einem', 'und', 'oder', 'in', 'im', 'auf', 'mit', 'zu', 'für', 'von', 'an', 'apte-ng', 'apte', 'ng', 'gehe', 'geht', 'mache', 'kann']);
       
       const cleanQuery = expandedQuery.replace(/[^a-z0-9äöüß\s]/g, ' ');
@@ -842,8 +842,17 @@
           }
         });
 
-        if (isProceduralQuery && /^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen)/i.test(chunk.title)) {
-          score += 5;
+        // Bei Anleitungen Chunks mit konkreten Schritten und Screenshots bevorzugen
+        if (isProceduralQuery && score > 0) {
+          if (contentLower.includes('img_ref_')) {
+            score += 10;
+          }
+          if (/1\.\s+.*2\.\s+/.test(chunk.content) || /vorgehensweise|gehen sie wie folgt vor|schritt-für-schritt/i.test(chunk.content)) {
+            score += 15;
+          }
+          if (/^(schritte|anleitung|vorgehen|erstellen|konfigurieren|einstellen|einladen|einrichten)/i.test(chunk.title)) {
+            score += 8;
+          }
         }
 
         return { chunk, score, index };
@@ -918,7 +927,18 @@
     }
 
     async function getAIResponse(userQuery) {
-      const relevant = findRelevantChunks(userQuery, 10);
+      // 1. Kontext-Anreicherung für Handbuch-Suche bei Folgefragen (z. B. "Zeig mir die Schritte dazu")
+      let searchTargetQuery = userQuery;
+      const userMessages = chatHistory.filter(m => m.role === 'user');
+      if (userMessages.length > 1) {
+        const prevUserQuery = userMessages[userMessages.length - 2].content;
+        const isFollowUp = /^(zeig|wie|welche|was|geht|dann|danach|dazu|das|diese|dieser|dieses|mehr|schritte|wo|welcher|welchen)\b/i.test(userQuery.trim()) || userQuery.trim().split(/\s+/).length <= 6;
+        if (isFollowUp) {
+          searchTargetQuery = `${prevUserQuery} ${userQuery}`;
+        }
+      }
+
+      const relevant = findRelevantChunks(searchTargetQuery, 10);
 
       if (selectedSearchMode === 'manual') {
         return { text: generateSelectionHtml(relevant, 3, userQuery), mode: 'selection' };
@@ -945,12 +965,12 @@
       const systemPrompt = `Du bist der offizielle APTE-NG Support-Assistent für Hochschulen und Universitäten.
 Beantworte die Anwenderfrage STRIKT auf Basis der folgenden Auszüge aus dem Handbuch.
 
-Regeln:
-1. Sei präzise, sachlich und direkt. Einleitende Höflichkeitsfloskeln wie "Guten Tag!", "Gerne helfe ich Ihnen", "Es freut mich..." SIND VERBOTEN. Steige DIREKT beim Inhalt ein.
-2. Wenn Schritte oder Handlungsanweisungen im Text stehen, gebe sie exakt 1:1 wieder.
+REGELN FÜR ANTWORTEN:
+1. BEGRÜSSUNGEN VERBOTEN: Sei präzise, sachlich und direkt. Einleitende Höflichkeitsfloskeln wie "Guten Tag!", "Gerne helfe ich Ihnen", "Es freut mich..." SIND STRIKT VERBOTEN. Steige DIREKT beim Thema ein.
+2. DETAIL- UND SCHRITT-FÜR-SCHRITT-PFLICHT: Wenn nach Anleitungen, Schritten, der Konfiguration oder Einrichtung gefragt wird, gib die Handlungsanweisungen VOLLSTÄNDIG und im Detail (mit allen einzelnen Punkten 1., 2., 3., ...) wieder. Fasse konkrete Handlungsanweisungen NICHT zusammen und unterschlage KEINE Schritte. Falls ein Kapitel sowohl einen zusammenfassenden Einleitungssatz als auch eine nummerierte Vorgehensweise enthält, stütze dich NIEMALS nur auf die Einleitung, sondern gib stets die vollständige nummerierte Schritt-für-Schritt-Anleitung (alle Hauptschritte 1. bis 6. inklusive aller Unterpunkte) wieder!
 3. ERFINDE NIEMALS Menüpfade, Optionen oder Felder, die nicht im bereitgestellten Handbuch-Text enthalten sind.
-4. Nutze übersichtliches Markdown (Fettdruck, Aufzählungen, nummerierte Schritte).
-5. BILDER & GRAFIKEN: Wenn in den Handbuch-Auszügen Bild-Referenzen (wie ![Text](img_ref_X)) enthalten sind, binde diese UNBEDINGT an den passenden Schritten in deine Antwort ein, damit der Anwender die Screenshots sieht!
+4. FORMATIERUNG: Nutze übersichtliches Markdown (Fettdruck, Aufzählungen, nummerierte Schritte, fette Schaltflächen in Anführungszeichen z. B. **"Speichern"**).
+5. SCREENSHOTS & GRAFIKEN (MANDATORISCH): Binde ALLE in den Handbuch-Auszügen enthaltenen Bild-Referenzen (Format: ![Beschriftung](img_ref_X)) ZWINGEND an den jeweils passenden Handlungsschritten in deine Antwort ein, damit dem Nutzer die Screenshots angezeigt werden!
 6. FOLGETHEMEN & SCHNELLANTWORTEN: Füge am Ende jeder Antwort IMMER 2 bis 3 passende Folgethemen oder logische Nächste Schritte als interaktive Buttons ein. Verwende exakt dieses Format:
 [BUTTON: Beschriftung|Konkrete Folgefrage]
 
@@ -967,16 +987,25 @@ ${contextText}`;
           const geminiModel = config.model || 'gemini-3.8-flash';
           const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${apiKey}`;
           
+          // Konversationsverlauf für Gemini aufbauen
+          const contents = [];
+          const historyTurns = chatHistory.slice(0, -1).slice(-4);
+          historyTurns.forEach(m => {
+            contents.push({
+              role: m.role === 'user' ? 'user' : 'model',
+              parts: [{ text: m.content.replace(/<div class="text-\[10px\].*<\/div>/gi, '').replace(/\[BUTTON:[^\]]+\]/gi, '').trim() }]
+            });
+          });
+          contents.push({
+            role: 'user',
+            parts: [{ text: systemPrompt + '\n\nFRAGE DES ANWENDERS: ' + userQuery }]
+          });
+
           const response = await fetch(endpointUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: systemPrompt + '\n\nFRAGE DES ANWENDERS: ' + userQuery }]
-                }
-              ],
+              contents: contents,
               generationConfig: {
                 temperature: 0.8
               }
@@ -1020,6 +1049,17 @@ ${contextText}`;
           modelsToTry.push('openai/gpt-4o-mini', 'openai/gpt-4o');
         }
 
+        // Gesprächshistorie an OpenAI/OpenRouter/Anthropic etc. übergeben
+        const apiMessages = [{ role: 'system', content: systemPrompt }];
+        const historyTurns = chatHistory.slice(0, -1).slice(-4);
+        historyTurns.forEach(m => {
+          apiMessages.push({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: m.content.replace(/<div class="text-\[10px\].*<\/div>/gi, '').replace(/\[BUTTON:[^\]]+\]/gi, '').trim()
+          });
+        });
+        apiMessages.push({ role: 'user', content: userQuery });
+
         for (const currentModel of modelsToTry) {
           try {
             const headers = {
@@ -1034,13 +1074,9 @@ ${contextText}`;
 
             const requestBody = { 
               model: currentModel,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userQuery }
-              ]
+              messages: apiMessages
             };
 
-            // Luna und Reasoning Modellen keinen abweichenden temperature Parameter schicken
             if (!currentModel.toLowerCase().includes('luna')) {
               requestBody.temperature = 0.8;
             }
@@ -1211,7 +1247,6 @@ ${contextText}`;
         if (chatHistory.length > 10) chatHistory.shift();
       }
 
-      // Unsichtbaren Scroll-Spacer unten im Chat-Container verwalten (ermöglicht Platz zum Scrollen an den oberen Rand)
       let spacer = document.getElementById('chatScrollSpacer');
       if (!spacer) {
         spacer = document.createElement('div');
@@ -1228,9 +1263,8 @@ ${contextText}`;
         innerDiv.textContent = content;
         msgDiv.appendChild(innerDiv);
         container.appendChild(msgDiv);
-        container.appendChild(spacer); // Spacer immer am Ende des Verlaufs platzieren
+        container.appendChild(spacer);
         
-        // Exklusiv den Chat-Container auf den Anfang der User-Frage scrollen (v1.0 Standard)
         container.scrollTop = Math.max(0, msgDiv.offsetTop - 16);
       } else {
         innerDiv.className = 'w-full bg-slate-50 border border-slate-200 text-slate-800 p-5 rounded-2xl rounded-tl-none text-sm shadow-sm editorial-prose leading-relaxed relative break-words overflow-hidden';
@@ -1262,10 +1296,8 @@ ${contextText}`;
         innerDiv.appendChild(contentBox);
         msgDiv.appendChild(innerDiv);
         
-        // KI-Antwort vor dem Spacer einfügen
         container.insertBefore(msgDiv, spacer);
 
-        // Ansicht stabil oben an der vorausgehenden Frage verankern (v1.0 Standard)
         const prevMsg = msgDiv.previousElementSibling;
         const targetElement = (prevMsg && prevMsg !== spacer) ? prevMsg : msgDiv;
         container.scrollTop = Math.max(0, targetElement.offsetTop - 16);
@@ -1362,7 +1394,6 @@ ${contextText}`;
       const imageZoomTarget = document.getElementById('imageZoomTarget');
       const imageZoomCaption = document.getElementById('imageZoomCaption');
 
-      // Admin options checkboxes init
       if (showSearchModeToggleCheckbox) {
         showSearchModeToggleCheckbox.checked = showSearchModeToggle;
         showSearchModeToggleCheckbox.addEventListener('change', (e) => {
@@ -1381,7 +1412,6 @@ ${contextText}`;
         });
       }
 
-      // Submit chat form
       if (chatForm) {
         chatForm.addEventListener('submit', (e) => {
           e.preventDefault();
@@ -1390,7 +1420,6 @@ ${contextText}`;
         });
       }
 
-      // Enter inside textarea sends message
       if (chatInput) {
         chatInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -1400,7 +1429,6 @@ ${contextText}`;
         });
       }
 
-      // Mode toggles
       if (modeAiBtn) {
         modeAiBtn.addEventListener('click', () => {
           selectedSearchMode = 'ai';
@@ -1414,7 +1442,6 @@ ${contextText}`;
         });
       }
 
-      // Provider select change
       if (apiProviderSelect) {
         apiProviderSelect.addEventListener('change', (e) => {
           localStorage.setItem('APTE_API_PROVIDER', e.target.value);
@@ -1422,7 +1449,6 @@ ${contextText}`;
         });
       }
 
-      // Save API settings
       if (saveApiKeyBtn) {
         saveApiKeyBtn.addEventListener('click', () => {
           const key = geminiApiKeyInput ? geminiApiKeyInput.value.trim() : '';
@@ -1442,7 +1468,6 @@ ${contextText}`;
         });
       }
 
-      // Clear API settings
       if (clearApiKeyBtn) {
         clearApiKeyBtn.addEventListener('click', () => {
           localStorage.removeItem('APTE_API_KEY');
@@ -1458,12 +1483,10 @@ ${contextText}`;
         });
       }
 
-      // Reload MD files
       if (reloadMdBtn) {
         reloadMdBtn.addEventListener('click', () => loadMarkdownFiles());
       }
 
-      // Admin drawer actions
       function openAdminDrawer() {
         if (kbSidebar) kbSidebar.classList.remove('translate-x-full');
       }
@@ -1507,9 +1530,7 @@ ${contextText}`;
         });
       }
 
-      // Event-Delegation für Vorschläge, Schnellantworten & Handbuch-Themen
       document.addEventListener('click', (e) => {
-        // Suggestion Card Button
         const suggBtn = e.target.closest('.suggestion-btn');
         if (suggBtn) {
           const q = suggBtn.getAttribute('data-query');
@@ -1517,7 +1538,6 @@ ${contextText}`;
           return;
         }
 
-        // Quick Reply / Follow-up Button
         const qrBtn = e.target.closest('.quick-reply-btn');
         if (qrBtn) {
           const q = qrBtn.getAttribute('data-query');
@@ -1525,7 +1545,6 @@ ${contextText}`;
           return;
         }
 
-        // Select Topic Button (Handbuch-Direktsuche)
         const topicBtn = e.target.closest('.select-topic-btn');
         if (topicBtn) {
           const idx = parseInt(topicBtn.getAttribute('data-chunk-index'), 10);
@@ -1536,7 +1555,6 @@ ${contextText}`;
           return;
         }
 
-        // Load More Topics Button
         const moreBtn = e.target.closest('#loadMoreTopicsBtn');
         if (moreBtn) {
           const count = parseInt(moreBtn.getAttribute('data-next-count'), 10) || 6;
@@ -1549,7 +1567,6 @@ ${contextText}`;
           return;
         }
 
-        // Zoomable Images Lightbox Modal
         const img = e.target.closest('.zoomable-img');
         if (img && imageZoomModal && imageZoomTarget) {
           imageZoomTarget.src = img.src;
@@ -1558,13 +1575,11 @@ ${contextText}`;
           return;
         }
 
-        // Lightbox Close Click
         if (e.target.closest('#imageZoomModal') && imageZoomModal) {
           imageZoomModal.classList.add('hidden');
         }
       });
 
-      // Clear Chat
       if (clearChatBtn) {
         clearChatBtn.addEventListener('click', () => {
           chatHistory = [];
@@ -1580,7 +1595,6 @@ ${contextText}`;
         });
       }
 
-      // Initial startup calls
       loadMarkdownFiles();
       updateEngineStatusUI();
     });
