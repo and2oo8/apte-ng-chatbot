@@ -315,7 +315,7 @@
         </form>
         
         <div class="max-w-3xl mx-auto flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
-          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(v1.0.2-RC1 · Build: 11.11.2026 - 12:57 CET)</span></span>
+          <span>valucon apps GmbH | APTE-NG Online-Hilfe <span class="text-slate-400 font-mono text-[10px] ml-1.5 opacity-75">(v1.0.2-RC1 · Build: 17.11.2026)</span></span>
           <button id="clearChatBtn" class="hover:text-bordeaux underline transition">Verlauf leeren</button>
         </div>
       </div>
@@ -350,8 +350,8 @@
           <div>
             <label class="block text-[11px] font-semibold text-slate-700 mb-1">Anbieter auswählen</label>
             <select id="apiProviderSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-bordeaux font-medium">
+              <option value="openai" selected>OpenAI (GPT-6 Luna)</option>
               <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
-              <option value="openai">OpenAI (GPT-6 Luna)</option>
               <option value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</option>
               <option value="deepseek">DeepSeek (DeepSeek-V3)</option>
               <option value="groq">Groq (Llama 3.3 70B)</option>
@@ -359,6 +359,7 @@
               <option value="melious">melious.ai</option>
             </select>
             <p id="providerInfoHint" class="text-[10px] text-slate-500 mt-1 italic"></p>
+            <p id="untestedProviderNotice" class="hidden text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5 mt-1.5 font-medium">⚠️ Hinweis: Dieses Modell ist aktuell ungetestet.</p>
           </div>
 
           <div>
@@ -596,18 +597,26 @@
 
     function updateEngineStatusUI() {
       const savedApiKey = (localStorage.getItem('APTE_API_KEY') || '').trim();
-      const selectedProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
+      const selectedProvider = localStorage.getItem('APTE_API_PROVIDER') || 'openai';
       const hasKey = savedApiKey.length > 3;
       const apiKeyStatus = document.getElementById('apiKeyStatus');
       const providerSelect = document.getElementById('apiProviderSelect');
       const keyInput = document.getElementById('geminiApiKeyInput');
       const hintEl = document.getElementById('providerInfoHint');
+      const untestedNoticeEl = document.getElementById('untestedProviderNotice');
 
-      const config = PROVIDER_CONFIGS[selectedProvider] || PROVIDER_CONFIGS.gemini;
+      const config = PROVIDER_CONFIGS[selectedProvider] || PROVIDER_CONFIGS.openai;
 
       if (providerSelect) providerSelect.value = selectedProvider;
       if (keyInput && !keyInput.value) keyInput.placeholder = config.placeholder;
       if (hintEl) hintEl.textContent = config.hint;
+      if (untestedNoticeEl) {
+        if (selectedProvider !== 'openai') {
+          untestedNoticeEl.classList.remove('hidden');
+        } else {
+          untestedNoticeEl.classList.add('hidden');
+        }
+      }
 
       if (hasKey && apiKeyStatus) {
         apiKeyStatus.classList.remove('hidden');
@@ -1025,8 +1034,8 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
 
       let apiKey = (localStorage.getItem('APTE_API_KEY') || "").trim();
       apiKey = apiKey.replace(/^["']|["']$/g, '');
-      const provider = localStorage.getItem('APTE_API_PROVIDER') || "gemini";
-      const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.gemini;
+      const provider = localStorage.getItem('APTE_API_PROVIDER') || "openai";
+      const config = PROVIDER_CONFIGS[provider] || PROVIDER_CONFIGS.openai;
 
       if (apiKey) {
         try {
@@ -1315,8 +1324,8 @@ Beispiel: [BUTTON: Bearbeiten & Löschen erklären|Wie bearbeite oder lösche ic
         }
 
         if (mode === 'ai') {
-          const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'gemini';
-          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.gemini;
+          const activeProvider = localStorage.getItem('APTE_API_PROVIDER') || 'openai';
+          const config = PROVIDER_CONFIGS[activeProvider] || PROVIDER_CONFIGS.openai;
           const displayModel = usedModel || config.model;
           const footerInfo = tokenUsage 
             ? `${config.name} (${displayModel}) · ⚡ ${tokenUsage}` 
