@@ -66,62 +66,62 @@ Version 2026-09
 | FB-Gruppen | 361 |
 | Interne Kommunikation | 367 |
 | Dokumentenmanager | 376 |
-| Gutachterfunktionen | 394 |
-| Dateneingabe durch externe Personen (Referenzmodul) | 419 |
-| **Aufgaben** | **426** |
-| Aufbau der Hauptübersicht | 426 |
+| Funktionen für Gutachter: Gutachtersicht und Gutachtermodul im Überblick | 394 |
+| Dateneingabe durch externe Personen (Referenzmodul) | 420 |
+| **Aufgaben** | **427** |
+| Aufbau der Hauptübersicht | 427 |
 |  |  |
-| Erstellen von Aufgaben | 426 |
-| Konfiguration im Erstellungsfenster | 428 |
-| Aufgaben-Vorlagen einrichten | 431 |
-| Aufgaben aus Vorlagen erstellen | 435 |
-| **Berichte** | **439** |
-| Die vier Kernbereiche im Überblick | 439 |
-| Berichtsfelder und Excel-Berichte | 440 |
-| Webreports | 447 |
-| Berichtsvariablen | 451 |
-| **Akten (DSTIP)** | **453** |
-| Akteure verwalten | 454 |
-| Buchungen im Aktenprogramm verwalten | 507 |
-| Labels für Aktenprogramme erstellen und Zugriffsrechte vergeben | 520 |
-| Labels im Aktenprogramm verwenden und Akten zuweisen | 529 |
-| Matching-Funktion | 531 |
-| Nachrichten (Akten) | 543 |
-| Dokumente im Aktenprogramm | 555 |
-| Statistik-relevante Daten fortschreiben | 564 |
-| Statistikmeldung erstellen | 570 |
-| Dubletten/doppelte Akten bereinigen | 575 |
-| Akten filtern und suchen (Expertensuche) | 580 |
-| Aktivitätenprotokoll (Akten) | 584 |
-| **Aktenverwaltung & CRM** | **587** |
-| Kernfunktionen im Überblick | 587 |
-| Flexibilität und Skalierbarkeit | 587 |
-| Akteure | 589 |
-| Beziehungsmanagement | 603 |
-| Management Summaries | 604 |
-| [**Einstellungen**](#einstellungen) | [**608**](#einstellungen) |
-| Mitarbeitende | 609 |
-| Branding | 615 |
-| Einrichtungen und Organisationseinheiten | 619 |
+| Erstellen von Aufgaben | 427 |
+| Konfiguration im Erstellungsfenster | 429 |
+| Aufgaben-Vorlagen einrichten | 432 |
+| Aufgaben aus Vorlagen erstellen | 436 |
+| **Berichte** | **440** |
+| Die vier Kernbereiche im Überblick | 440 |
+| Berichtsfelder und Excel-Berichte | 441 |
+| Webreports | 448 |
+| Berichtsvariablen | 452 |
+| **Akten (DSTIP)** | **454** |
+| Akteure verwalten | 455 |
+| Buchungen im Aktenprogramm verwalten | 508 |
+| Aktenlabels erstellen und Zugriffsrechte vergeben | 521 |
+| Aktenlabels im Aktenprogramm verwenden und zuweisen | 530 |
+| Matching-Funktion | 532 |
+| Nachrichten (Akten) | 544 |
+| Dokumente im Aktenprogramm | 556 |
+| Statistik-relevante Daten fortschreiben | 565 |
+| Statistikmeldung erstellen | 571 |
+| Dubletten/doppelte Akten bereinigen | 576 |
+| Akten filtern und suchen (Expertensuche) | 581 |
+| Aktivitätenprotokoll (Akten) | 585 |
+| **Aktenverwaltung & CRM** | **588** |
+| Kernfunktionen im Überblick | 588 |
+| Flexibilität und Skalierbarkeit | 588 |
+| Akteure | 590 |
+| Beziehungsmanagement | 604 |
+| Management Summaries | 605 |
+| [**Einstellungen**](#einstellungen) | [**609**](#einstellungen) |
+| Mitarbeitende | 610 |
+| Branding | 616 |
+| Einrichtungen und Organisationseinheiten | 620 |
 |  |  |
-| Dashboardelemente/Startmaske erstellen | 624 |
-| Einwilligungen | 628 |
-| DSGVO | 633 |
-| **Übergreifende Standards** | **634** |
-| Rollen/Rechte | 635 |
-| Prüfen von Gruppenmitgliedschaften und Berechtigungen | 637 |
-| Nachrichtenarten | 640 |
-| Variablen in Nachrichten verwenden | 641 |
-| Formeln und Berechnungen | 643 |
-| Individuelle E-Mail-Absenderadressen | 654 |
-| Informationen für Anwender des Altsystems | 660 |
-| Musterformular | 664 |
-| **Datenschutz, Löschkonzepte und Datenbereinigung** | **681** |
-| Überblick: Welches Verfahren passt zu Ihrem Anwendungsfall? | 681 |
-| Anonymisieren von Datensätzen | 682 |
-| Anonymisieren in der Aktenverwaltung | 686 |
-| Automatisches Löschen von Accounts | 691 |
-| Löschregeln und DSGVO-Fristen | 693 |
+| Dashboardelemente/Startmaske erstellen | 625 |
+| Einwilligungen | 629 |
+| DSGVO | 634 |
+| **Übergreifende Standards** | **635** |
+| Rollen/Rechte | 636 |
+| Prüfen von Gruppenmitgliedschaften und Berechtigungen | 638 |
+| Nachrichtenarten | 641 |
+| Variablen in Nachrichten verwenden | 642 |
+| Formeln und Berechnungen | 644 |
+| Individuelle E-Mail-Absenderadressen | 655 |
+| Informationen für Anwender des Altsystems | 661 |
+| Musterformular | 665 |
+| **Datenschutz, Löschkonzepte und Datenbereinigung** | **682** |
+| Überblick: Welches Verfahren passt zu Ihrem Anwendungsfall? | 682 |
+| Anonymisieren von Datensätzen | 683 |
+| Anonymisieren in der Aktenverwaltung | 687 |
+| Automatisches Löschen von Accounts | 692 |
+| Löschregeln und DSGVO-Fristen | 694 |
 
 ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAnCAYAAACSamGGAAAEI0lEQVR4XuWYW0xURxzGxxsxNdL4UlIMJsY+9E1tKDGxxgRrI2mMPpQ2Jk1NfKhKa5DGylqxClojiDReErRQYku7aTVeobsYagDtRg2J2OpCWZRLai3iBaEKyLL79T9z2LOH/6xpC3uWJv2SLzNnzsz/++3smQNZIf4PglfEoUmsRaPwkGGxh+6tk/f5mpgJzWImAdxlYJEt59F8XsNW0c41q/DAbgD7hl2ow+n28Vq2iIKG0PGSBc7i4B4OpbtJDPGaURWF3EHLizqc1Rwqkr3iN147KqId+EgFcCire97VgZ5lqsczxixV+MEKHSzk7nQd5G/MM8ak4VcMHZTPdLjgXsD3vAbwj0yvKJ41aplFOaB/ux78L82zRi2zKIcMjfceo2dsIvDrVOqfNsbk9eMqDYqbZ41aZtEn68OArUnG2L1co71fQI/DY6Pf9Qnw51mj3/ONBmYvZNMkA7A/MxzUd2m4vRyG7K8HBrxG/1GZBmYvZCTf3Wy03cVQCvV7nHSgZgBtC/U1NkH6eXHTN+cA7YvJr9FXTqe/JZHGXjbgug/o80faz7NGLVwXCRECwg4+pUNDryFfAjDYQY/FZLqON/p8rtWtIoFnjUlagNX+2wQWNww8aLS33zGeUz7XYp4xZuGGWM1DpAM3BH53zSa4ATrpO4FOOlTtqQT+B37Ki9fmm24Sq3lGVETFB3lYxzHL9c1ZRts8TbVdboG+KxEAqQ6vHTXRs5nMA3sv0D/nhzUI5Qs5tNO/6OOyDq8dVVHIAA99+CMBbZ0wYqxyncBgQwRAWs9r2qIIwWh1Wq69+v2QeS3bhEbata6l9JqZYobX54dBei/qcLGHbEuy/A1PVOHnNupAkcxr2SYVGNgVBvXFo3LtSJgH1ToguYvXsk3yHdddI9DiTkP/vc2ozZ6OcxkCdRvDdq0XqP5QoILgqzZMgJxPkG/yWrZpx8ma63kna1FUdgge5yr4yhfgTmkiHn31gumK7CQ1Lu/LeXK+XMdr2SoZetmTDndNJs6cd6DUdRhfuEpMy7FLnrdxq/5VdDbMUZC8hu2SodJVtRvg98Yh4J1MnoRg40TVDnmn4P61JBS7jqp54wKZe6KmMBT+LOccP4+PnVWq73C6V/EaMdFcRz6sTt5aiCW7i/HW/q+RUXYaju+rx28XQ5LhBxtacejnduXcU3UKKLO8Emn5JUjZVoR5xgfo42tjJgLoCO3igk8/R0pOERbu2I/lhV8i4+hZy1dfF+BrY6a8U7VtO89cNHfywNVbCiqr/AesOXIcaQUlmL+lACuLSlP42piKP5fSi/IO4r3i77DpWzfogOH9IxXP8XUx1dzs/CCHHGG6z9eMixatTO9N/sCBV7K2Y96mXaqV13Kczx1Xvf7GsqzU1NROMmS7ZOmy6P+091/WX8QxrQAzKUmCAAAAAElFTkSuQmCC)
 
@@ -1125,7 +1125,7 @@ Im Reiter **“Reihenfolge”** legen Sie die Abfolge der einzelnen Formularteil
 
 Im Reiter **“Beurteilungskriterien”** erstellen und verwalten Sie Kriterien, die für das Beurteilen eines Bewerbers durch Gutachter relevant sind.
 
-Detaillierte Informationen zum Konfigurieren finden Sie im Kapitel Gutachterfunktionen.
+Detaillierte Informationen zum Konfigurieren finden Sie im Kapitel Funktionen für Gutachter: Gutachtersicht und Gutachtermodul im Überblick.
 
 **Schlagworte:** Seite Layout im Formular, Aufbau Seite Layout, interne Kurzbezeichnung Formular, Formulargruppen zuordnen und filtern, Reiter Layout, Header-Bild und Formulartitel, Formularaufbau Formularteile Formularzeilen Felder, Reiter Reihenfolge Formularteile ändern, Reiter Beurteilungskriterien Bewerber Gutachter.
 
